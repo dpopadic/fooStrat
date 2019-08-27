@@ -5,6 +5,7 @@ Agenda
 ------
 
 - consolidate data into single file
+- use scrapy to crawl player data from fifa website
 - construct automatic data update ETL
 - create a factor library (stats / factors by team)
 - two types of bets: outcome (h, d, a), goals (later: 1st / 2nd half results, goals)
