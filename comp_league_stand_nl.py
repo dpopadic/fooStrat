@@ -1,11 +1,11 @@
 # -----------------------------------------------
-# --- DATA PROCESSING & BASIC STATISTICS
+# --- LEAGUE STANDINGS: NICHE LEAGUES
 # -----------------------------------------------
 import pandas as pd
 import numpy as np
 df = pd.read_pickle('pro_data/niche_leagues.pkl')
-# df = pd.read_pickle('pro_data/major_leagues.pkl')
-
+# dfm = pd.read_pickle('pro_data/major_leagues.pkl')
+# dfm.head()
 # id: team, league, date
 # factor families: team x (# wins, momentum ..), game (opponent, home-away, odds ..)
 
