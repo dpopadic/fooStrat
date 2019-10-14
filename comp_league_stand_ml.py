@@ -38,8 +38,56 @@ ml_map = pd.DataFrame(list(competition.items()), columns=['Div', 'Competition'])
 df = pd.merge(df, ml_map, on=['Div'], how='left')
 
 # 1. home team stats..
-df_h = df[['Competition','Date', 'HomeTeam','FTR','FTHG','FTAG']]
+df_h = df[['Competition','Season', 'HomeTeam','FTR','FTHG','FTAG']]
+df_h.columns = ['Competition','Season', 'Home','Res','Gsco','Grec']
+df_h["Res"] = df_h["Res"].apply(reconfig_res, persp='home')
+df_h["Points"] = df_h["Res"].apply(comp_pts)
+df_h['Team'] = df_h['Home']
+del(df_h['Home'])
 df_h.head()
+
+# 2. away team stats..
+df_a = df[['Competition','Season', 'AwayTeam','FTR','FTHG','FTAG']]
+df_a.columns = ['Competition','Season', 'Away','Res','Grec','Gsco']
+df_a["Res"] = df_a["Res"].apply(reconfig_res, persp='away')
+df_a["Points"] = df_a["Res"].apply(comp_pts)
+df_a['Team'] = df_a['Away']
+del(df_a['Away'])
+df_a.head()
+
+# 3. consolidate..
+dfc = pd.concat([df_h, df_a], axis=0, sort=True)
+dfc_tot_pts = dfc.groupby(by=['Competition','Season','Team'])[['Points','Gsco','Grec']].sum()
+dfc_tot_pts = dfc_tot_pts.reset_index()
+
+# 4. number of wins..
+dfc_agg_wdl = dfc.pivot_table(index=['Competition','Season','Team'], columns='Res', values='Gsco', aggfunc='count').reset_index()
+del(dfc_agg_wdl[''])
+
+# 5. add number of wins to standings..
+dfc_tot_pts = pd.merge(dfc_tot_pts, dfc_agg_wdl, on=['Competition','Season','Team'], how='left')
+
+# show example table..
+dfc_tot_pts['Competition'].unique()
+dfc_tot_pts['Season'].unique()
+tbl_ill = dfc_tot_pts[(dfc_tot_pts.Competition=='Spain La Liga') & (dfc_tot_pts.Season=='2018/2019')]
+tbl_ill2 = tbl_ill.sort_values('Points', ascending=False)
+tbl_ill2['Rank'] = np.array(range(1, len(tbl_ill2) + 1))
+
+
+
+
+
+
+
+
+# df_h['Season'] = pd.DatetimeIndex(df_h['Date']).year
+
+df_h['Season'] = pd.to_datetime(df_h['Date']).dt.to_period('M')
+
+a = pd.DataFrame(df_h['Season'].unique(), columns=['Date']).sort_values(by='Date')
+a.info()
+
 df_h['Season'] = df_h.loc[:,'Date'].str.slice(start=2)
 df_h.info()
 df_h.loc[:,'Date']

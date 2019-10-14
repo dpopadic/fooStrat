@@ -14,11 +14,15 @@ import os
 src_dat_path = os.path.join(os.getcwd(), 'src_data', '')
 fi_nm = ['src_data/' + f for f in os.listdir(src_dat_path) if f[:13] == 'all-euro-data']
 
+a = df['Season'].unique()
+
 df = pd.DataFrame()
 for f in fi_nm:
     df0 = pd.read_excel(f, sheet_name=None)
     for key, i in df0.items():
+        i['Season'] = f[23:32]
         df = df.append(i, ignore_index=True, sort=False)
+        print(f[23:32])
 df.to_pickle('./pro_data/major_leagues.pkl')
 
 
