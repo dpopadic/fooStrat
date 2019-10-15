@@ -3,6 +3,7 @@
 # -----------------------------------------------
 import pandas as pd
 import numpy as np
+from foostrat_utils import comp_pts, reconfig_res
 # useful packages: TensorFlow, Theano, PyTorch, Keras, Scikit-Learn, NumPy, SciPy, Pandas, statsmodels
 
 df = pd.read_pickle('pro_data/major_leagues.pkl')
@@ -67,37 +68,15 @@ del(dfc_agg_wdl[''])
 # 5. add number of wins to standings..
 dfc_tot_pts = pd.merge(dfc_tot_pts, dfc_agg_wdl, on=['Competition','Season','Team'], how='left')
 
+# 6. store standings..
+dfc_tot_pts.to_pickle('./pro_data/major_standings.pkl')
+
 # show example table..
 dfc_tot_pts['Competition'].unique()
 dfc_tot_pts['Season'].unique()
-tbl_ill = dfc_tot_pts[(dfc_tot_pts.Competition=='Spain La Liga') & (dfc_tot_pts.Season=='2018/2019')]
+tbl_ill = dfc_tot_pts[(dfc_tot_pts.Competition=='England Premier League') & (dfc_tot_pts.Season=='2019-2020')]
 tbl_ill2 = tbl_ill.sort_values('Points', ascending=False)
 tbl_ill2['Rank'] = np.array(range(1, len(tbl_ill2) + 1))
-
-
-
-
-
-
-
-
-# df_h['Season'] = pd.DatetimeIndex(df_h['Date']).year
-
-df_h['Season'] = pd.to_datetime(df_h['Date']).dt.to_period('M')
-
-a = pd.DataFrame(df_h['Season'].unique(), columns=['Date']).sort_values(by='Date')
-a.info()
-
-df_h['Season'] = df_h.loc[:,'Date'].str.slice(start=2)
-df_h.info()
-df_h.loc[:,'Date']
-
-
-
-
-
-
-
 
 
 

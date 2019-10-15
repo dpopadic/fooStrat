@@ -3,6 +3,7 @@
 # -----------------------------------------------
 import pandas as pd
 import numpy as np
+from foostrat_utils import comp_pts, reconfig_res
 df = pd.read_pickle('pro_data/niche_leagues.pkl')
 # dfm = pd.read_pickle('pro_data/major_leagues.pkl')
 # dfm.head()

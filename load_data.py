@@ -14,8 +14,6 @@ import os
 src_dat_path = os.path.join(os.getcwd(), 'src_data', '')
 fi_nm = ['src_data/' + f for f in os.listdir(src_dat_path) if f[:13] == 'all-euro-data']
 
-a = df['Season'].unique()
-
 df = pd.DataFrame()
 for f in fi_nm:
     df0 = pd.read_excel(f, sheet_name=None)
