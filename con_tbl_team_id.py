@@ -13,18 +13,14 @@ teams_tmp_n = pd.DataFrame(df_n[['Home', 'Away']].melt().value.unique(), columns
 teams_tmp2_n = pd.DataFrame(np.array(range(1, len(teams_tmp_n)+1)) + 1000, columns=['team_id'])
 teams_n = pd.concat([teams_tmp_n, teams_tmp2_n], axis=1)
 
-teams.to_pickle('./pro_data/teams.pkl')
-teams.head()
-teams.shape
-
 # --- major leagues:
 df_m = pd.read_pickle('pro_data/major_leagues.pkl')
 teams_tmp_m = pd.DataFrame(df_m[['HomeTeam', 'AwayTeam']].melt().value.unique(), columns=['val']).sort_values(by='val')
 teams_tmp2_m = pd.DataFrame(np.array(range(1, len(teams_tmp_m)+1)) + 10000, columns=['team_id'])
 teams_m = pd.concat([teams_tmp_m, teams_tmp2_m], axis=1)
 
-# manage double counting..
-a = pd.merge(teams_n, teams_m, on=['val'], how='inner')
-
-
+# consolidate and manage double counting..
+# a = pd.merge(teams_n, teams_m, on=['val'], how='inner') .. - no double counting it seems
+teams = pd.concat([teams_n, teams_m], axis=0)
+teams.to_pickle('./pro_data/teams.pkl')
 
