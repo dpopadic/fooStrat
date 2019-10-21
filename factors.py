@@ -1,4 +1,4 @@
-
+import pandas as pd
 # --- goal superiority rating
 # - hypothesis: Goal difference provides one measure of the dominance of one football side over another in a match. The
 # assumption for a goals superiority rating system, then, is that teams who score more goals and concede fewer over
@@ -9,8 +9,23 @@
 
 # other approaches: find what kind of bets are the most mispriced
 
+df_stand = pd.read_pickle('pro_data/major_standings.pkl')
+df_stand.head()
 
 
+df = pd.read_pickle('pro_data/major_leagues.pkl')
+# home..
+dfh = df.loc[:,['Div','Date','HomeTeam','FTHG','FTAG']]
+dfh['Home'] = True
+dfh = dfh.rename(columns={'HomeTeam':'Team',  'FTHG':'Gsco', 'FTAG':'Grec'})
+# away..
+dfa = df.loc[:,['Div','Date','AwayTeam','FTHG','FTAG']]
+dfa['Home'] = False
+dfa = dfa.rename(columns={'AwayTeam':'Team', 'FTHG':'Grec', 'FTAG':'Gsco'})
+# consolidated..
+df_con = pd.concat([dfh, dfa], axis=0).sort_values(by='Date', ascending=False)
+# compute factor..
+df_con.gro
 
 
 
