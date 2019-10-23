@@ -25,8 +25,13 @@ dfa = dfa.rename(columns={'AwayTeam':'Team', 'FTHG':'Grec', 'FTAG':'Gsco'})
 # consolidated..
 df_con = pd.concat([dfh, dfa], axis=0).sort_values(by='Date', ascending=False)
 # compute factor..
-df_con.gro
+df_con = df_con.dropna()
+df_gsr = df_con.sort_values('Date').groupby(by=['Div','Team'])['Gsco','Grec'].rolling(3, min_periods=1).sum().reset_index()
 
+df_con.dtypes
+df_gsr.dtypes
+df_gsr.describe()
+a = df_con.loc[:,['Gsco','Grec']].rolling(3).sum()
 
 
 
