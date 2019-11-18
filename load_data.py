@@ -19,7 +19,10 @@ for f in fi_nm:
     df0 = pd.read_excel(f, sheet_name=None)
     for key, i in df0.items():
         i['Season'] = f[23:32]
-        df = df.append(i, ignore_index=True, sort=False)
+        df_lf = pd.melt(i, id_vars=['Div', 'Date', 'HomeTeam', 'AwayTeam'],
+                        var_name='field',
+                        value_name='val').dropna()
+        df = df.append(df_lf, ignore_index=True, sort=False)
         print(f[23:32])
 df.to_pickle('./pro_data/major_leagues.pkl')
 

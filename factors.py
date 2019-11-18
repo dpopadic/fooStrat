@@ -1,4 +1,6 @@
 import pandas as pd
+import numpy as np
+
 # --- goal superiority rating
 # - hypothesis: Goal difference provides one measure of the dominance of one football side over another in a match. The
 # assumption for a goals superiority rating system, then, is that teams who score more goals and concede fewer over
@@ -32,6 +34,23 @@ df_con.dtypes
 df_gsr.dtypes
 df_gsr.describe()
 a = df_con.loc[:,['Gsco','Grec']].rolling(3).sum()
+
+
+# odds for win/loss..
+odds_clmn_h = ['AvgH', 'B365H', 'BWH', 'IWH', 'PSH', 'WHH', 'VCH', 'BbAvH', 'PSCH']
+odds_clmn_d = ['AvgD', 'B365D', 'BWD', 'IWD', 'PSD', 'WHD', 'VCD', 'BbAvD', 'PSCD']
+odds_clmn_a = ['AvgA', 'B365A', 'BWA', 'IWA', 'PSA', 'WHA', 'VCA', 'BbAvA', 'PSCA']
+odds_clmn_b25 = ['BbMx<2.5', 'BbAv<2.5']
+odds_clmn_a25 = ['BbMx>2.5', 'BbAv>2.5']
+
+df_lf = pd.melt(df, id_vars=['Div', 'Date', 'HomeTeam', 'AwayTeam'], var_name='field', value_name='val').dropna()
+df_lf.dropna()
+df_lf.dtypes
+# write a function that retrieves the count of all column names across sheets..
+df11 = df.iloc[1:5, :]
+
+dfh_wl = df.loc[:,['Div','Date','HomeTeam','AvgH','AvgD','AvgA']].sort_values(by='Date', ascending=False)
+
 
 
 

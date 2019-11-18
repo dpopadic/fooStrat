@@ -26,3 +26,20 @@ def reconfig_res(res, persp):
     else:
         score = ''
     return(score)
+
+def ret_xl_cols(file_names, id_col):
+    """Returns all available columns across all tabs and multiple excel files."""
+    df_cols = pd.DataFrame()
+    for f in file_names:
+        df0 = pd.read_excel(f, sheet_name=None)
+        for key, i in df0.items():
+            seas = f[23:32]
+            if (i.shape[0] == 0):
+                val = np.nan
+            else:
+                val = i.loc[1, id_col]
+            df_tmp = pd.DataFrame({"field": i.columns.values, id_col: val, "season": seas})
+            df_cols = df_cols.append(df_tmp, ignore_index=True, sort=False)
+    return(df_cols)
+
+
