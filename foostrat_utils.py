@@ -43,3 +43,14 @@ def ret_xl_cols(file_names, id_col):
     return(df_cols)
 
 
+def proc_data_ml(fi_nm, extra_key):
+    """Goes through a list of excel files with multiple tabs and consolidates
+    all sheets in one large data-frame. Extra keys can be provided for each
+    excel file."""
+
+
+
+
+
+
+
