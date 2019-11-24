@@ -1,5 +1,14 @@
 def comp_pts(res):
-    """Returns the points scored for each game given a string of W, D or L."""
+    """Computes the points scored for each game given a string of W, D or L.
+
+    Parameters:
+    -----------
+    res (str): a string W, D, L that represents a win, draw or loss event
+
+    Returns:
+    --------
+    score (int): a score of 0, 1, 3 representing the points won from the event
+    """
     if res=='W':
         score = 3
     elif res=='L':
@@ -10,9 +19,11 @@ def comp_pts(res):
         score = 0
     return(score)
 
+
 def reconfig_res(res, persp):
     """Returns W, D, L for each game given a string of H, D or A and
-    the perspective (home / away)."""
+    the perspective (home / away).
+    """
     if res=='H' and persp=='home':
         score = 'W'
     elif res=='H' and persp=='away':
@@ -43,10 +54,6 @@ def ret_xl_cols(file_names, id_col):
     return(df_cols)
 
 
-def proc_data_ml(fi_nm, extra_key):
-    """Goes through a list of excel files with multiple tabs and consolidates
-    all sheets in one large data-frame. Extra keys can be provided for each
-    excel file."""
 
 
 

@@ -1,7 +1,8 @@
+# FACTOR CALCULATION ----------------------------------------------------
 import pandas as pd
 import numpy as np
 
-# --- goal superiority rating
+# goal superiority rating -----------------------------------------------
 # - hypothesis: Goal difference provides one measure of the dominance of one football side over another in a match. The
 # assumption for a goals superiority rating system, then, is that teams who score more goals and concede fewer over
 # the course of a number of matches are more likely to win their next game. Typically, recent form means the last 4,
@@ -10,6 +11,8 @@ import numpy as np
 # Leeds it is also -3.
 
 # other approaches: find what kind of bets are the most mispriced
+# factors: 3y h2h, last 10 matches in all competitions, average goals, moment of goals
+
 
 df_stand = pd.read_pickle('pro_data/major_standings.pkl')
 df_stand.head()
