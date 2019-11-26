@@ -4,6 +4,7 @@
 # 1. python -m pip install certifi
 # 2. in terminal: /Applications/Python\ 3.7/Install\ Certificates.command
 import urllib.request
+from crontab import CronTab
 
 # major leagues ---------------------------------------------------
 url_source = 'http://football-data.co.uk/mmz4281/1920/all-euro-data-2019-2020.xlsx'
