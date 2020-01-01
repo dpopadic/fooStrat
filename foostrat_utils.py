@@ -54,7 +54,30 @@ def ret_xl_cols(file_names, id_col):
     return(df_cols)
 
 
-
+# mapping leagues..
+competition = {'E0':'England Premier League',
+               'E1':'England Championship League',
+               'E2':'England Football League One',
+               'E3':'England Football League Two',
+               'EC':'England National League',
+               'SC0':'Scottish Premiership',
+               'SC1':'Scottish Championship',
+               'SC2':'Scottish League One',
+               'SC3':'Scottish League Two',
+               'D1':'German Bundesliga',
+               'D2':'German 2. Bundesliga',
+               'SP1':'Spain La Liga',
+               'SP2':'Spain Segunda Division',
+               'I1':'Italy Serie A',
+               'I2':'Italy Serie B',
+               'F1':'France Ligue 1',
+               'F2':'France Ligue 2',
+               'N1':'Dutch Eredivisie ',
+               'B1':'Belgian First Division A',
+               'P1':'Portugal',
+               'T1':'Turkey Süper Lig',
+               'G1':'Greek Super League'}
+ml_map = pd.DataFrame(list(competition.items()), columns=['Div', 'Competition'])
 
 
 
