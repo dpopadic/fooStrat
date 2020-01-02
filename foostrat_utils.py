@@ -58,7 +58,7 @@ def ret_xl_cols(file_names, id_col):
     return(df_cols)
 
 
-def comp_league_standing(data, season=None):
+def comp_league_standing(data, season=None, home_goals='FTHG', away_goals='FTAG', result='FTR'):
     """Computes the standings, ranks, goals etc. for a single or multiple divisions by
     season. The input table therefore needs to have the following columns:
     div, season, date, home_team, away_team, field, val
@@ -87,18 +87,18 @@ def comp_league_standing(data, season=None):
         df_fw[['season', 'div', 'home_team', 'away_team']].astype(str, errors='ignore')
 
     # home team stats..
-    df_h = df_fw.loc[:, ['season', 'div', 'date', 'home_team', 'FTAG', 'FTHG', 'FTR']]
-    df_h['points'] = df_h['FTR'].apply(lambda x: 3 if x == 'H' else (1 if x == 'D' else 0))
-    df_h['res'] = df_h['FTR'].apply(lambda x: 'w' if x == 'H' else ('d' if x == 'D' else 'l'))
-    df_h.rename(columns={'home_team': 'team', 'FTAG': 'goals_received', 'FTHG': 'goals_scored'}, inplace=True)
-    df_h = df_h.drop(['FTR'], axis=1)
+    df_h = df_fw.loc[:, ['season', 'div', 'date', 'home_team', away_goals, home_goals, result]]
+    df_h['points'] = df_h[result].apply(lambda x: 3 if x == 'H' else (1 if x == 'D' else 0))
+    df_h['res'] = df_h[result].apply(lambda x: 'w' if x == 'H' else ('d' if x == 'D' else 'l'))
+    df_h.rename(columns={'home_team': 'team', away_goals: 'goals_received', home_goals: 'goals_scored'}, inplace=True)
+    df_h = df_h.drop([result], axis=1)
 
     # away team stats..
-    df_a = df_fw.loc[:, ['season', 'div', 'date', 'away_team', 'FTAG', 'FTHG', 'FTR']]
-    df_a['points'] = df_a['FTR'].apply(lambda x: 3 if x == 'A' else (1 if x == 'D' else 0))
-    df_a['res'] = df_a['FTR'].apply(lambda x: 'w' if x == 'A' else ('d' if x == 'D' else 'l'))
-    df_a.rename(columns={'away_team': 'team', 'FTAG': 'goals_scored', 'FTHG': 'goals_received'}, inplace=True)
-    df_a = df_a.drop(['FTR'], axis=1)
+    df_a = df_fw.loc[:, ['season', 'div', 'date', 'away_team', away_goals, home_goals, result]]
+    df_a['points'] = df_a[result].apply(lambda x: 3 if x == 'A' else (1 if x == 'D' else 0))
+    df_a['res'] = df_a[result].apply(lambda x: 'w' if x == 'A' else ('d' if x == 'D' else 'l'))
+    df_a.rename(columns={'away_team': 'team', away_goals: 'goals_scored', home_goals: 'goals_received'}, inplace=True)
+    df_a = df_a.drop([result], axis=1)
 
     # consolidate..
     dfc = pd.concat([df_h, df_a], axis=0, sort=True)
