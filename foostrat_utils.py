@@ -58,10 +58,16 @@ def ret_xl_cols(file_names, id_col):
     return(df_cols)
 
 
-def comp_league_standing(data):
+def comp_league_standing(data, season=None):
     """Computes the standings, ranks, goals etc. for a single or multiple divisions by
     season. The input table therefore needs to have the following columns:
     div, season, date, home_team, away_team, field, val
+
+    Parameters:
+    -----------
+    data (dataframe): a dataframe with columns div, season, date, home_team, away_team, field, val
+    season (list): a list of values in season for which to calculate standings (defaults to None in which case
+    standings for all seasons are calculated)
 
     Returns:
     --------
@@ -69,6 +75,8 @@ def comp_league_standing(data):
     columns: div | season | team | points | goals_scored | goals_received | d | l | w | rank
 
     """
+    if season is not None:
+        data = data[data['season'].isin(season)]
 
     # extract relevant fields..
     df_fw = data.pivot_table(index=['season', 'div', 'date', 'home_team', 'away_team'],

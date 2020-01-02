@@ -12,8 +12,9 @@ df.head()
 
 # extract relevant fields..
 df_f = df[(df.field == 'FTR') | (df.field == 'FTHG') | (df.field == 'FTAG')]
+
 # calculate standings..
-tbl = comp_league_standing(df_f)
+tbl = comp_league_standing(df_f, season=['2019-2020'])
 # store standings..
 tbl.to_pickle('./pro_data/major_standings.pkl')
 # tmp = pd.read_pickle('pro_data/major_standings.pkl')
