@@ -1,6 +1,9 @@
 import pandas as pd
 import numpy as np
 
+
+# FUNCTIONS TO SUPPORT THE RUNNING OF THE PROJECT ------------------------------------
+
 def comp_pts(res):
     """Computes the points scored for each game given a string of W, D or L.
 
@@ -120,7 +123,88 @@ def comp_league_standing(data, season=None, home_goals='FTHG', away_goals='FTAG'
     return(tbl)
 
 
-# MAPPING DIVISION TABLE -----------------------------------------------
+
+
+
+def process_data_major(fi_nm, extra_key):
+    """Processes the structured data that is stored in tabs in multiple excel files and puts them together tidied up.
+    The excel files need not to have the same fields/columns but they do need to have the key columns present. Key
+    columns are: Div | Date | HomeTeam | AwayTeam | FTHG | FTAG | FTR
+
+    Parameters:
+    -----------
+        fi_nm (list): a list with names of all excel files that should be processed
+        extra_key (dataframe): a dataframe with columns fi_nm, season that assigns a key to each excel file name so
+        that later on one knows from which source the data came from
+
+    Returns:
+    --------
+        A dataframe with all processed data is returned with the following columns:
+        season | div | date | home_team | away_team | field | val
+
+    Example:
+    --------
+    fi_nm = ['src_data/all-euro-data-2017-2018.xlsx', 'src_data/all-euro-data-1999-2000.xls']
+    extra_key = pd.DataFrame({'fi_nm':fi_nm, 'season':[i[23:32] for i in fi_nm]})
+    print(extra_key)
+                                       fi_nm     season
+    0  src_data/all-euro-data-2017-2018.xlsx  2017-2018
+    1   src_data/all-euro-data-1999-2000.xls  1999-2000
+
+    df = process_data_major(fi_nm, extra_key)
+    print(df)
+
+               season div       date       home_team      away_team field val
+    0       2017-2018  E0 2017-08-11         Arsenal      Leicester  FTHG   4
+    1       2017-2018  E0 2017-08-12        Brighton       Man City  FTHG   0
+    2       2017-2018  E0 2017-08-12         Chelsea        Burnley  FTHG   2
+    3       2017-2018  E0 2017-08-12  Crystal Palace   Huddersfield  FTHG   0
+    4       2017-2018  E0 2017-08-12         Everton          Stoke  FTHG   1
+
+    Details:
+    --------
+    It can happen that the key columns have two different names for the same thing across multiple files (eg.
+    HomeTeam in one file and HT in another). This is dealt with in the function, although hardcoded for now.
+    The following key columns name differences are covered:
+        HT and HomeTeam
+        AT and AwayTeam
+
+    """
+    # add season as additional key variable..
+    key_cols = ['season', 'Div', 'Date', 'HomeTeam', 'AwayTeam']
+    # the key columns can have 2 different symbologies..
+    key_cols_map = {'HT': 'HomeTeam', 'AT': 'AwayTeam'}
+    df = pd.DataFrame()
+    for f in fi_nm:
+        df0 = pd.read_excel(f, sheet_name=None)
+        for key, i in df0.items():
+            si = extra_key[extra_key['fi_nm'] == f].iloc[0, 1]
+            i['season'] = si
+            if i.shape[0] == 0:
+                continue
+            else:
+                if sum(s in key_cols for s in i.columns) != len(key_cols):
+                    i = i.rename(columns=key_cols_map)
+                else:
+                    df_lf = pd.melt(i,
+                                    id_vars=key_cols,
+                                    var_name='field',
+                                    value_name='val').dropna()
+                    df = df.append(df_lf, ignore_index=True, sort=False)
+            print(si + ' league: ' + i['Div'][0])
+
+    # rename columns to lower case..
+    df = df.rename(columns={'Div': 'div',
+                            'Date': 'date',
+                            'HomeTeam': 'home_team',
+                            'AwayTeam': 'away_team'})
+    return(df)
+
+
+
+
+
+# MAPPING DIVISION TABLE ------------------------------------------------------------------
 competition = {'E0':'England Premier League',
                'E1':'England Championship League',
                'E2':'England Football League One',

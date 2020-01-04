@@ -2,6 +2,7 @@
 Statistical analysis and strategy development for football data
 
 > Prepare/update data ```data_processing```
+
 > Functions and other support material required to perform tasks ```foostrat_utils```
 
 
