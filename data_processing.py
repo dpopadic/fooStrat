@@ -2,7 +2,7 @@
 import pandas as pd
 import numpy as np
 import os
-from foostrat_utils import comp_pts, reconfig_res, ret_xl_cols
+from foostrat_utils import ret_xl_cols
 
 # major leagues ---------------------------------------------------
 # get all data file names..
