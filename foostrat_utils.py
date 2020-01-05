@@ -124,18 +124,19 @@ def comp_league_standing(data, season=None, home_goals='FTHG', away_goals='FTAG'
 
 
 
-
-
-def process_data_major(fi_nm, extra_key):
+def process_data_major(fi_nm, extra_key, key_cols, key_cols_map):
     """Processes the structured data that is stored in tabs in multiple excel files and puts them together tidied up.
     The excel files need not to have the same fields/columns but they do need to have the key columns present. Key
-    columns are: Div | Date | HomeTeam | AwayTeam | FTHG | FTAG | FTR
+    columns are: Div | Date | HomeTeam | AwayTeam
 
     Parameters:
     -----------
         fi_nm (list): a list with names of all excel files that should be processed
         extra_key (dataframe): a dataframe with columns fi_nm, season that assigns a key to each excel file name so
         that later on one knows from which source the data came from
+        key_cols (dict): a dictionary specifying the key columns and the output names of these keys
+        key_cols_map (dict): in case that key columns can have 2 different names for a single key column across
+        multiple files, specify the key column mapping here (see Details for more)
 
     Returns:
     --------
@@ -151,7 +152,12 @@ def process_data_major(fi_nm, extra_key):
     0  src_data/all-euro-data-2017-2018.xlsx  2017-2018
     1   src_data/all-euro-data-1999-2000.xls  1999-2000
 
-    df = process_data_major(fi_nm, extra_key)
+    df = process_data_major(fi_nm, extra_key,
+                                    key_cols = {'Div': 'div',
+                                                'Date': 'date',
+                                                'HomeTeam': 'home_team',
+                                                'AwayTeam': 'away_team'},
+                                    key_cols_map = {'HT': 'HomeTeam', 'AT': 'AwayTeam'})
     print(df)
 
                season div       date       home_team      away_team field val
@@ -171,33 +177,87 @@ def process_data_major(fi_nm, extra_key):
 
     """
     # add season as additional key variable..
-    key_cols = ['season', 'Div', 'Date', 'HomeTeam', 'AwayTeam']
+    key_cols_l = list(key_cols.keys())
+    extra_key_nm = extra_key.columns[1]
+    key_cols_l.append(extra_key_nm)
+
+    # key_cols = ['season', 'Div', 'Date', 'HomeTeam', 'AwayTeam']
     # the key columns can have 2 different symbologies..
-    key_cols_map = {'HT': 'HomeTeam', 'AT': 'AwayTeam'}
+    # key_cols_map = {'HT': 'HomeTeam', 'AT': 'AwayTeam'}
     df = pd.DataFrame()
     for f in fi_nm:
         df0 = pd.read_excel(f, sheet_name=None)
         for key, i in df0.items():
             si = extra_key[extra_key['fi_nm'] == f].iloc[0, 1]
-            i['season'] = si
+            i[extra_key_nm] = si
             if i.shape[0] == 0:
                 continue
             else:
-                if sum(s in key_cols for s in i.columns) != len(key_cols):
+                if sum(s in key_cols_l for s in i.columns) != len(key_cols_l):
                     i = i.rename(columns=key_cols_map)
                 else:
                     df_lf = pd.melt(i,
-                                    id_vars=key_cols,
+                                    id_vars=key_cols_l,
                                     var_name='field',
                                     value_name='val').dropna()
                     df = df.append(df_lf, ignore_index=True, sort=False)
             print(si + ' league: ' + i['Div'][0])
 
     # rename columns to lower case..
-    df = df.rename(columns={'Div': 'div',
-                            'Date': 'date',
-                            'HomeTeam': 'home_team',
-                            'AwayTeam': 'away_team'})
+    df = df.rename(columns=key_cols)
+    return(df)
+
+
+
+def process_data_minor(data, key_cols):
+    """Processes the structured data that is stored in a single file and processes it in a tidied up way. The excel
+     file does not need to have the same fields/columns but it needs to have the key columns present. Key
+     columns are: Country | League | Date | Season | Home | Away
+
+    Parameters:
+    -----------
+        data (ordered dict): a ordered dictionary with dataframe's with all data to be processed and at least all key
+        columns
+        key_cols (dict): a dictionary specifying all key columns which are:
+        Country | League | Date | Season | Home | Away
+
+    Returns:
+    --------
+    A dataframe with all processed data is returned with the following columns:
+        season | div | date | home_team | away_team | field | val
+
+                date  season       home_team  ... field       val             div
+    0     2012-05-19    2012       Palmeiras  ...  Time  22:30:00  Brazil Serie A
+    1     2012-05-19    2012    Sport Recife  ...  Time  22:30:00  Brazil Serie A
+    2     2012-05-20    2012     Figueirense  ...  Time  01:00:00  Brazil Serie A
+    3     2012-05-20    2012     Botafogo RJ  ...  Time  20:00:00  Brazil Serie A
+    4     2012-05-20    2012     Corinthians  ...  Time  20:00:00  Brazil Serie A
+
+    """
+
+    # add season as additional key variable..
+    key_cols_l = list(key_cols.keys())
+
+    df = pd.DataFrame()
+    for key, i in di.items():
+        if i.shape[0] == 0:
+            # in case of no data skip to next..
+            continue
+        else:
+            df_lf = pd.melt(i,
+                            id_vars=key_cols_l,
+                            var_name='field',
+                            value_name='val').dropna()
+            df = df.append(df_lf, ignore_index=True, sort=False)
+
+    # transform to appropriate shape..
+    df['div'] = df['Country'] + ' ' + df['League']
+    del (df['Country'])
+    del (df['League'])
+    # rename existing columns..
+    cmn_cols = list(set(df.columns) & set(key_cols_l))
+    key_cols_av = {k: v for k, v in key_cols.items() if k in cmn_cols}
+    df = df.rename(columns=key_cols_av)
     return(df)
 
 
