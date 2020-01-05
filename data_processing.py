@@ -1,4 +1,6 @@
-# DATA LOADING ----------------------------------------------------
+# ----------------------------------------------------
+# --- DATA PROCESSING
+# ----------------------------------------------------
 import pandas as pd
 import numpy as np
 import os
@@ -34,8 +36,18 @@ df2 = process_data_minor(data,
                                      'Away': 'away_team'})
 
 
-# put together ----------------------------------------------------
+# put together and store ------------------------------------------
 data_prc = pd.concat([df2, df], axis=0, sort=False)
+
+# data synchronisation: renaming fields so that they have the same names to make it easier to process the data later in
+# a concise way.
+# data_prc = pd.read_pickle('pro_data/data_prc.pkl')
+
+# full-time home/away goals, results
+data_prc['field'] = data_prc['field'].replace({'FTR':'FTR', 'Res':'FTR',
+                                               'FTHG':'FTHG', 'HG':'FTHG',
+                                               'FTAG': 'FTAG', 'AG': 'FTAG'})
+
 data_prc.to_pickle('./pro_data/data_prc.pkl')
 
 
