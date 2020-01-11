@@ -4,22 +4,31 @@
 # 1. python -m pip install certifi
 # 2. in terminal: /Applications/Python\ 3.7/Install\ Certificates.command
 import urllib.request
-from crontab import CronTab
+from datetime import datetime
 
-# major leagues ---------------------------------------------------
-url_source = 'http://football-data.co.uk/mmz4281/1920/all-euro-data-2019-2020.xlsx'
-url_store = 'src_data/'
-file_nm = 'latest_results_ml.xlsx'
-# store the file in the global-databases folder
-urllib.request.urlretrieve(url_source, url_store + file_nm)
+# Download the latest data ----------------------------------------
 
-# niche leagues ---------------------------------------------------
-url_source = 'https://www.football-data.co.uk/new/new_leagues_data.xlsx'
-url_store = 'src_data/'
-file_nm = 'latest_results_nl.xlsx'
-# store the file in the global-databases folder
-urllib.request.urlretrieve(url_source, url_store + file_nm)
+# football-data.co.uk ---------------------------------------------
+url_source = ['http://football-data.co.uk/mmz4281/1920/all-euro-data-2019-2020.xlsx',
+              'https://www.football-data.co.uk/new/new_leagues_data.xlsx',
+              'https://www.football-data.co.uk/fixtures.xlsx',
+              'https://www.football-data.co.uk/new_league_fixtures.xlsx']
+file_nm = ['latest_results_major.xlsx',
+           'latest_results_minor.xlsx',
+           'latest_fixtures_major.xlsx',
+           'latest_fixtures_minor.xlsx']
 
+url_store = '/Users/dariopopadic/PycharmProjects/fooStrat/src_data/'
+for ob in range(len(url_source)):
+    urllib.request.urlretrieve(url_source[ob], url_store + file_nm[ob])
+    print(url_source[ob], file_nm[ob])
+
+
+# last update stamp -----------------------------------------------
+fl = url_store + 'data_updated.txt'
+fo = open(fl, 'a+')
+fo.write('\nData updated on ' + str(datetime.now()))
+fo.close()
 
 
 

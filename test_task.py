@@ -1,10 +1,12 @@
 # test task ----------------------
-# import pandas as pd
-# import numpy as np
-# df_test = pd.DataFrame({'x': np.random.normal(0.05, 0.3, 1000),
-#                         'y': np.random.normal(0.07, 0.9, 1000)})
-# df_test.to_pickle('./pro_data/df_test.pkl')
-
+import os
 from datetime import datetime
-myFile = open('append.txt', 'a')
+# relevant working directory..
+# if in project: proj_path = os.path.join(os.getcwd(), '')
+proj_path = '/Users/dariopopadic/PycharmProjects/fooStrat/'
+fl = proj_path + 'append.txt'
+myFile = open(fl, 'a+')
 myFile.write('\nAccessed on ' + str(datetime.now()))
+myFile.close()
+
+

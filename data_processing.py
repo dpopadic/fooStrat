@@ -23,7 +23,7 @@ df.to_pickle('./pro_data/data_major_leagues.pkl')
 # parameter: season or fi_nm
 # fi_nm = fi_nm[1:3]
 
-# niche leagues ---------------------------------------------------
+# minor leagues ---------------------------------------------------
 # data file..
 data = pd.read_excel('src_data/new_leagues_data.xlsx', sheet_name=None)
 # process data..
