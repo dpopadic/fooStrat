@@ -13,51 +13,36 @@ import numpy as np
 # other approaches: find what kind of bets are the most mispriced
 # factors: 3y h2h, last 10 matches in all competitions, average goals, moment of goals
 
+data_prc = pd.read_pickle('pro_data/data_prc.pkl')
+data_prc.head()
 
-df_stand = pd.read_pickle('pro_data/major_standings.pkl')
-df_stand.head()
+data_goals = data_prc[(data_prc['field'].isin(['FTAG', 'FTHG']))]
+data_goals['val'] = data_goals['val'].apply(pd.to_numeric)
+tmp = pd.pivot_table(data_goals, index=['div','season','date','home_team','away_team'], columns='field', values='val').reset_index()
 
+# home team..
+tmp1 = tmp[['div','season','date','home_team','FTHG','FTAG']]
+tmp1.rename(columns={'home_team':'team', 'FTHG':'g_scored', 'FTAG':'g_received'}, inplace=True)
+# away team..
+tmp2 = tmp[['div','season','date','away_team','FTHG','FTAG']]
+tmp2.rename(columns={'away_team':'team', 'FTAG':'g_scored', 'FTHG':'g_received'}, inplace=True)
+# put together..
+data_goals_co = pd.concat([tmp1, tmp2], axis=0, sort=False, ignore_index=True)
 
-df = pd.read_pickle('pro_data/major_leagues.pkl')
-# home..
-dfh = df.loc[:,['Div','Date','HomeTeam','FTHG','FTAG']]
-dfh['Home'] = True
-dfh = dfh.rename(columns={'HomeTeam':'Team',  'FTHG':'Gsco', 'FTAG':'Grec'})
-# away..
-dfa = df.loc[:,['Div','Date','AwayTeam','FTHG','FTAG']]
-dfa['Home'] = False
-dfa = dfa.rename(columns={'AwayTeam':'Team', 'FTHG':'Grec', 'FTAG':'Gsco'})
-# consolidated..
-df_con = pd.concat([dfh, dfa], axis=0).sort_values(by='Date', ascending=False)
-# compute factor..
-df_con = df_con.dropna()
-df_gsr = df_con.sort_values('Date').groupby(by=['Div','Team'])['Gsco','Grec'].rolling(3, min_periods=1).sum().reset_index()
+# compute stat..
+data_goals_co_i = data_goals_co.set_index('date')
+data_goals_co1 = data_goals_co_i.sort_values('date').groupby(['team'])[['g_scored', 'g_received']].rolling(3, min_periods=1).sum().reset_index()
+data_goals_co1['val'] = data_goals_co1['g_scored'] - data_goals_co1['g_received']
+data_goals_co1.drop(['g_scored', 'g_received'], axis=1, inplace=True)
+data_fct = pd.merge(data_goals_co[['div','date','season','team']], data_goals_co1, on=['team','date'], how='left')
+data_fct['field'] = 'goal_superiority'
 
-df_con.dtypes
-df_gsr.dtypes
-df_gsr.describe()
-a = df_con.loc[:,['Gsco','Grec']].rolling(3).sum()
+# store..
+data_fct.to_pickle('./pro_data/data_fct.pkl')
 
-
-# odds for win/loss..
-odds_clmn_h = ['AvgH', 'B365H', 'BWH', 'IWH', 'PSH', 'WHH', 'VCH', 'BbAvH', 'PSCH']
-odds_clmn_d = ['AvgD', 'B365D', 'BWD', 'IWD', 'PSD', 'WHD', 'VCD', 'BbAvD', 'PSCD']
-odds_clmn_a = ['AvgA', 'B365A', 'BWA', 'IWA', 'PSA', 'WHA', 'VCA', 'BbAvA', 'PSCA']
-odds_clmn_b25 = ['BbMx<2.5', 'BbAv<2.5']
-odds_clmn_a25 = ['BbMx>2.5', 'BbAv>2.5']
-
-df_lf = pd.melt(df, id_vars=['Div', 'Date', 'HomeTeam', 'AwayTeam'], var_name='field', value_name='val').dropna()
-df_lf.dropna()
-df_lf.dtypes
-# write a function that retrieves the count of all column names across sheets..
-df11 = df.iloc[1:5, :]
-
-dfh_wl = df.loc[:,['Div','Date','HomeTeam','AvgH','AvgD','AvgA']].sort_values(by='Date', ascending=False)
-
-
-
-
-
+# verifying..
+# a = data_fct[data_fct['team']=='Tigre']
+# b = tmp[(tmp['home_team']=='Tigre') | (tmp['away_team']=='Tigre')]
 
 
 
