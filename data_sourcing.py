@@ -1,9 +1,6 @@
 # DATA SOURCING ---------------------------------------------------
-# .. etl process script
-# http data download setup (default certificates)..
-# 1. python -m pip install certifi
-# 2. in terminal: /Applications/Python\ 3.7/Install\ Certificates.command
 import urllib.request
+import os
 from datetime import datetime
 
 # Download the latest data ----------------------------------------

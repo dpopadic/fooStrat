@@ -1,9 +1,13 @@
 # fooStrat
 Statistical analysis and strategy development for football data
 
+> Data sourcing ```data_sourcing```
+
 > Prepare/update data ```data_processing```
 
 > Functions and other support material required to perform tasks ```foostrat_utils```
+
+> Daily ETL Process ```job_schedule.py```
 
 
 Agenda

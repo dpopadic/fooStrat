@@ -3,7 +3,10 @@ from crontab import CronTab # python -m pip install python-crontab
 # access the system..
 cron = CronTab(user=True)
 # create new cron job..
-job = cron.new(command='python /Users/dariopopadic/PycharmProjects/fooStrat/test_task.py', comment = 'foostrat')
+# local python exe
+py_inst = '/Library/Frameworks/Python.framework/Versions/3.7/bin/python3.7'
+py_file = '/Users/dariopopadic/PycharmProjects/fooStrat/test_task.py'
+job = cron.new(command = py_inst + ' ' + py_file, comment = 'test')
 # schedule for every minute..
 job.minute.every(1)
 # write job to cron tab..
