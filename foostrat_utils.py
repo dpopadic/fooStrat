@@ -198,7 +198,7 @@ def process_data_minor(data, key_cols):
     key_cols_l = list(key_cols.keys())
 
     df = pd.DataFrame()
-    for key, i in di.items():
+    for key, i in data.items():
         if i.shape[0] == 0:
             # in case of no data skip to next..
             continue
@@ -211,6 +211,9 @@ def process_data_minor(data, key_cols):
 
     # transform to appropriate shape..
     df['div'] = df['Country'] + ' ' + df['League']
+    # edit due to varying whitespace..
+    df['div'] = df['div'].str.strip()
+    df['div'] = df['div'].replace('\s+', ' ', regex=True)
     del (df['Country'])
     del (df['League'])
     # rename existing columns..
@@ -301,7 +304,24 @@ competition = {'E0':'England Premier League',
                'B1':'Belgian First Division A',
                'P1':'Portugal',
                'T1':'Turkey Süper Lig',
-               'G1':'Greek Super League'}
+               'G1':'Greek Super League',
+               'Argentina Superliga':'Argentina Superliga',
+               'Austria Tipico Bundesliga':'Austria Tipico Bundesliga',
+               'Brazil Serie A':'Brazil Serie A',
+               'China Super League':'China Super League',
+               'Denmark Superliga':'Denmark Superliga',
+               'Finland Veikkausliiga':'Finland Veikkausliiga',
+               'Ireland Premier Division':'Ireland Premier Division',
+               'Japan J-League':'Japan J-League',
+               'Japan J1 League':'Japan J1 League',
+               'Mexico Liga MX':'Mexico Liga MX',
+               'Norway Eliteserien':'Norway Eliteserien',
+               'Poland Ekstraklasa':'Poland Ekstraklasa',
+               'Romania Liga 1':'Romania Liga 1',
+               'Russia Premier League':'Russia Premier League',
+               'Sweden Allsvenskan':'Sweden Allsvenskan',
+               'Switzerland Super League':'Switzerland Super League',
+               'USA MLS':'USA MLS'}
 ml_map = pd.DataFrame(list(competition.items()), columns=['Div', 'Competition'])
 
 

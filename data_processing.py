@@ -4,7 +4,7 @@
 import pandas as pd
 import numpy as np
 import os
-from foostrat_utils import ret_xl_cols, process_data_major
+from foostrat_utils import ret_xl_cols, process_data_major, process_data_minor
 
 # source data path..
 src_dat_path = os.path.join(os.getcwd(), 'src_data', '')
