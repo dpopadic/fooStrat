@@ -220,6 +220,62 @@ def process_data_minor(data, key_cols):
     return(df)
 
 
+# FACTOR CONSTRUCTION ------------------------------------------------------------------
+
+def fgoalsup(data, field, k):
+    """Calculates the goal superiority factor across divisions and seasons for each team on a
+    rolling basis.
+
+    Parameters:
+    -----------
+        data (dataframe): a dataframe with columns div, date, season, home_team, away_team, field, val
+        field (list): a list specifying the field name for home- & away-goals (eg. ['FTHG', 'FTAG'])
+        k (integer): the lookback window to be used
+
+    Returns:
+    --------
+        A dataframe with calculated goal-superiority factor and columns div, season, date, team, field, val
+
+    Details:
+    --------
+    Goal difference provides one measure of the dominance of one football side over another in a match. The
+    assumption for a goals superiority rating system, then, is that teams who score more goals and concede fewer over
+    the course of a number of matches are more likely to win their next game. Typically, recent form means the last 4,
+    5 or 6 matches. For example, In their last 6 games, Tottenham have scored 6 goals and conceded 9. Meanwhile, Leeds
+    have scored 8 times and conceded 11 goals. Tottenham's goal superiority rating for the last 6 games is +3; for
+    Leeds it is -3.
+
+    """
+    # filter relevant fields..
+    data_goals = data[(data['field'].isin(field))]
+    data_goals['val'] = data_goals.loc[:, 'val'].apply(pd.to_numeric)
+    tmp = pd.pivot_table(data_goals,
+                         index=['div', 'season', 'date', 'home_team', 'away_team'],
+                         columns='field',
+                         values='val').reset_index()
+
+    # home team..
+    tmp1 = tmp.loc[:, ['div', 'season', 'date', 'home_team', field[0], field[1]]]
+    tmp1.rename(columns={'home_team': 'team', field[0]: 'g_scored', field[1]: 'g_received'}, inplace=True)
+    # away team..
+    tmp2 = tmp.loc[:, ['div', 'season', 'date', 'away_team', field[0], field[1]]]
+    tmp2.rename(columns={'away_team': 'team', field[1]: 'g_scored', field[0]: 'g_received'}, inplace=True)
+    # put together..
+    data_goals_co = pd.concat([tmp1, tmp2], axis=0, sort=False, ignore_index=True)
+
+    # compute stat..
+    data_goals_co_i = data_goals_co.set_index('date')
+    data_goals_co1 = data_goals_co_i.sort_values('date').groupby(['team'])[['g_scored', 'g_received']]. \
+        rolling(k, min_periods=1).sum().reset_index()
+
+    data_goals_co1['val'] = data_goals_co1['g_scored'] - data_goals_co1['g_received']
+    data_goals_co1.drop(['g_scored', 'g_received'], axis=1, inplace=True)
+    data_fct = pd.merge(data_goals_co[['div', 'date', 'season', 'team']],
+                        data_goals_co1, on=['team', 'date'],
+                        how='left')
+    data_fct['field'] = 'goal_superiority'
+    return(data_fct)
+
 
 
 
