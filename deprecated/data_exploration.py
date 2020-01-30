@@ -2,7 +2,7 @@
 import pandas as pd
 import numpy as np
 import os
-from foostrat_utils import comp_pts, reconfig_res, ret_xl_cols
+from foostrat_utils import ret_xl_cols
 
 # undo latest commit Alt + 9 -> log Tab -> select last commit
 
@@ -12,7 +12,7 @@ src_dat_path = os.path.join(os.getcwd(), 'src_data', '')
 fi_nm = ['src_data/' + f for f in os.listdir(src_dat_path) if f[:13] == 'all-euro-data']
 # summarise all available column names..
 df_cols = ret_xl_cols(file_names=fi_nm, id_col="Div")
-
+s0 = df_cols.groupby('field', as_index=False).count().sort_values('season')
 
 # non-key field mappings ----------------------------------------------
 # Problem: For the same fields, some columns are defined as HomeTeam and others as HT..

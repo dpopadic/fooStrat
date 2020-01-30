@@ -282,7 +282,8 @@ def fgoalsup(data, field, k):
 
 
 
-# MAPPING DIVISION TABLE ------------------------------------------------------------------
+# MAPPING TABLES ---------------------------------------------------------------------------
+# division
 competition = {'E0':'England Premier League',
                'E1':'England Championship League',
                'E2':'England Football League One',
@@ -324,11 +325,14 @@ competition = {'E0':'England Premier League',
                'USA MLS':'USA MLS'}
 ml_map = pd.DataFrame(list(competition.items()), columns=['Div', 'Competition'])
 
-
-
-
-
-
-
-
+# odds
+odds_home = ['B365H', 'BSH', 'BWH', 'GBH', 'IWH', 'LBH', 'PSH', 'PH', 'SOH', 'SBH', 'SJH', 'SYH',
+             'VCH', 'WHH', 'BbMxH', 'BbAvH', 'MaxH', 'AvgH']
+odds_home = {k: 'odds_home_win' for k in odds_home}
+odds_away = ['B365A', 'BSA', 'BWA', 'GBA', 'IWA', 'LBA', 'PSA', 'PA', 'SOA', 'SBA', 'SJA', 'SYA',
+             'VCA', 'WHA', 'BbMxA', 'BbAvA', 'MaxA', 'AvgA']
+odds_away = {k: 'odds_away_win' for k in odds_away}
+odds_draw = ['B365D', 'BSD', 'BWD', 'GBD', 'IWD', 'LBD', 'PSD', 'PD', 'SOD', 'SBD', 'SJD', 'SYD',
+             'VCD', 'WHD', 'BbMxD', 'BbAvD', 'MaxD', 'AvgD']
+odds_draw = {k: 'odds_draw_win' for k in odds_draw}
 
