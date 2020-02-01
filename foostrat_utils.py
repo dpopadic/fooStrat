@@ -251,7 +251,7 @@ def fgoalsup(data, field, k):
     """
     # filter relevant fields..
     data_goals = data[(data['field'].isin(field))]
-    data_goals['val'] = data_goals.loc[:, 'val'].apply(pd.to_numeric)
+    data_goals['val'] = pd.to_numeric(data_goals.loc[:, 'val'], errors='coerce')
     tmp = pd.pivot_table(data_goals,
                          index=['div', 'season', 'date', 'home_team', 'away_team'],
                          columns='field',
@@ -326,13 +326,11 @@ competition = {'E0':'England Premier League',
 ml_map = pd.DataFrame(list(competition.items()), columns=['Div', 'Competition'])
 
 # odds
-odds_home = ['B365H', 'BSH', 'BWH', 'GBH', 'IWH', 'LBH', 'PSH', 'PH', 'SOH', 'SBH', 'SJH', 'SYH',
-             'VCH', 'WHH', 'BbMxH', 'BbAvH', 'MaxH', 'AvgH']
-odds_home = {k: 'odds_home_win' for k in odds_home}
-odds_away = ['B365A', 'BSA', 'BWA', 'GBA', 'IWA', 'LBA', 'PSA', 'PA', 'SOA', 'SBA', 'SJA', 'SYA',
-             'VCA', 'WHA', 'BbMxA', 'BbAvA', 'MaxA', 'AvgA']
-odds_away = {k: 'odds_away_win' for k in odds_away}
-odds_draw = ['B365D', 'BSD', 'BWD', 'GBD', 'IWD', 'LBD', 'PSD', 'PD', 'SOD', 'SBD', 'SJD', 'SYD',
-             'VCD', 'WHD', 'BbMxD', 'BbAvD', 'MaxD', 'AvgD']
-odds_draw = {k: 'odds_draw_win' for k in odds_draw}
+oh = ['B365H', 'BSH', 'BWH', 'GBH', 'IWH', 'LBH', 'PSH', 'PH', 'SOH', 'SBH', 'SJH', 'SYH',
+      'VCH', 'WHH', 'BbMxH', 'BbAvH', 'MaxH', 'AvgH']
+oa = ['B365A', 'BSA', 'BWA', 'GBA', 'IWA', 'LBA', 'PSA', 'PA', 'SOA', 'SBA', 'SJA', 'SYA',
+      'VCA', 'WHA', 'BbMxA', 'BbAvA', 'MaxA', 'AvgA']
+od = ['B365D', 'BSD', 'BWD', 'GBD', 'IWD', 'LBD', 'PSD', 'PD', 'SOD', 'SBD', 'SJD', 'SYD',
+      'VCD', 'WHD', 'BbMxD', 'BbAvD', 'MaxD', 'AvgD']
+odds_fields = {'odds_home_win':oh, 'odds_away_win':oa, 'odds_draw_win':od}
 
