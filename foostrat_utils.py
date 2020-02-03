@@ -279,6 +279,62 @@ def fgoalsup(data, field, k):
     data_fct['field'] = 'goal_superiority'
     return(data_fct)
 
+def max_event_odds_asym(data, field, team, new_field):
+    """Retrieves the maximum odds for a certain event with asymmetric odds (eg. home-team win).
+
+            Parameters:
+            -----------
+                data (dataframe): a dataframe with columns div, season, date, home_team, away_team, field, val
+                field (list): a list with all relevant odds for the event
+                team (string): home_team or away_team perspective
+                new_field (string): the name to assign to the retrieved field
+
+            Returns:
+            --------
+                A dataframe with all processed data is returned with the following columns:
+                season | div | date | team | field | val
+
+            """
+    # filter relevant fields..
+    data_ed = data.loc[data['field'].isin(field), ['date', 'div', 'season', team, 'field', 'val']]
+    data_ed.rename(columns={team: 'team'}, inplace=True)
+    data_ed['val'] = pd.to_numeric(data_ed.loc[:, 'val'], errors='coerce')
+    # retrieve the best odds..
+    max_odds = data_ed.groupby(['season', 'div', 'date', 'team']).max()['val'].reset_index()
+    max_odds['field'] = new_field
+    return (max_odds)
+
+
+
+def max_event_odds_sym(data, field, new_field):
+    """Retrieves the maximum odds for a certain event with symmetric odds (eg. home-team draw).
+
+            Parameters:
+            -----------
+                data (dataframe): a dataframe with columns div, season, date, home_team, away_team, field, val
+                field (list): a list with all relevant odds for the event
+                new_field (string): the name to assign to the retrieved field
+
+            Returns:
+            --------
+                A dataframe with all processed data is returned with the following columns:
+                season | div | date | team | field | val
+
+            """
+    data_ed = data[(data['field'].isin(field))]
+    data_ed['val'] = pd.to_numeric(data_ed.loc[:, 'val'], errors='coerce')
+    max_odds = data_ed.groupby(['season', 'div', 'date', 'home_team', 'away_team']).max()['val'].reset_index()
+    # home numbers
+    max_odds_dh = max_odds.loc[:, max_odds.columns != 'away_team']
+    max_odds_dh.rename(columns={'home_team': 'team'}, inplace=True)
+    max_odds_dh['field'] = new_field
+    # away numbers
+    max_odds_da = max_odds.loc[:, max_odds.columns != 'home_team']
+    max_odds_da.rename(columns={'away_team': 'team'}, inplace=True)
+    max_odds_da['field'] = new_field
+    max_odds_draw = pd.concat([max_odds_dh, max_odds_da], axis=0, sort=False, ignore_index=True)
+    return (max_odds_draw)
+
 
 
 
