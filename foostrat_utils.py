@@ -279,6 +279,8 @@ def fgoalsup(data, field, k):
     data_fct['field'] = 'goal_superiority'
     return(data_fct)
 
+
+
 def max_event_odds_asym(data, field, team, new_field):
     """Retrieves the maximum odds for a certain event with asymmetric odds (eg. home-team win).
 
@@ -337,9 +339,35 @@ def max_event_odds_sym(data, field, new_field):
 
 
 
+def fodds(data, field_home, field_away, field_both):
+    """Retrieves the maximum odds for every game and event in an easy to handle
+    and scalable long format.
+
+    Parameters:
+    -----------
+        data (dataframe): a dataframe with columns div, season, date, home_team, away_team, field, val
+        field_asym (dict): a dictionary specifying all odds-fields for an asymmetric event (eg. home-team win)
+        field_sym (dict): a dictionary specifying all odds-fields for a symmetric event (eg. draw)
+
+    Returns:
+    --------
+        A dataframe with all processed data is returned with the following columns:
+        season | div | date | team | field | val
+
+    """
+    # get the highest odds for each event type
+    moh = max_event_odds_asym(data, field = field_home, team = 'home_team', new_field = 'odds_win')
+    moa = max_event_odds_asym(data, field = field_away, team = 'away_team', new_field = 'odds_win')
+    mod = max_event_odds_sym(data, field = field_both, new_field = 'odds_draw')
+    # bind all together..
+    moc = pd.concat([moh, moa, mod], axis=0, sort=False, ignore_index=True)
+    return(moc)
+
+
+
 
 # MAPPING TABLES ---------------------------------------------------------------------------
-# division
+# division mapping
 competition = {'E0':'England Premier League',
                'E1':'England Championship League',
                'E2':'England Football League One',
@@ -381,7 +409,7 @@ competition = {'E0':'England Premier League',
                'USA MLS':'USA MLS'}
 ml_map = pd.DataFrame(list(competition.items()), columns=['Div', 'Competition'])
 
-# odds
+# odds mapping
 oh = ['B365H', 'BSH', 'BWH', 'GBH', 'IWH', 'LBH', 'PSH', 'PH', 'SOH', 'SBH', 'SJH', 'SYH',
       'VCH', 'WHH', 'BbMxH', 'BbAvH', 'MaxH', 'AvgH']
 oa = ['B365A', 'BSA', 'BWA', 'GBA', 'IWA', 'LBA', 'PSA', 'PA', 'SOA', 'SBA', 'SJA', 'SYA',
