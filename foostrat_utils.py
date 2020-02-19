@@ -277,6 +277,9 @@ def fgoalsup(data, field, k):
                         data_goals_co1, on=['team', 'date'],
                         how='left')
     data_fct['field'] = 'goal_superiority'
+    # lag factor..
+    data_fct['val'] = data_fct.groupby(['div', 'season', 'team', 'field'])['val'].shift(1)
+    data_fct.dropna(inplace=True)
     return(data_fct)
 
 
