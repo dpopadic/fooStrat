@@ -9,12 +9,14 @@ Statistical analysis and strategy development for football data
 
 > Compute all factors ```factor_construction```
 
+> Model building ```model_construction``` (..work in progress)
+
 > Test strategies ```strats_testing```
 
 
 **Utilities**
 
-> Functions and other support material required to perform tasks ```foostrat_utils```
+> Functions and other support material required to perform data cleaning, calculations etc. ```foostrat_utils```
 
 > Daily ETL Process ```job_schedule.py```
 

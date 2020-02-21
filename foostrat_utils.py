@@ -341,6 +341,8 @@ def max_event_odds_sym(data, field, new_field):
     return (max_odds_draw)
 
 
+# STRATEGY TESTING ------------------------------------------------------------------
+
 
 def fodds(data, field_home, field_away, field_both):
     """Retrieves the maximum odds for every game and event in an easy to handle
@@ -405,13 +407,13 @@ def comp_pnl(positions, odds, results, event, stake):
 
     Parameters:
     -----------
-    positions (dataframe): a dataframe with factor data with season, div, date, team
-    odds (dataframe): a dataframe with odds data and columns season, div, date, team, field, val
-    results (dataframe): a dataframe with results and columns season, div, date, team, field, val
-    event (string): a string defining the event (eg. 'win')
-    stake (double): the stake for each bet (eg. 10)
+        positions (dataframe): a dataframe with factor data with season, div, date, team
+        odds (dataframe): a dataframe with odds data and columns season, div, date, team, field, val
+        results (dataframe): a dataframe with results and columns season, div, date, team, field, val
+        event (string): a string defining the event (eg. 'win')
+        stake (double): the stake for each bet (eg. 10)
 
-        Returns:
+    Returns:
     --------
         A dataframe with profit and loss data is returned with the following columns:
         season | div | date | team | field | val | res | payoff | payoff_cum
