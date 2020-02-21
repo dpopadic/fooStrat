@@ -367,6 +367,83 @@ def fodds(data, field_home, field_away, field_both):
     return(moc)
 
 
+def con_res(data, field):
+    """
+    Constructs the event result data in a manner that is readily available for back-testing.
+
+    :param data: a dataframe with columns season, date, div, home_team, away_team, field, val
+    :param field: a string that defines the event (eg. 'FTR' for full-time results)
+    :return: a dataframe with results
+
+    """
+    # query relevant field
+    rel_field = field
+    res_tmp = data.query('field == @rel_field')
+    # home team
+    home = res_tmp.loc[:, ['div', 'season', 'date', 'home_team', 'val']]
+    home['val'] = home.loc[:, 'val'].apply(lambda x: 1 if x == 'H' else 0)
+    home['field'] = "win"
+    home.rename(columns={'home_team': 'team'}, inplace=True)
+    # away team
+    away = res_tmp.loc[:, ['div', 'season', 'date', 'away_team', 'val']]
+    away['val'] = away.loc[:, 'val'].apply(lambda x: 1 if x == 'A' else 0)
+    away['field'] = "win"
+    away.rename(columns={'away_team': 'team'}, inplace=True)
+    # draws
+    draw = res_tmp
+    draw['val'] = res_tmp.loc[:, 'val'].apply(lambda x: 1 if x == 'D' else 0)
+    draw['field'] = 'draw'
+    draw = pd.melt(draw, id_vars=['div', 'season', 'date', 'field', 'val'], value_name='team')
+    draw.drop(['variable'], axis=1, inplace=True)
+    # bring together
+    res = pd.concat([home, away, draw], axis=0, sort=True)
+    return (res)
+
+
+def comp_pnl(positions, odds, results, event, stake):
+    """Calculates the PnL of a factor.
+
+    Parameters:
+    -----------
+    positions (dataframe): a dataframe with factor data with season, div, date, team
+    odds (dataframe): a dataframe with odds data and columns season, div, date, team, field, val
+    results (dataframe): a dataframe with results and columns season, div, date, team, field, val
+    event (string): a string defining the event (eg. 'win')
+    stake (double): the stake for each bet (eg. 10)
+
+        Returns:
+    --------
+        A dataframe with profit and loss data is returned with the following columns:
+        season | div | date | team | field | val | res | payoff | payoff_cum
+
+    """
+
+    # define helper function
+    def f0(x, stake):
+        if x[1] == 0:
+            if np.isnan(x[0]):
+                z = np.nan
+            else:
+                z = -1 * stake
+        elif x[1] == 1:
+            z = (x[0] - 1) * stake
+        else:
+            z = 0
+        return z
+
+    # add odds to positions
+    pay = pd.merge(positions, odds, on=['div', 'season', 'date', 'team'], how='left')
+    # retrieve the right odds
+    res_0 = results.query('field == @event')
+    res_0.drop(['field'], axis=1, inplace=True)
+    res_0.rename(columns={'val': 'res'}, inplace=True)
+    # add the actual result
+    payres = pd.merge(pay, res_0, on=['div', 'season', 'date', 'team'], how='left')
+    # calculate pnl
+    payres['payoff'] = payres.loc[:, ['val', 'res']].apply(f0, stake=stake, axis=1)
+    # cumulative pnl
+    payres['payoff_cum'] = payres.loc[:, 'payoff'].cumsum(skipna=True)
+    return (payres)
 
 
 # MAPPING TABLES ---------------------------------------------------------------------------

@@ -1,9 +1,18 @@
 # fooStrat
 Statistical analysis and strategy development for football data
 
+**Core**
+
 > Data sourcing ```data_sourcing```
 
 > Prepare/update data ```data_processing```
+
+> Compute all factors ```factor_construction```
+
+> Test strategies ```strats_testing```
+
+
+**Utilities**
 
 > Functions and other support material required to perform tasks ```foostrat_utils```
 
