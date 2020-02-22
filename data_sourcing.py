@@ -6,7 +6,7 @@ from datetime import datetime
 # Download the latest data ----------------------------------------
 
 # football-data.co.uk ---------------------------------------------
-url_source = ['http://football-data.co.uk/mmz4281/1920/all-euro-data-2019-2020.xlsx',
+url_source = ['https://www.football-data.co.uk/mmz4281/1920/all-euro-data-2019-2020.xlsx',
               'https://www.football-data.co.uk/new/new_leagues_data.xlsx',
               'https://www.football-data.co.uk/fixtures.xlsx',
               'https://www.football-data.co.uk/new_league_fixtures.xlsx']

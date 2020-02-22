@@ -18,8 +18,9 @@ odds = match_odds.query('field == "odds_win"')
 # calculate pnl
 pnl_strats = comp_pnl(positions=positions, odds=odds, results=results, event='win', stake=10)
 
-
-
+# next steps:
+# calculate IC
+# derive probabilities
 
 
 
