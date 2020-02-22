@@ -2,15 +2,41 @@
 import pandas as pd
 import numpy as np
 from foostrat_utils import fgoalsup, odds_fields, fodds, max_event_odds_sym, max_event_odds_asym
+import plotly.express as px
 
-# load plain field data..
+# load source data..
 source_core = pd.read_pickle('pro_data/source_core.pkl')
 field_all = source_core['field'].unique()
-# data_fct = pd.read_pickle('pro_data/data_fct.pkl')
+
+source_core.query('field=="BbMx>2.5"')
 
 # goal superiority rating -----------------------------------------------
 # next: transform this score to a probability, 1st via constructing a z-score
-data_fct = fgoalsup(source_core, field=['FTHG', 'FTAG'], k=5)
+
+data_fct = fgoalsup(data=source_core, field=['FTHG', 'FTAG'], k=5)
+
+
+# create function to transform factor to z-score
+# create a function to show the distribution
+
+# across all leagues..
+x = np.random.randn(1000)
+hist_data = [x]
+group_labels = ['distplot'] # name of the dataset
+
+hist_data = [np.array(data_fct.val)]
+fig = ff.create_distplot(hist_data, group_labels)
+fig.show()
+
+import matplotlib.pyplot as plt
+
+
+# distribution ---------------
+# determine distribution of scores
+# https://plot.ly/python/distplot/
+
+
+
 factor_library = data_fct
 factor_library.to_pickle('./pro_data/factor_library.pkl')
 

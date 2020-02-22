@@ -366,7 +366,7 @@ def update_data_historic(path, file_desc, file_key, file_key_name, file_desc_2, 
 
 def fgoalsup(data, field, k):
     """Calculates the goal superiority factor across divisions and seasons for each team on a
-    rolling basis.
+    rolling basis. Note that the factor is adjusted for lookahead bias.
 
     Parameters:
     -----------
@@ -390,7 +390,8 @@ def fgoalsup(data, field, k):
     """
     # filter relevant fields..
     data_goals = data[(data['field'].isin(field))]
-    data_goals['val'] = pd.to_numeric(data_goals.loc[:, 'val'], errors='coerce')
+    data_goals['val'] = pd.to_numeric(data_goals.loc[:, 'val'])
+    # put the fields in wide format
     tmp = pd.pivot_table(data_goals,
                          index=['div', 'season', 'date', 'home_team', 'away_team'],
                          columns='field',
@@ -398,17 +399,21 @@ def fgoalsup(data, field, k):
 
     # home team..
     tmp1 = tmp.loc[:, ['div', 'season', 'date', 'home_team', field[0], field[1]]]
-    tmp1.rename(columns={'home_team': 'team', field[0]: 'g_scored', field[1]: 'g_received'}, inplace=True)
+    tmp1.rename(columns={'home_team': 'team',
+                         field[0]: 'g_scored',
+                         field[1]: 'g_received'}, inplace=True)
     # away team..
     tmp2 = tmp.loc[:, ['div', 'season', 'date', 'away_team', field[0], field[1]]]
-    tmp2.rename(columns={'away_team': 'team', field[1]: 'g_scored', field[0]: 'g_received'}, inplace=True)
+    tmp2.rename(columns={'away_team': 'team',
+                         field[1]: 'g_scored',
+                         field[0]: 'g_received'}, inplace=True)
     # put together..
     data_goals_co = pd.concat([tmp1, tmp2], axis=0, sort=False, ignore_index=True)
 
     # compute stat..
     data_goals_co_i = data_goals_co.set_index('date')
     data_goals_co1 = data_goals_co_i.sort_values('date').groupby(['team'])[['g_scored', 'g_received']]. \
-        rolling(k, min_periods=1).sum().reset_index()
+                    rolling(k, min_periods=1).sum().reset_index()
 
     data_goals_co1['val'] = data_goals_co1['g_scored'] - data_goals_co1['g_received']
     data_goals_co1.drop(['g_scored', 'g_received'], axis=1, inplace=True)
@@ -542,11 +547,11 @@ def con_res(data, field):
 
 
 def comp_pnl(positions, odds, results, event, stake):
-    """Calculates the PnL of a factor.
+    """Calculates the PnL of a factor. Note that the factor needs to be adjusted for lookahead bias.
 
     Parameters:
     -----------
-        positions (dataframe): a dataframe with factor data with season, div, date, team
+        positions (dataframe): a dataframe with intended positions with season, div, date, team
         odds (dataframe): a dataframe with odds data and columns season, div, date, team, field, val
         results (dataframe): a dataframe with results and columns season, div, date, team, field, val
         event (string): a string defining the event (eg. 'win')
@@ -632,11 +637,22 @@ competition = {'E0':'England Premier League',
 ml_map = pd.DataFrame(list(competition.items()), columns=['Div', 'Competition'])
 
 # odds mapping
+# home win
 oh = ['B365H', 'BSH', 'BWH', 'GBH', 'IWH', 'LBH', 'PSH', 'PH', 'SOH', 'SBH', 'SJH', 'SYH',
       'VCH', 'WHH', 'BbMxH', 'BbAvH', 'MaxH', 'AvgH']
+# away win
 oa = ['B365A', 'BSA', 'BWA', 'GBA', 'IWA', 'LBA', 'PSA', 'PA', 'SOA', 'SBA', 'SJA', 'SYA',
       'VCA', 'WHA', 'BbMxA', 'BbAvA', 'MaxA', 'AvgA']
+# draw
 od = ['B365D', 'BSD', 'BWD', 'GBD', 'IWD', 'LBD', 'PSD', 'PD', 'SOD', 'SBD', 'SJD', 'SYD',
       'VCD', 'WHD', 'BbMxD', 'BbAvD', 'MaxD', 'AvgD']
-odds_fields = {'odds_home_win':oh, 'odds_away_win':oa, 'odds_draw_win':od}
+# above 2.5
+atp5 = ['BbMx>2.5', 'BbAv>2.5', 'GB>2.5', 'B365>2.5', 'P>2.5', 'Max>2.5', 'Avg>2.5']
+# below 2.5
+btp5 = ['BbMx<2.5', 'BbAv<2.5', 'GB<2.5', 'B365<2.5', 'P<2.5', 'Max<2.5', 'Avg<2.5']
+odds_fields = {'odds_home_win':oh,
+               'odds_away_win':oa,
+               'odds_draw_win':od,
+               'odds_under_25_goal':btp5,
+               'odds_above_25_goal': atp5}
 
