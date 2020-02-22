@@ -3,6 +3,8 @@ import urllib.request
 import os
 from datetime import datetime
 
+# split into categories: historical, latest, fixtures
+
 # Download the latest data ----------------------------------------
 
 # football-data.co.uk ---------------------------------------------

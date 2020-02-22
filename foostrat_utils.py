@@ -1,11 +1,23 @@
 import pandas as pd
 import numpy as np
-
+import os
 
 # FUNCTIONS TO SUPPORT THE RUNNING OF THE PROJECT ------------------------------------
 
 def ret_xl_cols(file_names, id_col):
-    """Returns all available columns across all tabs and multiple excel files."""
+    """Returns all available columns across all tabs and multiple excel files.
+
+    Parameters:
+    -----------
+        file_names (list): a list with file names to examine (eg.
+                           ['all-euro-data-2002-2003.xls', 'all-euro-data-2017-2018.xlsx'])
+        id_col (string): the key column in each tab (eg. 'Div')
+
+    Returns:
+    --------
+    A list of all available columns.
+
+    """
     df_cols = pd.DataFrame()
     for f in file_names:
         df0 = pd.read_excel(f, sheet_name=None)
@@ -52,14 +64,18 @@ def comp_league_standing(data, season=None, home_goals='FTHG', away_goals='FTAG'
     df_h = df_fw.loc[:, ['season', 'div', 'date', 'home_team', away_goals, home_goals, result]]
     df_h['points'] = df_h[result].apply(lambda x: 3 if x == 'H' else (1 if x == 'D' else 0))
     df_h['res'] = df_h[result].apply(lambda x: 'w' if x == 'H' else ('d' if x == 'D' else 'l'))
-    df_h.rename(columns={'home_team': 'team', away_goals: 'goals_received', home_goals: 'goals_scored'}, inplace=True)
+    df_h.rename(columns={'home_team': 'team',
+                         away_goals: 'goals_received',
+                         home_goals: 'goals_scored'}, inplace=True)
     df_h = df_h.drop([result], axis=1)
 
     # away team stats..
     df_a = df_fw.loc[:, ['season', 'div', 'date', 'away_team', away_goals, home_goals, result]]
     df_a['points'] = df_a[result].apply(lambda x: 3 if x == 'A' else (1 if x == 'D' else 0))
     df_a['res'] = df_a[result].apply(lambda x: 'w' if x == 'A' else ('d' if x == 'D' else 'l'))
-    df_a.rename(columns={'away_team': 'team', away_goals: 'goals_scored', home_goals: 'goals_received'}, inplace=True)
+    df_a.rename(columns={'away_team': 'team',
+                         away_goals: 'goals_scored',
+                         home_goals: 'goals_received'}, inplace=True)
     df_a = df_a.drop([result], axis=1)
 
     # consolidate..
@@ -71,14 +87,17 @@ def comp_league_standing(data, season=None, home_goals='FTHG', away_goals='FTAG'
 
     # number of wins..
     df_wdl = dfc.loc[:, ['season', 'div', 'date', 'team', 'res', 'points']]
-    dfc_agg_wdl = df_wdl.pivot_table(index=['div', 'season', 'team'], columns='res', values='points',
+    dfc_agg_wdl = df_wdl.pivot_table(index=['div', 'season', 'team'],
+                                     columns='res',
+                                     values='points',
                                      aggfunc='count').reset_index()
 
     # add number of wins to standings..
     tbl = pd.merge(dfc_tot_pts, dfc_agg_wdl, on=['div', 'season', 'team'], how='left')
 
     # rankings..
-    tbl['rank'] = tbl.groupby(['div', 'season'])['points'].rank(ascending=False, method='first').reset_index(drop=True)
+    tbl['rank'] = tbl.groupby(['div', 'season'])['points'].rank(ascending=False,
+                                                                method='first').reset_index(drop=True)
     return(tbl)
 
 
@@ -221,6 +240,126 @@ def process_data_minor(data, key_cols):
     key_cols_av = {k: v for k, v in key_cols.items() if k in cmn_cols}
     df = df.rename(columns=key_cols_av)
     return(df)
+
+
+def update_data_latest(ex, new_1, new_2, season, path):
+    """Updates the data with latest games. Only latest season results are updated and history is
+    not changed from previous seasons.
+
+    Parameters:
+    -----------
+        ex (dataframe): existing data
+        new_1 (string): new latest data major leagues name
+        new_2 (string): new latest data minor leagues name
+        season (string): latest season for which the data is being updated (eg. '2019-2020')
+        path (string): path to the data folder
+
+    Returns:
+    --------
+        A message that the data has been updated. The respective data file is 'source_core.pkl'.
+
+    """
+
+    # major leagues recent data
+    new_file = [path + new_1]
+    new_key = pd.DataFrame({'fi_nm': new_file, 'season': season})
+    major_latest = process_data_major(fi_nm=new_file,
+                                      extra_key=new_key,
+                                      key_cols={'Div': 'div',
+                                                'Date': 'date',
+                                                'HomeTeam': 'home_team',
+                                                'AwayTeam': 'away_team'},
+                                      key_cols_map={'HT': 'HomeTeam', 'AT': 'AwayTeam'})
+
+    # minor leagues recent data
+    minor_latest = pd.read_excel(path + new_2, sheet_name=None)
+    minor_latest = process_data_minor(minor_latest,
+                                      key_cols={'Country': 'country',
+                                                'League': 'league',
+                                                'Date': 'date',
+                                                'Season': 'season',
+                                                'Home': 'home_team',
+                                                'Away': 'away_team'})
+
+    # add major
+    data = pd.merge(ex, major_latest,
+                    on=['div', 'season', 'date', 'home_team', 'away_team', 'field', 'val'],
+                    how='outer')
+    # add minor
+    data = pd.merge(data, minor_latest,
+                    on=['div', 'season', 'date', 'home_team', 'away_team', 'field', 'val'],
+                    how='outer')
+
+    # data synchronisation: renaming fields so that they have the same names to make it easier
+    # to process the data later in a concise way: full-time home/away goals, results
+    data['field'] = data['field'].replace({'FTR': 'FTR', 'Res': 'FTR',
+                                           'FTHG': 'FTHG', 'HG': 'FTHG',
+                                           'FTAG': 'FTAG', 'AG': 'FTAG'})
+
+    # store
+    data.to_pickle('./pro_data/source_core.pkl')
+    print("Source Data has been updated.")
+
+
+def update_data_historic(path, file_desc, file_key, file_key_name, file_desc_2, file_key_name_2):
+    """Updates historical data across major and minor leagues.
+
+    Parameters:
+    -----------
+        path (string): source path to all the underlying data within the project (eg. where
+                       'all-euro-data-2004-2005.xls' is located)
+        file_desc (string): a string that is part of each file that will be examined (eg. 'all-euro_data'
+                            for files that have the same structure:
+                            'all-euro-data-2002-2003.xls', 'all-euro-data-2017-2018.xlsx')
+        file_key (list): the range of the file name that will be used as key to describe from which file the
+                         data came from. For example, in  'src_data/all-euro-data-1993-1994.xls' 1993-1994 will
+                         be used as key and file_key = [23, 32]
+        file_key_name (string): a string with the column name of file_key in the resulting dataframe (eg. 'season')
+        file_desc_2 (string): a string for an additional file that has the same structure as the files in file_desc
+                              but where all data is stored in a single file (eg. 'new_leagues_data.xlsx')
+        file_key_name_2 (string): a column in the file that describes the same key that is used in file_key_name to
+                                  be able to merge the different data sources by this key (eg. 'Season')
+
+    """
+    # MAJOR LEAGUES ------
+    # retrieve source data full path
+    src_dat_path = os.path.join(os.getcwd(), path[:-1], '')
+    # all the relevant files names
+    # iterate through source folder and determine which files should be loaded
+    fi_nm = [path + f for f in os.listdir(src_dat_path) if f[:len(file_desc)] == file_desc]
+    # map file key
+    extra_key = pd.DataFrame({'fi_nm': fi_nm,
+                              file_key_name: [i[file_key[0]:file_key[1]] for i in fi_nm]})
+    # process data
+    major = process_data_major(fi_nm, extra_key,
+                               key_cols={'Div': 'div',
+                                         'Date': 'date',
+                                         'HomeTeam': 'home_team',
+                                         'AwayTeam': 'away_team'},
+                               key_cols_map={'HT': 'HomeTeam',
+                                             'AT': 'AwayTeam'})
+
+    # MINOR LEAGUES ------
+    minor = pd.read_excel(path + file_desc_2, sheet_name=None)
+    # process data..
+    minor = process_data_minor(minor,
+                               key_cols={'Country': 'country',
+                                         'League': 'league',
+                                         'Date': 'date',
+                                         file_key_name_2: file_key_name,
+                                         'Home': 'home_team',
+                                         'Away': 'away_team'})
+
+    # MERGE -------
+    data_prc = pd.concat([major, minor], axis=0, sort=False)
+    # data synchronisation: renaming fields so that they have the same names to make it easier
+    # to process the data later in a concise way: full-time home/away goals, results
+    data_prc['field'] = data_prc['field'].replace({'FTR': 'FTR', 'Res': 'FTR',
+                                                   'FTHG': 'FTHG', 'HG': 'FTHG',
+                                                   'FTAG': 'FTAG', 'AG': 'FTAG'})
+    data_prc.to_pickle('./pro_data/source_core.pkl')
+    print("Source Data History has been updated.")
+
 
 
 # FACTOR CONSTRUCTION ------------------------------------------------------------------
@@ -446,6 +585,7 @@ def comp_pnl(positions, odds, results, event, stake):
     # cumulative pnl
     payres['payoff_cum'] = payres.loc[:, 'payoff'].cumsum(skipna=True)
     return (payres)
+
 
 
 # MAPPING TABLES ---------------------------------------------------------------------------

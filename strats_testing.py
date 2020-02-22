@@ -19,8 +19,9 @@ odds = match_odds.query('field == "odds_win"')
 pnl_strats = comp_pnl(positions=positions, odds=odds, results=results, event='win', stake=10)
 
 # next steps:
+# update process function
 # calculate IC
 # derive probabilities
-
+a = source_core.query('div=="E0" & season=="2019-2020" & field=="FTR"').sort_values('date')
 
 

@@ -9,6 +9,7 @@ field_all = source_core['field'].unique()
 # data_fct = pd.read_pickle('pro_data/data_fct.pkl')
 
 # goal superiority rating -----------------------------------------------
+# next: transform this score to a probability, 1st via constructing a z-score
 data_fct = fgoalsup(source_core, field=['FTHG', 'FTAG'], k=5)
 factor_library = data_fct
 factor_library.to_pickle('./pro_data/factor_library.pkl')
