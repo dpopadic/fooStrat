@@ -2,7 +2,9 @@
 import pandas as pd
 import numpy as np
 from foostrat_utils import fgoalsup, odds_fields, fodds, max_event_odds_sym, max_event_odds_asym
-import plotly.express as px
+import matplotlib.pyplot as plt
+import seaborn as sns
+from scipy.stats import zscore
 
 # load source data..
 source_core = pd.read_pickle('pro_data/source_core.pkl')
@@ -17,18 +19,27 @@ data_fct = fgoalsup(data=source_core, field=['FTHG', 'FTAG'], k=5)
 
 
 # create function to transform factor to z-score
+data_fct2 = data_fct
+data_fct2['z'] = data_fct2.groupby(['div'])['val'].transform(lambda x : zscore(x))
+
+len(data_fct)
+len(a)
 # create a function to show the distribution
 
 # across all leagues..
-x = np.random.randn(1000)
-hist_data = [x]
-group_labels = ['distplot'] # name of the dataset
+sns.distplot(data_fct.val, bins=100, kde=False)
+# premier league vs bundsliga..
+x0 = data_fct.query('div=="E0"').loc[:,'val']
+x1 = data_fct.query('div=="D1"').loc[:,'val']
+f, axes = plt.subplots(2, 1, figsize=(7, 7), sharex=True)
+sns.distplot( x0 , color="skyblue", ax=axes[0]).set_title('Premier League')
+sns.distplot( x1 , color="red", ax=axes[1]).set_title('Bundesliga')
 
-hist_data = [np.array(data_fct.val)]
-fig = ff.create_distplot(hist_data, group_labels)
-fig.show()
 
-import matplotlib.pyplot as plt
+
+# estimate beta to odds!
+
+
 
 
 # distribution ---------------
