@@ -242,6 +242,44 @@ def process_data_minor(data, key_cols):
     return(df)
 
 
+def synchronise_data(data):
+    """Synchronises the data so that all relevant fields have the same definition and
+    the data is in a format that is more suited for data analysis. See details for more
+    information.
+    Parameters:
+    -----------
+        data (dataframe): a dataframe with consolidated data from various sources with columns season,
+                          div, date, home_team, away_team, field, val
+
+    Returns:
+    --------
+        A dataframe with synchonised data is returned with the following columns:
+        season | div | date | home_team | away_team | field | val
+
+    Details:
+    --------
+        The following synchronisation is performed:
+
+        - Field Mapping
+        At the moment, two different data sources are being handled by the function. The synchronisation
+        involves translating fields (FTR | RES, FTHG | HG, FTAG | AG) that represent the same things but are
+        named differently in those data sources.
+        - Team Naming
+        The team names are transformed to lower-case and whitespaces are replaced by "_".
+
+    """
+    data['field'] = data['field'].replace({'FTR': 'FTR',
+                                            'Res': 'FTR',
+                                            'FTHG': 'FTHG',
+                                            'HG': 'FTHG',
+                                            'FTAG': 'FTAG',
+                                            'AG': 'FTAG'})
+    data['home_team'] = data.loc[:, 'home_team'].str.replace(' ', '_').str.lower()
+    data['away_team'] = data.loc[:, 'away_team'].str.replace(' ', '_').str.lower()
+    return(data)
+
+
+
 def update_data_latest(ex, new_1, new_2, season, path):
     """Updates the data with latest games. Only latest season results are updated and history is
     not changed from previous seasons.
@@ -291,11 +329,8 @@ def update_data_latest(ex, new_1, new_2, season, path):
                     how='outer')
 
     # data synchronisation: renaming fields so that they have the same names to make it easier
-    # to process the data later in a concise way: full-time home/away goals, results
-    data['field'] = data['field'].replace({'FTR': 'FTR', 'Res': 'FTR',
-                                           'FTHG': 'FTHG', 'HG': 'FTHG',
-                                           'FTAG': 'FTAG', 'AG': 'FTAG'})
-
+    # to process the data later in a concise way..
+    data = synchronise_data(data=data)
     # store
     data.to_pickle('./pro_data/source_core.pkl')
     print("Source Data has been updated.")
@@ -353,10 +388,8 @@ def update_data_historic(path, file_desc, file_key, file_key_name, file_desc_2, 
     # MERGE -------
     data_prc = pd.concat([major, minor], axis=0, sort=False)
     # data synchronisation: renaming fields so that they have the same names to make it easier
-    # to process the data later in a concise way: full-time home/away goals, results
-    data_prc['field'] = data_prc['field'].replace({'FTR': 'FTR', 'Res': 'FTR',
-                                                   'FTHG': 'FTHG', 'HG': 'FTHG',
-                                                   'FTAG': 'FTAG', 'AG': 'FTAG'})
+    # to process the data later in a concise way..
+    data_prc = synchronise_data(data=data_prc)
     data_prc.to_pickle('./pro_data/source_core.pkl')
     print("Source Data History has been updated.")
 

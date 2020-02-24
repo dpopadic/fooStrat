@@ -30,8 +30,6 @@ data_fct.groupby('date')
 
 a = data_fct.query('div=="E0" & date>="23-01-2020"')
 a = data_fct.query('div=="E0"')
-# to this in the data mgmt part.. separate function: synchronise_data()
-a['team'] = a.loc[:, 'team'].str.replace(' ', '_').str.lower()
 b = a.pivot_table(index=['div','date','season','field'],
                   columns='team',
                   values='val').reset_index()
