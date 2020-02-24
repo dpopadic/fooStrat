@@ -11,29 +11,50 @@ source_core = pd.read_pickle('pro_data/source_core.pkl')
 field_all = source_core['field'].unique()
 
 source_core.query('field=="BbMx>2.5"')
+a=source_core.query('div=="E0"')
 
 # goal superiority rating -----------------------------------------------
 # next: transform this score to a probability, 1st via constructing a z-score
+# does the factor work as hypothesized?
+# what are fair odds?
+
+
 
 data_fct = fgoalsup(data=source_core, field=['FTHG', 'FTAG'], k=5)
+a=data_fct.query('div=="E0" & date=="23-01-2020"')
+data_fct.groupby('date')
 
+# create full-coverage by date so that for every date in universe factors are available
+# b = pd.DataFrame(source_core.loc[:, 'date'].unique(), columns={'date'}).sort_values(by='date')
+
+
+a = data_fct.query('div=="E0" & date>="23-01-2020"')
+a = data_fct.query('div=="E0"')
+# to this in the data mgmt part.. separate function: synchronise_data()
+a['team'] = a.loc[:, 'team'].str.replace(' ', '_').str.lower()
+b = a.pivot_table(index=['div','date','season','field'],
+                  columns='team',
+                  values='val').reset_index()
+
+b2 = b.fillna(method='ffill')
+# need to filter only teams playing in the season otherwise duplicates issue..
+# problem: Chelsea missing on 22/02/2020!
 
 # create function to transform factor to z-score
 data_fct2 = data_fct
-data_fct2['z'] = data_fct2.groupby(['div'])['val'].transform(lambda x : zscore(x))
+data_fct2['z'] = data_fct2.groupby(['div'])['val'].transform(lambda x: zscore(x))
 
-len(data_fct)
-len(a)
+
 # create a function to show the distribution
 
 # across all leagues..
 sns.distplot(data_fct.val, bins=100, kde=False)
-# premier league vs bundsliga..
+# premier league vs bundesliga..
 x0 = data_fct.query('div=="E0"').loc[:,'val']
 x1 = data_fct.query('div=="D1"').loc[:,'val']
 f, axes = plt.subplots(2, 1, figsize=(7, 7), sharex=True)
-sns.distplot( x0 , color="skyblue", ax=axes[0]).set_title('Premier League')
-sns.distplot( x1 , color="red", ax=axes[1]).set_title('Bundesliga')
+sns.distplot(x0, color="skyblue", ax=axes[0]).set_title('Premier League')
+sns.distplot(x1, color="red", ax=axes[1]).set_title('Bundesliga')
 
 
 
