@@ -1,7 +1,7 @@
 # FACTOR CALCULATION ----------------------------------------------------
 import pandas as pd
 import numpy as np
-from foostrat_utils import fgoalsup, odds_fields, fodds, max_event_odds_sym, max_event_odds_asym
+from foostrat_utils import fgoalsup, odds_fields, fodds, max_event_odds_sym, max_event_odds_asym, expand_field
 import matplotlib.pyplot as plt
 import seaborn as sns
 from scipy.stats import zscore
@@ -21,33 +21,9 @@ a=source_core.query('div=="E0"')
 
 
 data_fct = fgoalsup(data=source_core, field=['FTHG', 'FTAG'], k=5)
-a=data_fct.query('div=="E0" & date=="23-01-2020"')
-data_fct.groupby('date')
-
 # create full-coverage by date so that for every date in universe factors are available -> expand_field()
-d0 = pd.DataFrame(source_core.loc[:, 'date'].unique(), columns={'date'}).sort_values(by='date')
-
-
-
-# a = data_fct.query('div=="E0" & date>="23-01-2020"')
-a = data_fct.query('div=="E0"')
-# issues: -, /, . in team names, teams named 450-479,870-899
-b = a.pivot_table(index=['div','date','season','field'],
-                         columns='team',
-                         values='val').reset_index()
-b.shape
-c = pd.merge(d0, b, on='date', how='outer').sort_values(by='date')
-d = c.fillna(method='ffill')
-# need to filter only teams playing in the season otherwise duplicates issue..
-e2 = pd.melt(d, id_vars=['div','season','date','field'], var_name='team', value_name='val')
-e3 = a.groupby(['div', 'season'])['team'].unique().reset_index()
-
-e4 = e3.apply(lambda x: pd.Series(x['team']), axis=1).stack().reset_index(level=1, drop=True)
-e4.name = 'team'
-e5 = e3.drop('team', axis=1).join(e4)
-
-e6 = pd.merge(e5, e2, on=['div','season','team'], how='inner').sort_values(by='date')
-
+factor_exp = expand_field(data=data_fct, group="D1")
+len(factor_exp)
 # problem: Chelsea missing on 22/02/2020!
 
 # create function to transform factor to z-score

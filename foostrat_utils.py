@@ -460,6 +460,38 @@ def fgoalsup(data, field, k):
     return(data_fct)
 
 
+def expand_field(data, group):
+    """Expands factors across the entire date spectrum so that cross-sectional analysis
+    on the factor can be performed.
+    Parameters:
+    -----------
+        data (dataframe): a dataframe of historical factor scores (eg. goal superiority) with
+                          columns div, season, team, date, field, val
+        group (string): a string indicating for which group to expand (eg. season)
+
+    """
+    data_f = data.query('div==@group')
+    data_ed = data_f.pivot_table(index=['div', 'date', 'season', 'field'],
+                                 columns='team',
+                                 values='val').reset_index()
+    # date universe
+    date_univ = pd.DataFrame(data.loc[:, 'date'].unique(), columns={'date'}).sort_values(by='date')
+    # copy forward all factors
+    data_ed = pd.merge(date_univ, data_ed, on='date', how='outer').sort_values(by='date')
+    data_ed = data_ed.fillna(method='ffill')
+    # need to filter only teams playing in the season otherwise duplicates issue
+    data_ed = pd.melt(data_ed, id_vars=['div', 'season', 'date', 'field'], var_name='team', value_name='val')
+    # all teams played in each  season
+    tmp = data_f.groupby(['div', 'season'])['team'].unique().reset_index()
+    team_seas = tmp.apply(lambda x: pd.Series(x['team']), axis=1).stack().reset_index(level=1, drop=True)
+    team_seas.name = 'team'
+    team_seas = tmp.drop('team', axis=1).join(team_seas)
+    # expanded factors
+    fexp = pd.merge(team_seas, data_ed,
+                    on=['div', 'season', 'team'],
+                    how='inner').sort_values(by='date').reset_index(drop=True)
+    return(fexp)
+
 
 def max_event_odds_asym(data, field, team, new_field):
     """Retrieves the maximum odds for a certain event with asymmetric odds (eg. home-team win).
