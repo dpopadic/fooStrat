@@ -1,7 +1,7 @@
 # FACTOR CALCULATION ----------------------------------------------------
 import pandas as pd
 import numpy as np
-from foostrat_utils import fgoalsup, odds_fields, fodds, max_event_odds_sym, max_event_odds_asym, expand_field
+from foostrat_utils import fgoalsup, odds_fields, fodds, expand_field
 import matplotlib.pyplot as plt
 import seaborn as sns
 from scipy.stats import zscore
