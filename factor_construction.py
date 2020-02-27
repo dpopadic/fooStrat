@@ -18,12 +18,33 @@ a=source_core.query('div=="E0"')
 # does the factor work as hypothesized?
 # what are fair odds?
 
-
-
+# compute factor
 data_fct = fgoalsup(data=source_core, field=['FTHG', 'FTAG'], k=5)
-# create full-coverage by date so that for every date in universe factors are available -> expand_field()
-factor_exp = expand_field(data=data_fct, group="D1")
-len(factor_exp)
+# expand across time
+factor_exp = expand_field(data=data_fct)
+# impute across divisions
+factor_exp['val'] = factor_exp.groupby('date')['val'].transform(lambda x: x.fillna(x.mean()))
+# calculate cross-sectional z-score
+factor_exp['val'] = factor_exp.groupby(['date'])['val'].transform(lambda x: zscore(x))
+# calculate percentile
+factor_exp['pval'] = factor_exp.groupby(['date'])['val'].rank(pct=True)
+factor_exp['rval'] = factor_exp.groupby(['date'])['val'].rank(method='dense', ascending=False)
+factor_exp['qval'] = factor_exp.groupby(['date'])['val'].transform(lambda x: pd.qcut(x, q=5, labels=range(1, 6), duplicates='drop'))
+
+factor_exp['qval'] = factor_exp.groupby(['date'])['val'].apply(pd.qcut, q=5, labels=range(1, 6), duplicates='drop')
+
+a = factor_exp.query('date=="2020-02-23"')
+len(a)
+a['qval'] = a.loc[:, 'val'].transform(lambda x: pd.qcut(x, q=5, labels=range(1, 6), duplicates='drop'))
+a.sort_values('qval', inplace=True)
+
+a = factor_exp.query('date=="2020-02-23"').sort_values('pval')
+len(a)
+x = pd.DataFrame(np.random.normal(size=1000), columns=['val'])
+x['val2'] = pd.qcut(x['val'], q=10, labels=range(1, 11))
+x.sort_values('val', inplace=True)
+
+
 # problem: Chelsea missing on 22/02/2020!
 
 # create function to transform factor to z-score

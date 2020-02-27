@@ -4,6 +4,7 @@ import os
 
 # FUNCTIONS TO SUPPORT THE RUNNING OF THE PROJECT ------------------------------------
 
+
 def ret_xl_cols(file_names, id_col):
     """Returns all available columns across all tabs and multiple excel files.
 
@@ -29,7 +30,7 @@ def ret_xl_cols(file_names, id_col):
                 val = i.loc[1, id_col]
             df_tmp = pd.DataFrame({"field": i.columns.values, id_col: val, "season": seas})
             df_cols = df_cols.append(df_tmp, ignore_index=True, sort=False)
-    return(df_cols)
+    return df_cols
 
 
 def comp_league_standing(data, season=None, home_goals='FTHG', away_goals='FTAG', result='FTR'):
@@ -98,7 +99,7 @@ def comp_league_standing(data, season=None, home_goals='FTHG', away_goals='FTAG'
     # rankings..
     tbl['rank'] = tbl.groupby(['div', 'season'])['points'].rank(ascending=False,
                                                                 method='first').reset_index(drop=True)
-    return(tbl)
+    return tbl
 
 
 
@@ -183,8 +184,7 @@ def process_data_major(fi_nm, extra_key, key_cols, key_cols_map):
 
     # rename columns to lower case..
     df = df.rename(columns=key_cols)
-    return(df)
-
+    return df
 
 
 def process_data_minor(data, key_cols):
@@ -239,7 +239,7 @@ def process_data_minor(data, key_cols):
     cmn_cols = list(set(df.columns) & set(key_cols_l))
     key_cols_av = {k: v for k, v in key_cols.items() if k in cmn_cols}
     df = df.rename(columns=key_cols_av)
-    return(df)
+    return df
 
 
 def synchronise_data(data):
@@ -276,8 +276,7 @@ def synchronise_data(data):
                                             'AG': 'FTAG'})
     data['home_team'] = data.loc[:, 'home_team'].str.replace(' ', '_').str.lower()
     data['away_team'] = data.loc[:, 'away_team'].str.replace(' ', '_').str.lower()
-    return(data)
-
+    return data
 
 
 def update_data_latest(ex, new_1, new_2, season, path):
@@ -394,8 +393,8 @@ def update_data_historic(path, file_desc, file_key, file_key_name, file_desc_2, 
     print("Source Data History has been updated.")
 
 
-
 # FACTOR CONSTRUCTION ------------------------------------------------------------------
+
 
 def fgoalsup(data, field, k):
     """Calculates the goal superiority factor across divisions and seasons for each team on a
@@ -457,40 +456,57 @@ def fgoalsup(data, field, k):
     # lag factor..
     data_fct['val'] = data_fct.groupby(['div', 'season', 'team', 'field'])['val'].shift(1)
     data_fct.dropna(inplace=True)
-    return(data_fct)
+    return data_fct
 
 
-def expand_field(data, group):
+def expand_field(data, group=None):
     """Expands factors across the entire date spectrum so that cross-sectional analysis
     on the factor can be performed.
     Parameters:
     -----------
-        data (dataframe): a dataframe of historical factor scores (eg. goal superiority) with
+        data (dataframe): A dataframe of historical factor scores (eg. goal superiority) with
                           columns div, season, team, date, field, val
-        group (string): a string indicating for which group to expand (eg. season)
+        group (string): Optional, a string indicating for which group to expand (eg. season). If not
+                        defined it will be applied across all groups in data.
+
+    Details:
+    --------
+    Note that the date expansion happens across div to enable cross-sectional factor building.
 
     """
-    data_f = data.query('div==@group')
-    data_ed = data_f.pivot_table(index=['div', 'date', 'season', 'field'],
-                                 columns='team',
-                                 values='val').reset_index()
-    # date universe
-    date_univ = pd.DataFrame(data.loc[:, 'date'].unique(), columns={'date'}).sort_values(by='date')
-    # copy forward all factors
-    data_ed = pd.merge(date_univ, data_ed, on='date', how='outer').sort_values(by='date')
-    data_ed = data_ed.fillna(method='ffill')
-    # need to filter only teams playing in the season otherwise duplicates issue
-    data_ed = pd.melt(data_ed, id_vars=['div', 'season', 'date', 'field'], var_name='team', value_name='val')
-    # all teams played in each  season
-    tmp = data_f.groupby(['div', 'season'])['team'].unique().reset_index()
-    team_seas = tmp.apply(lambda x: pd.Series(x['team']), axis=1).stack().reset_index(level=1, drop=True)
-    team_seas.name = 'team'
-    team_seas = tmp.drop('team', axis=1).join(team_seas)
-    # expanded factors
-    fexp = pd.merge(team_seas, data_ed,
-                    on=['div', 'season', 'team'],
-                    how='inner').sort_values(by='date').reset_index(drop=True)
-    return(fexp)
+
+    if group is not None:
+        gf = group
+    else:
+        gf = data['div'].unique()
+
+    res = pd.DataFrame()
+    for i in gf:
+        data_f = data.query('div==@i')
+        data_ed = data_f.pivot_table(index=['div', 'date', 'season', 'field'],
+                                     columns='team',
+                                     values='val').reset_index()
+        # date universe
+        date_univ = pd.DataFrame(data.loc[:, 'date'].unique(), columns={'date'}).sort_values(by='date')
+        # copy forward all factors
+        data_ed = pd.merge(date_univ, data_ed, on='date', how='outer').sort_values(by='date')
+        data_ed = data_ed.fillna(method='ffill')
+        # need to filter only teams playing in the season otherwise duplicates issue
+        data_ed = pd.melt(data_ed, id_vars=['div', 'season', 'date', 'field'], var_name='team', value_name='val')
+        # all teams played in each  season
+        tmp = data_f.groupby(['div', 'season'])['team'].unique().reset_index()
+        team_seas = tmp.apply(lambda x: pd.Series(x['team']), axis=1).stack().reset_index(level=1, drop=True)
+        team_seas.name = 'team'
+        team_seas = tmp.drop('team', axis=1).join(team_seas)
+        # expanded factors
+        fexp = pd.merge(team_seas, data_ed,
+                        on=['div', 'season', 'team'],
+                        how='inner').sort_values(by='date').reset_index(drop=True)
+        res = res.append(fexp, ignore_index=True, sort=False)
+
+    return res
+
+
 
 
 def max_event_odds_asym(data, field, team, new_field):
@@ -516,7 +532,7 @@ def max_event_odds_asym(data, field, team, new_field):
     # retrieve the best odds..
     max_odds = data_ed.groupby(['season', 'div', 'date', 'team']).max()['val'].reset_index()
     max_odds['field'] = new_field
-    return (max_odds)
+    return max_odds
 
 
 
@@ -547,7 +563,7 @@ def max_event_odds_sym(data, field, new_field):
     max_odds_da.rename(columns={'away_team': 'team'}, inplace=True)
     max_odds_da['field'] = new_field
     max_odds_draw = pd.concat([max_odds_dh, max_odds_da], axis=0, sort=False, ignore_index=True)
-    return (max_odds_draw)
+    return max_odds_draw
 
 
 # STRATEGY TESTING ------------------------------------------------------------------
@@ -575,7 +591,7 @@ def fodds(data, field_home, field_away, field_both):
     mod = max_event_odds_sym(data, field = field_both, new_field = 'odds_draw')
     # bind all together..
     moc = pd.concat([moh, moa, mod], axis=0, sort=False, ignore_index=True)
-    return(moc)
+    return moc
 
 
 def con_res(data, field):
@@ -608,7 +624,7 @@ def con_res(data, field):
     draw.drop(['variable'], axis=1, inplace=True)
     # bring together
     res = pd.concat([home, away, draw], axis=0, sort=True)
-    return (res)
+    return res
 
 
 def comp_pnl(positions, odds, results, event, stake):
@@ -654,7 +670,7 @@ def comp_pnl(positions, odds, results, event, stake):
     payres['payoff'] = payres.loc[:, ['val', 'res']].apply(f0, stake=stake, axis=1)
     # cumulative pnl
     payres['payoff_cum'] = payres.loc[:, 'payoff'].cumsum(skipna=True)
-    return (payres)
+    return payres
 
 
 
