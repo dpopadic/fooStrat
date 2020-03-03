@@ -26,17 +26,32 @@ factor_exp = expand_field(data=data_fct)
 factor_exp['val'] = factor_exp.groupby('date')['val'].transform(lambda x: x.fillna(x.mean()))
 # calculate cross-sectional z-score
 factor_exp['val'] = factor_exp.groupby(['date'])['val'].transform(lambda x: zscore(x))
-# calculate percentile
+# filter out where limited data..
+dat_lim_dt = factor_exp.groupby(['date'])['val'].count().reset_index()
+dat_lim_dt.rename(columns={'val': 'obs'}, inplace=True)
+dat_lim_dt2 = dat_lim_dt.query('obs >= 100')
+factor_exp = pd.merge(factor_exp, dat_lim_dt2, on = 'date', how='inner')
+
+# compute factor efficacy..
+# calculate percentile (add column metric: zscore, pctile, )
 factor_exp['pval'] = factor_exp.groupby(['date'])['val'].rank(pct=True)
-factor_exp['rval'] = factor_exp.groupby(['date'])['val'].rank(method='dense', ascending=False)
+# factor_exp['rval'] = factor_exp.groupby(['date'])['val'].rank(method='dense', ascending=False)
 factor_exp['qval'] = factor_exp.groupby(['date'])['val'].transform(lambda x: pd.qcut(x, q=5, labels=range(1, 6), duplicates='drop'))
 
+
+a0 = pd.DataFrame(factor_exp.groupby(['date'])['val'].count().reset_index(), columns={'date', 'val'})
+
+
+a0.query('val==0')
 factor_exp['qval'] = factor_exp.groupby(['date'])['val'].apply(pd.qcut, q=5, labels=range(1, 6), duplicates='drop')
 
-a = factor_exp.query('date=="2020-02-23"')
+# doesn't work for all dates, filter..
+a = factor_exp.query('date=="2020-02-19"')
 len(a)
 a['qval'] = a.loc[:, 'val'].transform(lambda x: pd.qcut(x, q=5, labels=range(1, 6), duplicates='drop'))
 a.sort_values('qval', inplace=True)
+# calculate the edge by bucket..
+# calculate ic's (correlation between factor & goal difference in next game)
 
 a = factor_exp.query('date=="2020-02-23"').sort_values('pval')
 len(a)
