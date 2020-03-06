@@ -36,28 +36,18 @@ factor_exp = pd.merge(factor_exp, dat_lim_dt2, on = 'date', how='inner')
 # calculate percentile (add column metric: zscore, pctile, )
 factor_exp['pval'] = factor_exp.groupby(['date'])['val'].rank(pct=True)
 # factor_exp['rval'] = factor_exp.groupby(['date'])['val'].rank(method='dense', ascending=False)
-factor_exp['qval'] = factor_exp.groupby(['date'])['val'].transform(lambda x: pd.qcut(x, q=5, labels=range(1, 6), duplicates='drop'))
+factor_exp['qval'] = factor_exp.groupby(['date'])['val'].transform(lambda x: pd.qcut(x + jitter(x), q=5, labels=range(1, 6), duplicates='drop'))
+# alternatively, rank first:
+factor_exp['rval'] = factor_exp.loc[:, 'val'].rank(method='first')
+factor_exp['qval'] = factor_exp.loc[:, 'val'].transform(lambda x: pd.qcut(x, q=5))
+
+# debugging: for which date does it return an error?
+# equal values cannot be put into different buckets, but the # buckets are of equal size in pd.cut
+# solution: rank first, reduce # buckets or introduce noise element
 
 
-a0 = pd.DataFrame(factor_exp.groupby(['date'])['val'].count().reset_index(), columns={'date', 'val'})
-
-
-a0.query('val==0')
-factor_exp['qval'] = factor_exp.groupby(['date'])['val'].apply(pd.qcut, q=5, labels=range(1, 6), duplicates='drop')
-
-# doesn't work for all dates, filter..
-a = factor_exp.query('date=="2020-02-19"')
-len(a)
-a['qval'] = a.loc[:, 'val'].transform(lambda x: pd.qcut(x, q=5, labels=range(1, 6), duplicates='drop'))
-a.sort_values('qval', inplace=True)
 # calculate the edge by bucket..
 # calculate ic's (correlation between factor & goal difference in next game)
-
-a = factor_exp.query('date=="2020-02-23"').sort_values('pval')
-len(a)
-x = pd.DataFrame(np.random.normal(size=1000), columns=['val'])
-x['val2'] = pd.qcut(x['val'], q=10, labels=range(1, 11))
-x.sort_values('val', inplace=True)
 
 
 # problem: Chelsea missing on 22/02/2020!

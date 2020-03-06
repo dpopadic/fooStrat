@@ -673,6 +673,23 @@ def comp_pnl(positions, odds, results, event, stake):
     return payres
 
 
+def jitter(x, noise_reduction=1000000):
+    """Add noise to a series of observations. Useful for ranking functions.
+    Parameters:
+    -----------
+        x (series): a series of numerical observations
+        noise_reduction (int): magnitude of noise reduction (higher values mean less noise)
+    Example:
+    --------
+        x = np.random.normal(0, 1, 100).transpose()
+        y = jitter(x, noise_reduction=100)
+        compare = pd.DataFrame([x, y])
+    """
+    l = len(x)
+    stdev = x.std()
+    z = (np.random.random(l) * stdev / noise_reduction) - (stdev / (2 * noise_reduction))
+    return z
+
 
 # MAPPING TABLES ---------------------------------------------------------------------------
 # division mapping
