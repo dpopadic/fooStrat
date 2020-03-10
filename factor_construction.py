@@ -1,7 +1,7 @@
 # FACTOR CALCULATION ----------------------------------------------------
 import pandas as pd
 import numpy as np
-from foostrat_utils import fgoalsup, odds_fields, fodds, expand_field
+from foostrat_utils import fgoalsup, odds_fields, fodds, expand_field, jitter
 import matplotlib.pyplot as plt
 import seaborn as sns
 from scipy.stats import zscore
@@ -20,26 +20,17 @@ a=source_core.query('div=="E0"')
 
 # compute factor
 data_fct = fgoalsup(data=source_core, field=['FTHG', 'FTAG'], k=5)
-# expand across time
-factor_exp = expand_field(data=data_fct)
+# expand across time (include impute parameter here -> done)
+factor_exp = expand_field(data=data_fct, impute=True)
 # impute across divisions
-factor_exp['val'] = factor_exp.groupby('date')['val'].transform(lambda x: x.fillna(x.mean()))
-# calculate cross-sectional z-score
-factor_exp['val'] = factor_exp.groupby(['date'])['val'].transform(lambda x: zscore(x))
-# filter out where limited data..
-dat_lim_dt = factor_exp.groupby(['date'])['val'].count().reset_index()
-dat_lim_dt.rename(columns={'val': 'obs'}, inplace=True)
-dat_lim_dt2 = dat_lim_dt.query('obs >= 100')
-factor_exp = pd.merge(factor_exp, dat_lim_dt2, on = 'date', how='inner')
+# factor_exp['val'] = factor_exp.groupby('date')['val'].transform(lambda x: x.fillna(x.mean()))
 
-# compute factor efficacy..
-# calculate percentile (add column metric: zscore, pctile, )
-factor_exp['pval'] = factor_exp.groupby(['date'])['val'].rank(pct=True)
-# factor_exp['rval'] = factor_exp.groupby(['date'])['val'].rank(method='dense', ascending=False)
-factor_exp['qval'] = factor_exp.groupby(['date'])['val'].transform(lambda x: pd.qcut(x + jitter(x), q=5, labels=range(1, 6), duplicates='drop'))
-# alternatively, rank first:
-factor_exp['rval'] = factor_exp.loc[:, 'val'].rank(method='first')
-factor_exp['qval'] = factor_exp.loc[:, 'val'].transform(lambda x: pd.qcut(x, q=5))
+data = factor_exp
+metric = 'z-score'
+metric = 'percentile'
+bucket = 5
+bucket_method = "first"
+
 
 # debugging: for which date does it return an error?
 # equal values cannot be put into different buckets, but the # buckets are of equal size in pd.cut

@@ -459,7 +459,7 @@ def fgoalsup(data, field, k):
     return data_fct
 
 
-def expand_field(data, group=None):
+def expand_field(data, group=None, impute=False):
     """Expands factors across the entire date spectrum so that cross-sectional analysis
     on the factor can be performed.
     Parameters:
@@ -468,6 +468,7 @@ def expand_field(data, group=None):
                           columns div, season, team, date, field, val
         group (string): Optional, a string indicating for which group to expand (eg. season). If not
                         defined it will be applied across all groups in data.
+        impute (boolean): True or False whether to impute values for each date for missing data
 
     Details:
     --------
@@ -503,6 +504,9 @@ def expand_field(data, group=None):
                         on=['div', 'season', 'team'],
                         how='inner').sort_values(by='date').reset_index(drop=True)
         res = res.append(fexp, ignore_index=True, sort=False)
+
+    if impute is True:
+        res['val'] = res.groupby('date')['val'].transform(lambda x: x.fillna(x.mean()))
 
     return res
 
@@ -689,6 +693,50 @@ def jitter(x, noise_reduction=1000000):
     stdev = x.std()
     z = (np.random.random(l) * stdev / noise_reduction) - (stdev / (2 * noise_reduction))
     return z
+
+
+def scoring(data, metric, bucket=None, bucket_method):
+    """Calculates the cross-sectional score at any point in time for the data.
+    Parameters:
+    -----------
+        data (dataframe): A dataframe with factors and columns div, season, date, team, field, val
+        metric (string): Which metric to return. Options are z-score, percentile
+        bucket (int): Whether and how many buckets to group the observations into (in ascending order)
+        bucket_method (string): Define which construction approach to use when returning buckets. Options
+                                are noise or first (default).
+
+    Details:
+    --------
+    Bucket:
+    Equal values cannot be put into different buckets, but the # buckets are required to be
+    of equal size in pd.cut. A solution is to rank first, reduce # buckets (not practical) or
+    introduce a noise element. This is why the bucket_method parameter is provided.
+
+    """
+    if metric == 'z-score':
+        # calculate cross-sectional z-score
+        data['val'] = data.groupby(['date'])['val'].transform(lambda x: zscore(x))
+    elif metric == 'percentile':
+        data['val'] = data.groupby(['date'])['val'].rank(pct=True)
+    else:
+        data
+
+    if bucket is not None:
+        # filter out where limited data
+        lim_dt = data.groupby(['date'])['val'].count().reset_index()
+        lim_dt.rename(columns={'val': 'obs'}, inplace=True)
+        lim_dt2 = lim_dt.query('obs >= @bucket')
+        data = pd.merge(data, lim_dt2, on='date', how='inner')
+        del data['obs']
+        if bucket_method == 'noise':
+            data['bucket'] = data.groupby(['date'])['val']. \
+                transform(lambda x: pd.qcut(x + jitter(x), q=bucket, labels=range(1, bucket + 1)))
+        else:
+            data['bucket'] = data.groupby(['date'])['val'].rank(method='first')
+            data['bucket'] = data.groupby(['date'])['bucket']. \
+                transform(lambda x: pd.qcut(x, q=bucket, labels=range(1, bucket + 1), duplicates='drop'))
+
+    return data
 
 
 # MAPPING TABLES ---------------------------------------------------------------------------
