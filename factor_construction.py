@@ -1,7 +1,7 @@
 # FACTOR CALCULATION ----------------------------------------------------
 import pandas as pd
 import numpy as np
-from foostrat_utils import fgoalsup, odds_fields, fodds, expand_field, jitter
+from foostrat_utils import fgoalsup, odds_fields, fodds, expand_field, jitter, scoring
 import matplotlib.pyplot as plt
 import seaborn as sns
 from scipy.stats import zscore
@@ -24,32 +24,14 @@ data_fct = fgoalsup(data=source_core, field=['FTHG', 'FTAG'], k=5)
 factor_exp = expand_field(data=data_fct, impute=True)
 # impute across divisions
 # factor_exp['val'] = factor_exp.groupby('date')['val'].transform(lambda x: x.fillna(x.mean()))
+factor_exp_ed = scoring(data = factor_exp, metric='percentile', bucket_method='first', bucket=5)
+# calculate the edge (wins / # games) by bucket -> should have a decreasing shape..
 
-data = factor_exp
-metric = 'z-score'
-metric = 'percentile'
-bucket = 5
-bucket_method = "first"
-
-
-# debugging: for which date does it return an error?
-# equal values cannot be put into different buckets, but the # buckets are of equal size in pd.cut
-# solution: rank first, reduce # buckets or introduce noise element
-
-
-# calculate the edge by bucket..
 # calculate ic's (correlation between factor & goal difference in next game)
-
-
 # problem: Chelsea missing on 22/02/2020!
-
-# create function to transform factor to z-score
-data_fct2 = data_fct
-data_fct2['z'] = data_fct2.groupby(['div'])['val'].transform(lambda x: zscore(x))
 
 
 # create a function to show the distribution
-
 # across all leagues..
 sns.distplot(data_fct.val, bins=100, kde=False)
 # premier league vs bundesliga..

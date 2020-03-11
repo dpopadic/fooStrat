@@ -695,7 +695,7 @@ def jitter(x, noise_reduction=1000000):
     return z
 
 
-def scoring(data, metric, bucket=None, bucket_method):
+def scoring(data, metric, bucket_method, bucket=None):
     """Calculates the cross-sectional score at any point in time for the data.
     Parameters:
     -----------
@@ -722,7 +722,7 @@ def scoring(data, metric, bucket=None, bucket_method):
         data
 
     if bucket is not None:
-        # filter out where limited data
+        # filter out where limited data (error when bucketing otherwise)
         lim_dt = data.groupby(['date'])['val'].count().reset_index()
         lim_dt.rename(columns={'val': 'obs'}, inplace=True)
         lim_dt2 = lim_dt.query('obs >= @bucket')
