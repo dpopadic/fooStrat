@@ -1,7 +1,7 @@
-# fooStrat
+# fooStrat <img src="logo.png" align="right" height=140/>
 Statistical analysis and strategy development for football data
 
-![logo](logo.png)
+
 
 **Core**
 
