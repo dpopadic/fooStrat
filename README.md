@@ -1,7 +1,7 @@
 # fooStrat
 Statistical analysis and strategy development for football data
 
-![logo](logo.PNG)
+![logo](logo.png)
 
 **Core**
 
