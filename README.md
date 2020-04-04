@@ -1,6 +1,8 @@
 # fooStrat
 Statistical analysis and strategy development for football data
 
+![logo](logo.PNG)
+
 **Core**
 
 > Data sourcing ```data_sourcing```
