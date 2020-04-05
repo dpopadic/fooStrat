@@ -1,7 +1,10 @@
 # fooStrat <img src="img/logo.png" align="right" height=140/>
 Statistical analysis and strategy development for football data
 
-<img src="img/architecture.png" align="right" height=400 width=500/>
+<p align="center">
+  <img width="500" height="400" src="img/architecture.png">
+</p>
+
 
 **Core**
 
