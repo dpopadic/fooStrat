@@ -1,7 +1,7 @@
 # FACTOR CALCULATION ----------------------------------------------------
 import pandas as pd
 import numpy as np
-from foostrat_utils import fgoalsup, odds_fields, fodds, expand_field, jitter, scoring
+from foostrat_utils import fgoalsup, odds_fields, fodds, expand_field, jitter, scoring, con_res, comp_edge
 import matplotlib.pyplot as plt
 import seaborn as sns
 from scipy.stats import zscore
@@ -27,6 +27,28 @@ factor_exp = expand_field(data=data_fct, impute=True)
 factor_exp_ed = scoring(data = factor_exp, metric='percentile', bucket_method='first', bucket=5)
 # calculate the edge (wins / # games) by bucket -> should have a decreasing shape..
 
+# construct results object..
+event_res = con_res(data=source_core, field=['FTR'])
+source_core.query('field=="FTR" & date=="2019-10-06" & div=="E0"')
+event_res.query('date=="2019-10-06" & div=="E0"')
+
+
+
+
+# comp_edge function..
+# choose by which group you want to calculate
+byf = ['overall', 'div']
+# get correct event..
+er = event_res.query('field=="win"').drop('field', axis=1)
+
+f_edge = comp_edge(factor_data=factor_exp_ed, results=er, byf=['overall', 'div'])
+
+
+
+
+
+
+er1.query('date=="2019-10-06" & div=="E0"')
 # calculate ic's (correlation between factor & goal difference in next game)
 # problem: Chelsea missing on 22/02/2020!
 

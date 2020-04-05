@@ -739,6 +739,59 @@ def scoring(data, metric, bucket_method, bucket=None):
     return data
 
 
+def comp_edge(factor_data, results, byf=['overall']):
+    """Computes the hit ratio (edge) for low to high ranked signals captured in a
+    bucket column in the input data.
+
+    Parameters:
+    -----------
+        factor_data (dataframe): A signals dataframe with columns div, season, date, team, field, bucket
+        results (dataframe): A event results datafrane with columns div, season, date, team, val
+        byf (list): Whether the calculation should be performed overall (default) or additionally
+                    by any group (column) in the factor_data input
+    Returns:
+    --------
+        A dataframe with edge ratio's by bucket and any group specified in the by parameter.
+        Example:
+                bucket  val                field
+                1.0   0.296861  Argentina Superliga
+                2.0   0.315633  Argentina Superliga
+                3.0   0.353865  Argentina Superliga
+                4.0   0.392473  Argentina Superliga
+                5.0   0.440255  Argentina Superliga
+    """
+
+    # rename
+    results = results.rename(columns={'val': 'result'})
+    # bring results & signals together
+    er_ed = pd.merge(factor_data, results, on=['div', 'season', 'date', 'team'], how='left')
+    # erase non-events..
+    er_ed.dropna(subset=['result'], inplace=True)
+    res = pd.DataFrame()
+    for k in byf:
+        if k == "overall":
+            key_gr = 'bucket'
+        else:
+            key_gr = ['bucket', k]
+
+        # calculate hits..
+        res0 = er_ed.groupby(key_gr).agg(hits=pd.NamedAgg(column='result', aggfunc='sum'),
+                                         n_obs=pd.NamedAgg(column='result', aggfunc='count')).reset_index()
+        res0['val'] = res0['hits'] / res0['n_obs']
+
+        if k == 'overall':
+            res0['field'] = k
+        else:
+            res0.rename(columns={k: 'field'}, inplace=True)
+
+        res0.drop(['hits', 'n_obs'], axis=1, inplace=True)
+        res = res.append(res0, ignore_index=True, sort=False)
+
+    res.sort_values(by=['field', 'bucket'], inplace=True)
+    res.reset_index(drop=True, inplace=True)
+
+    return res
+
 # MAPPING TABLES ---------------------------------------------------------------------------
 # division mapping
 competition = {'E0':'England Premier League',
