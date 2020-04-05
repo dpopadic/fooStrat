@@ -39,6 +39,12 @@ gsf_edge = comp_edge(factor_data=gsf_data, results=res_custom, byf=['overall', '
 
 # PNL ANALYSIS --------------------------------------------------------------------------------------------------------
 
+# top bucket..
+P = gsf_data.query('bucket==10 & div=="E0"').loc[:, ['season', 'div', 'date', 'team']]
+P.sort_values(by=['season', 'date'], inplace=True)
+O = match_odds.query('field == "odds_win"')
+gsf_pnl = comp_pnl(positions=P, odds=O, results=results, event='win', stake=10)
+
 # factor: max factor for every day played..
 positions = factor_library.loc[factor_library.groupby(['div', 'season', 'date', 'field'])['val'].idxmax()].reset_index(drop=True)
 positions = positions.loc[:,['div', 'season', 'date', 'team']]
