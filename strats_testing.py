@@ -1,6 +1,8 @@
 # STRATEGY TESTING ----------------------------------------------------------------------------------------------------
 import pandas as pd
 from foostrat_utils import con_res, comp_pnl, comp_edge
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 # next: transform this score to a probability, 1st via constructing a z-score
 # does the factor work as hypothesized?

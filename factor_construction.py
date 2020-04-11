@@ -2,9 +2,6 @@
 import pandas as pd
 import numpy as np
 from foostrat_utils import fgoalsup, odds_fields, fodds, expand_field, jitter, scoring
-import matplotlib.pyplot as plt
-import seaborn as sns
-from scipy.stats import zscore
 
 # load source data..
 source_core = pd.read_pickle('pro_data/source_core.pkl')
@@ -23,8 +20,8 @@ match_odds.to_pickle('./pro_data/match_odds.pkl')
 data_gsf_0 = fgoalsup(data=source_core, field=['FTHG', 'FTAG'], k=5)
 # expand across time (and impute across divisions)
 data_gsf = expand_field(data=data_gsf_0, impute=True)
-# calculate cross-sectional signal (enable by div)..
-data_gsf_ed = scoring(data = data_gsf, metric='percentile', bucket_method='first', bucket=10)
+# calculate cross-sectional signal across divisions (enable by div)..
+data_gsf_ed = scoring(data = data_gsf, metric='z-score', bucket_method='first', bucket=10)
 # store factors..
 data_gsf_ed.to_pickle('./pro_data/factor_library.pkl')
 
