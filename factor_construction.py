@@ -1,7 +1,7 @@
 # FACTOR CALCULATION --------------------------------------------------------------------------------------------------
 import pandas as pd
 import numpy as np
-from foostrat_utils import fgoalsup, fhome, odds_fields, fodds, expand_field, jitter, scoring
+from foostrat_utils import fgoalsup, fhome, odds_fields, fodds, expand_field, jitter, comp_score
 
 # load source data..
 source_core = pd.read_pickle('pro_data/source_core.pkl')
@@ -21,15 +21,15 @@ data_gsf_0 = fgoalsup(data=source_core, field=['FTHG', 'FTAG'], field_name=['g_s
 # expand across time (and impute across divisions)
 data_gsf = expand_field(data=data_gsf_0, impute=True)
 # calculate cross-sectional signal across divisions (enable by div)..
-# data_gsf_ed = scoring(data = data_gsf, metric='z-score', bucket_method='first', bucket=10)
-# seperate into 2 functions: comp_score, comp_bucket
-data_gsf_ed = scoring(data = data_gsf, metric='z-score')
+data_gsf_ed = comp_score(data=data_gsf, metric='percentile')
+
 
 
 
 # home factor ---------------------------------------------------------------------------------------------------------
 # no need for expansion for boolean factors!
 data_hf = fhome(data=source_core)
+
 
 
 

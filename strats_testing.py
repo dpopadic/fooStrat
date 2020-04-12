@@ -1,6 +1,6 @@
 # STRATEGY TESTING ----------------------------------------------------------------------------------------------------
 import pandas as pd
-from foostrat_utils import con_res, comp_pnl, comp_edge
+from foostrat_utils import con_res, comp_pnl, comp_edge, comp_bucket
 import matplotlib.pyplot as plt
 import seaborn as sns
 
@@ -31,9 +31,11 @@ results = con_res(source_core, field=['FTR'])
 # SIGNAL EFFICACY -----------------------------------------------------------------------------------------------------
 
 # 1) goal superiority signal
-gsf_data = factor_library.query('field=="goal_superiority"')
+data_gsf = factor_library.query('field=="goal_superiority"')
+data_gsf = comp_bucket(data_gsf, bucket_method='first', bucket=5)
+
 res_custom = results.query('field=="win"').drop('field', axis=1)
-gsf_edge = comp_edge(factor_data=gsf_data, results=res_custom, byf=['overall', 'div'])
+gsf_edge = comp_edge(factor_data=data_gsf, results=res_custom, byf=['overall', 'div'])
 
 
 

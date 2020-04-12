@@ -800,15 +800,42 @@ def jitter(x, noise_reduction=1000000):
     return z
 
 
-def scoring(data, metric, bucket_method=None, bucket=None):
-    """Calculates the cross-sectional score at any point in time for the data.
+
+def comp_score(data, metric):
+    """
+    Computes a cross-sectional score across leagues (div) at any point in time.
+
     Parameters:
     -----------
         data (dataframe): A dataframe with factors and columns div, season, date, team, field, val
-        metric (string): Which metric to return. Options are z-score, percentile
-        bucket (int): Whether and how many buckets to group the observations into (in ascending order)
+        metric (string): Which metric to calculate (options: z-score, percentile)
+
+    Returns:
+    --------
+        A dataframe with cross-sectional scores.
+
+    """
+
+    if metric == 'z-score':
+        # calculate cross-sectional z-score
+        data['val'] = data.groupby(['date'])['val'].transform(lambda x: zscore(x))
+    elif metric == 'percentile':
+        data['val'] = data.groupby(['date'])['val'].rank(pct=True)
+    else:
+        data
+
+    return data
+
+
+def comp_bucket(data, bucket_method, bucket):
+    """Calculates the bucket given a cross-sectional score. Note that higher buckets are preferred.
+
+    Parameters:
+    -----------
+        data (dataframe):   A dataframe with factor scores and columns div, season, date, team, field, val
         bucket_method (string): Define which construction approach to use when returning buckets. Options
                                 are noise or first (default).
+        bucket (int):       How many buckets to group the observations into (in ascending order)
 
     Details:
     --------
@@ -818,30 +845,25 @@ def scoring(data, metric, bucket_method=None, bucket=None):
     introduce a noise element. This is why the bucket_method parameter is provided.
 
     """
-    if metric == 'z-score':
-        # calculate cross-sectional z-score
-        data['val'] = data.groupby(['date'])['val'].transform(lambda x: zscore(x))
-    elif metric == 'percentile':
-        data['val'] = data.groupby(['date'])['val'].rank(pct=True)
-    else:
-        data
 
-    if bucket is not None:
-        # filter out where limited data (error when bucketing otherwise)
-        lim_dt = data.groupby(['date'])['val'].count().reset_index()
-        lim_dt.rename(columns={'val': 'obs'}, inplace=True)
-        lim_dt2 = lim_dt.query('obs >= @bucket')
-        data = pd.merge(data, lim_dt2, on='date', how='inner')
-        del data['obs']
-        if bucket_method == 'noise':
-            data['bucket'] = data.groupby(['date'])['val']. \
-                transform(lambda x: pd.qcut(x + jitter(x), q=bucket, labels=range(1, bucket + 1)))
-        else:
-            data['bucket'] = data.groupby(['date'])['val'].rank(method='first')
-            data['bucket'] = data.groupby(['date'])['bucket']. \
-                transform(lambda x: pd.qcut(x, q=bucket, labels=range(1, bucket + 1), duplicates='drop'))
+    # filter out where limited data (error when bucketing otherwise)
+    lim_dt = data.groupby(['date'])['val'].count().reset_index()
+    lim_dt.rename(columns={'val': 'obs'}, inplace=True)
+    lim_dt2 = lim_dt.query('obs >= @bucket')
+    data = pd.merge(data, lim_dt2, on='date', how='inner')
+    del data['obs']
+
+    if bucket_method == 'noise':
+        data['bucket'] = data.groupby(['date'])['val']. \
+            transform(lambda x: pd.qcut(x + jitter(x), q=bucket, labels=range(1, bucket + 1)))
+    else:
+        data['bucket'] = data.groupby(['date'])['val'].rank(method='first')
+        data['bucket'] = data.groupby(['date'])['bucket']. \
+            transform(lambda x: pd.qcut(x, q=bucket, labels=range(1, bucket + 1), duplicates='drop'))
 
     return data
+
+
 
 
 def comp_edge(factor_data, results, byf=['overall']):
