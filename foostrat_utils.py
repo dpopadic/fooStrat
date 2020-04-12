@@ -501,14 +501,15 @@ def fhome(data):
     # home
     tmp1 = data_cf.drop('away_team', axis=1)
     tmp1.rename(columns={'home_team': 'team'}, inplace=True)
-    tmp1['home'] = 1
+    tmp1['val'] = 1
 
     # away
     tmp2 = data_cf.drop('home_team', axis=1)
     tmp2.rename(columns={'away_team': 'team'}, inplace=True)
-    tmp2['home'] = 0
+    tmp2['val'] = 0
 
     res = pd.concat([tmp1, tmp2], axis=0, sort=False, ignore_index=True)
+    res['field'] = "home"
     res = res.sort_values(['date', 'div', 'season']).reset_index(level=0, drop=True)
 
     return res
@@ -698,6 +699,7 @@ def fodds(data, field_home, field_away, field_both):
     mod = max_event_odds_sym(data, field = field_both, new_field = 'odds_draw')
     # bind all together..
     moc = pd.concat([moh, moa, mod], axis=0, sort=False, ignore_index=True)
+    moc = moc.sort_values(['date', 'div', 'season']).reset_index(level=0, drop=True)
     return moc
 
 
@@ -798,7 +800,7 @@ def jitter(x, noise_reduction=1000000):
     return z
 
 
-def scoring(data, metric, bucket_method, bucket=None):
+def scoring(data, metric, bucket_method=None, bucket=None):
     """Calculates the cross-sectional score at any point in time for the data.
     Parameters:
     -----------
