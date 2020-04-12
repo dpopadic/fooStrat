@@ -397,14 +397,133 @@ def update_data_historic(path, file_desc, file_key, file_key_name, file_desc_2, 
 # FACTOR CONSTRUCTION ------------------------------------------------------------------
 
 
-def fgoalsup(data, field, k):
+def neutralise_field(data, field, field_name=None, field_numeric=True, column_field=True):
+    """
+    Reshapes the data from a pairwise column-based format (eg. home_team, away_team) where fields are relative
+    to either one column or another to a wide format neutralised for this column dependency.
+
+    Parameters:
+    -----------
+        data (dataframe):   a dataframe with columns div, date, season, home_team, away_team, field, val
+        field (list):       a list specifying the field(s) of interest (eg. ['FTHG', 'FTAG'])
+        field_name (list):  optional, a list with new field name for fields (eg. ['g_scored', 'g_received'])
+        field_numeric (boolean): whether the field to transpose is numeric (True) or not (False)
+        column_field (boolean):  whether to have the fields in columns or in wide-format
+
+    Returns:
+    --------
+        A dataframe with team-neutralised data.
+
+    Example:
+    --------
+    data:
+              div       date      home_team    away_team     season field val
+            0  E0 2004-08-14    aston_villa  southampton  2004-2005  FTHG   2
+            1  E0 2004-08-14      blackburn    west_brom  2004-2005  FTHG   1
+            2  E0 2004-08-14         bolton     charlton  2004-2005  FTHG   4
+            3  E0 2004-08-14       man_city       fulham  2004-2005  FTHG   1
+            4  E0 2004-08-14  middlesbrough    newcastle  2004-2005  FTHG   2
+
+    neutralise_field(data, field=['FTHG', 'FTAG'], field_name=['g_scored', 'g_received'],
+                     field_numeric=True, column_field=False)
+
+                                  div     season  date team g_received g_scored
+            0      Argentina Superliga  2012/2013  ...          0        1
+            1      Argentina Superliga  2012/2013  ...          0        1
+            2      Argentina Superliga  2012/2013  ...          0        3
+            3      Argentina Superliga  2012/2013  ...          1        1
+            4      Argentina Superliga  2012/2013  ...          0        3
+
+    """
+
+    # filter relevant fields..
+    data_ed = data[(data['field'].isin(field))].copy()
+    if field_numeric == True:
+        data_ed['val'] = pd.to_numeric(data_ed.loc[:, 'val'], errors='coerce')
+
+    # put the fields in wide format
+    tmp = pd.pivot_table(data_ed,
+                         index=['div', 'season', 'date', 'home_team', 'away_team'],
+                         columns='field',
+                         values='val').reset_index()
+
+    # home team..
+    tmp1 = tmp.drop('away_team', axis=1)
+    tmp1.rename(columns={'home_team': 'team'}, inplace=True)
+    if field_name != None:
+        tmp1.rename(columns=dict(zip(tmp1.loc[:, field], field_name)), inplace=True)
+
+    # away team..
+    tmp2 = tmp.drop('home_team', axis=1)
+    tmp2.rename(columns={'away_team': 'team'}, inplace=True)
+    if field_name != None:
+        tmp2.rename(columns=dict(zip(tmp2.loc[:, field], field_name)), inplace=True)
+
+    # put together..
+    data_ed_co = pd.concat([tmp1, tmp2], axis=0, sort=False, ignore_index=True)
+
+    if column_field == False:
+        data_ed_co = pd.melt(data_ed_co,
+                             id_vars=['div', 'season', 'date', 'team'],
+                             var_name='field',
+                             value_name='val')
+
+    return data_ed_co
+
+
+
+def fhome(data):
+    """
+    Reshapes the data where columns define whether it is a home match or away match to a home/away neutralised
+    object so that the data can be used in a more scalable way.
+
+    Parameters:
+    -----------
+        data(dataframe): a dataframe with columns div, date, season, home_team, away_team, field, val
+
+    Returns:
+    --------
+        A data.frame identifying the home- & away-teams.
+
+    Example:
+    --------
+    fhome(data)
+                            div     season       date      team     home
+        0                      F1  1993-1994 1993-07-23    nantes     1
+        1                      F1  1993-1994 1993-07-23    monaco     0
+        2                      F1  1993-1994 1993-07-24  bordeaux     1
+        3                      F1  1993-1994 1993-07-24      caen     1
+        4                      F1  1993-1994 1993-07-24     lille     1
+
+    """
+    data_cf = data.query('field=="FTR"').loc[:, ['div', 'season', 'date', 'home_team', 'away_team']]
+
+    # home
+    tmp1 = data_cf.drop('away_team', axis=1)
+    tmp1.rename(columns={'home_team': 'team'}, inplace=True)
+    tmp1['home'] = 1
+
+    # away
+    tmp2 = data_cf.drop('home_team', axis=1)
+    tmp2.rename(columns={'away_team': 'team'}, inplace=True)
+    tmp2['home'] = 0
+
+    res = pd.concat([tmp1, tmp2], axis=0, sort=False, ignore_index=True)
+    res = res.sort_values(['date', 'div', 'season']).reset_index(level=0, drop=True)
+
+    return res
+
+
+
+def fgoalsup(data, field, field_name, k):
     """Calculates the goal superiority factor across divisions and seasons for each team on a
     rolling basis. Note that the factor is adjusted for lookahead bias.
 
     Parameters:
     -----------
         data (dataframe): a dataframe with columns div, date, season, home_team, away_team, field, val
-        field (list): a list specifying the field name for home- & away-goals (eg. ['FTHG', 'FTAG'])
+        field (list): a list specifying the field name for home- & away-goals (eg. ['FTHG', 'FTAG']) in this order
+        field_name (list): a list with new field name for fields (eg. ['g_scored', 'g_received'])
         k (integer): the lookback window to be used
 
     Returns:
@@ -421,35 +540,16 @@ def fgoalsup(data, field, k):
     Leeds it is -3.
 
     """
-    # filter relevant fields..
-    data_goals = data[(data['field'].isin(field))]
-    data_goals['val'] = pd.to_numeric(data_goals.loc[:, 'val'])
-    # put the fields in wide format
-    tmp = pd.pivot_table(data_goals,
-                         index=['div', 'season', 'date', 'home_team', 'away_team'],
-                         columns='field',
-                         values='val').reset_index()
-
-    # home team..
-    tmp1 = tmp.loc[:, ['div', 'season', 'date', 'home_team', field[0], field[1]]]
-    tmp1.rename(columns={'home_team': 'team',
-                         field[0]: 'g_scored',
-                         field[1]: 'g_received'}, inplace=True)
-    # away team..
-    tmp2 = tmp.loc[:, ['div', 'season', 'date', 'away_team', field[0], field[1]]]
-    tmp2.rename(columns={'away_team': 'team',
-                         field[1]: 'g_scored',
-                         field[0]: 'g_received'}, inplace=True)
-    # put together..
-    data_goals_co = pd.concat([tmp1, tmp2], axis=0, sort=False, ignore_index=True)
+    # neutralise data..
+    data_goals_co = neutralise_field(data, field=field, field_name=field_name, field_numeric=True, column_field=True)
 
     # compute stat..
     data_goals_co_i = data_goals_co.set_index('date')
-    data_goals_co1 = data_goals_co_i.sort_values('date').groupby(['team'])[['g_scored', 'g_received']]. \
+    data_goals_co1 = data_goals_co_i.sort_values('date').groupby(['team'])[field_name]. \
                     rolling(k, min_periods=1).sum().reset_index()
 
-    data_goals_co1['val'] = data_goals_co1['g_scored'] - data_goals_co1['g_received']
-    data_goals_co1.drop(['g_scored', 'g_received'], axis=1, inplace=True)
+    data_goals_co1['val'] = data_goals_co1[field_name[0]] - data_goals_co1[field_name[1]]
+    data_goals_co1.drop(field_name, axis=1, inplace=True)
     data_fct = pd.merge(data_goals_co[['div', 'date', 'season', 'team']],
                         data_goals_co1, on=['team', 'date'],
                         how='left')
@@ -457,7 +557,9 @@ def fgoalsup(data, field, k):
     # lag factor..
     data_fct['val'] = data_fct.groupby(['div', 'season', 'team', 'field'])['val'].shift(1)
     data_fct.dropna(inplace=True)
+    data_fct = data_fct.sort_values(['date', 'div', 'season']).reset_index(level=0, drop=True)
     return data_fct
+
 
 
 def expand_field(data, group=None, impute=False):

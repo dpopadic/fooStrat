@@ -17,13 +17,17 @@ match_odds.to_pickle('./pro_data/match_odds.pkl')
 
 # goal superiority rating ---------------------------------------------------------------------------------------------
 # compute factor
-data_gsf_0 = fgoalsup(data=source_core, field=['FTHG', 'FTAG'], k=5)
+data_gsf_0 = fgoalsup(data=source_core, field=['FTHG', 'FTAG'], field_name=['g_scored', 'g_received'], k=5)
 # expand across time (and impute across divisions)
 data_gsf = expand_field(data=data_gsf_0, impute=True)
 # calculate cross-sectional signal across divisions (enable by div)..
 data_gsf_ed = scoring(data = data_gsf, metric='z-score', bucket_method='first', bucket=10)
 # store factors..
 data_gsf_ed.to_pickle('./pro_data/factor_library.pkl')
+
+
+# home factor ---------------------------------------------------------------------------------------------------------
+
 
 
 
