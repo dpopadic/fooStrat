@@ -247,6 +247,7 @@ def synchronise_data(data):
     """Synchronises the data so that all relevant fields have the same definition and
     the data is in a format that is more suited for data analysis. See details for more
     information.
+
     Parameters:
     -----------
         data (dataframe): a dataframe with consolidated data from various sources with columns season,
@@ -267,17 +268,45 @@ def synchronise_data(data):
         named differently in those data sources.
         - Team Naming
         The team names are transformed to lower-case and whitespaces are replaced by "_".
+        - Season Mapping
+        The seasons are defined differently depending which league you look at (eg. 2019 for Brasil Serie A vs
+        2019-2020 for England Premier League (E0)). Season synchronisation is performed to bring all leagues and
+        seasons on the same denominator.
 
     """
+    # fields ---------------------
     data['field'] = data['field'].replace({'FTR': 'FTR',
                                             'Res': 'FTR',
                                             'FTHG': 'FTHG',
                                             'HG': 'FTHG',
                                             'FTAG': 'FTAG',
                                             'AG': 'FTAG'})
+
+    # teams ----------------------
     data['home_team'] = data.loc[:, 'home_team'].str.replace(' ', '_').str.lower()
     data['away_team'] = data.loc[:, 'away_team'].str.replace(' ', '_').str.lower()
+
+    # seasons --------------------
+    # unique seasons
+    Se = pd.DataFrame(data.loc[:, 'season'].unique(), columns=['season'])
+    # make sure it's a string
+    Se["season_new"] = Se["season"].astype("|S")
+    # 2-year season description to 1st-year season description..
+    Se['season_new'] = Se.loc[:, 'season_new'].apply(lambda x: x[:4] if len(x) > 4 else x)
+    Se['season_new'] = Se['season_new'].apply(pd.to_numeric, errors='coerce')
+
+    # add new season definition to the data..
+    res = pd.merge(data, Se, on='season', how='left')
+    res.drop(['season'], axis=1, inplace=True)
+    res.rename(columns={'season_new': 'season'}, inplace=True)
+
+    # exception alterations: there're some leagues where the 4-digit season description is forward-looking
+    div_season_spec = 'Ireland Premier Division'
+    res.loc[(res['div'] == div_season_spec), 'season'] = res.loc[(res['div'] == div_season_spec), 'season'].values - 1
+    res = res.sort_values(['date', 'div', 'season']).reset_index(level=0, drop=True)
+
     return data
+
 
 
 def update_data_latest(ex, new_1, new_2, season, path):
@@ -453,11 +482,11 @@ def neutralise_field(data, field, field_name=None, field_numeric=True, column_fi
     if field_name != None:
         tmp1.rename(columns=dict(zip(tmp1.loc[:, field], field_name)), inplace=True)
 
-    # away team..
+    # away team (note that fields are reversed here!)..
     tmp2 = tmp.drop('home_team', axis=1)
     tmp2.rename(columns={'away_team': 'team'}, inplace=True)
     if field_name != None:
-        tmp2.rename(columns=dict(zip(tmp2.loc[:, field], field_name)), inplace=True)
+        tmp2.rename(columns=dict(zip(tmp2.loc[:, field[::-1]], field_name)), inplace=True)
 
     # put together..
     data_ed_co = pd.concat([tmp1, tmp2], axis=0, sort=False, ignore_index=True)
@@ -544,6 +573,9 @@ def fgoalsup(data, field, field_name, k):
     # neutralise data..
     data_goals_co = neutralise_field(data, field=field, field_name=field_name, field_numeric=True, column_field=True)
 
+    data_goals_co.query('div=="E0" & date=="2019-08-09"')
+    data_fct.query('div=="E0" & date=="2019-08-09"')
+
     # compute stat..
     data_goals_co_i = data_goals_co.set_index('date')
     data_goals_co1 = data_goals_co_i.sort_values('date').groupby(['team'])[field_name]. \
@@ -555,6 +587,10 @@ def fgoalsup(data, field, field_name, k):
                         data_goals_co1, on=['team', 'date'],
                         how='left')
     data_fct['field'] = 'goal_superiority'
+
+    # identify promoted/demoted teams & neutralise score for them..
+
+
     # lag factor..
     data_fct['val'] = data_fct.groupby(['div', 'season', 'team', 'field'])['val'].shift(1)
     data_fct.dropna(inplace=True)
@@ -726,13 +762,14 @@ def con_res(data, field):
     away['field'] = "win"
     away.rename(columns={'away_team': 'team'}, inplace=True)
     # draws
-    draw = res_tmp
+    draw = res_tmp.copy()
     draw['val'] = res_tmp.loc[:, 'val'].apply(lambda x: 1 if x == 'D' else 0)
     draw['field'] = 'draw'
     draw = pd.melt(draw, id_vars=['div', 'season', 'date', 'field', 'val'], value_name='team')
     draw.drop(['variable'], axis=1, inplace=True)
     # bring together
     res = pd.concat([home, away, draw], axis=0, sort=True)
+    res = res.sort_values(['date', 'div', 'season']).reset_index(level=0, drop=True)
     return res
 
 

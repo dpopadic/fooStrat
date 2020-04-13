@@ -25,6 +25,7 @@ factor_library = pd.read_pickle('pro_data/factor_library.pkl')
 match_odds = pd.read_pickle('pro_data/match_odds.pkl')
 
 # construct results object
+data = source_core
 results = con_res(source_core, field=['FTR'])
 
 
@@ -32,12 +33,12 @@ results = con_res(source_core, field=['FTR'])
 
 # 1) goal superiority signal
 data_gsf = factor_library.query('field=="goal_superiority"')
-data_gsf = comp_bucket(data_gsf, bucket_method='first', bucket=5)
+data_gsf = comp_bucket(data_gsf, bucket_method='first', bucket=10)
 
 res_custom = results.query('field=="win"').drop('field', axis=1)
 gsf_edge = comp_edge(factor_data=data_gsf, results=res_custom, byf=['overall', 'div'])
 
-
+a=data_gsf.query('div=="E0" & season=="2019-2020"')
 
 
 
