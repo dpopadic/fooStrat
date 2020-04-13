@@ -19,27 +19,6 @@ match_odds.to_pickle('./pro_data/match_odds.pkl')
 # goal superiority rating ---------------------------------------------------------------------------------------------
 # compute factor
 data_gsf_0 = fgoalsup(data=source_core, field=['FTHG', 'FTAG'], field_name=['g_scored', 'g_received'], k=5)
-
-# fgoalsup: need to neutralise score for teams that played in lower/upper league before: set to 0
-
-
-a=source_core.query('div=="E0" & date=="2019-08-09" & (field=="FTHG" | field=="FTAG")')
-data_gsf_0.query('div=="E0" & date=="2019-08-09"')
-
-data = source_core
-data = data_fct.loc[:, ['div', 'date', 'season', 'team']]
-a=data.query('div=="E0"')
-data.query('div=="E0" & date=="2019-08-09"')
-
-
-
-
-
-a=data_gsf_0.query('div=="E0" & season=="2019-2020"')
-source_core.query('div=="E0" & date=="2020-02-19" & (field=="FTHG" | field=="FTAG")')
-
-
-
 # expand across time (and impute across divisions)
 data_gsf = expand_field(data=data_gsf_0, impute=True)
 # calculate cross-sectional signal across divisions (enable by div)..

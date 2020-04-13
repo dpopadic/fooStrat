@@ -632,9 +632,6 @@ def fgoalsup(data, field, field_name, k):
     # neutralise data..
     data_goals_co = neutralise_field(data, field=field, field_name=field_name, field_numeric=True, column_field=True)
 
-    data_goals_co.query('div=="E0" & date=="2019-08-09"')
-    data_fct.query('div=="E0" & date=="2019-08-09"')
-
     # compute stat..
     data_goals_co_i = data_goals_co.set_index('date')
     data_goals_co1 = data_goals_co_i.sort_values('date').groupby(['team'])[field_name]. \
@@ -646,14 +643,16 @@ def fgoalsup(data, field, field_name, k):
                         data_goals_co1, on=['team', 'date'],
                         how='left')
     data_fct['field'] = 'goal_superiority'
+    # lag factor..
+    data_fct.sort_values(['team', 'date'], inplace=True)
+    data_fct['val'] = data_fct.groupby(['team', 'field'])['val'].shift(1)
 
     # identify promoted/demoted teams & neutralise score for them..
     team_chng = newcomers(data=data_fct)
     res = neutralise_scores(data=data_fct, teams=team_chng, n=k-1)
     # check: res.query("div=='E0' & season=='2019' & team=='sheffield_united'").sort_values(['date'])
-    # lag factor..
-    res['val'] = res.groupby(['div', 'season', 'team', 'field'])['val'].shift(1)
-    res.dropna(inplace=True)
+    # res['val'] = res.groupby(['div', 'season', 'team', 'field'])['val'].shift(1)
+    # res.dropna(inplace=True)
     return res
 
 
@@ -1080,6 +1079,8 @@ odds_fields = {'odds_home_win':oh,
 
 
 # UTILS ---------------------------------------------------------------------------------------------------------------
+
+
 def anti_join(x, y, on):
     """Anti-join function that returns rows from x not matching y."""
     oj = x.merge(y, on=on, how='outer', indicator=True)
