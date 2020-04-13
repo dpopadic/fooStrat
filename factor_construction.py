@@ -28,28 +28,12 @@ data_gsf_0.query('div=="E0" & date=="2019-08-09"')
 
 data = source_core
 data = data_fct.loc[:, ['div', 'date', 'season', 'team']]
+a=data.query('div=="E0"')
 data.query('div=="E0" & date=="2019-08-09"')
 
-def newcomers(data):
-    """Identify newcomers (promoted/demoted teams). This is used to neutralise scores for these teams at
-    the start of each season.
 
-    Parameters:
-    -----------
-        data (dataframe):   a dataframe with columns div, date, season, team
 
-    """
-    # assemble all teams by season, div
-    U = data.groupby(['season', 'div'])['team'].unique().reset_index()
-    Ue = U.apply(lambda x: pd.Series(x['team']), axis=1).stack().reset_index(level=1, drop=True)
-    Ue.name = 'team'
-    Ue = U.drop('team', axis=1).join(Ue)
-    # need to synchronise seasons!
 
-Ue.query('(div=="E0" & season=="2019-2020")')
-a = Ue.query('(div=="E0" | div=="E1")')
-a.query('div=="E0" & season=="2019-2020"')
-a.query('div=="E1" & season=="2018-2019"')
 
 a=data_gsf_0.query('div=="E0" & season=="2019-2020"')
 source_core.query('div=="E0" & date=="2020-02-19" & (field=="FTHG" | field=="FTAG")')

@@ -501,6 +501,65 @@ def neutralise_field(data, field, field_name=None, field_numeric=True, column_fi
 
 
 
+def newcomers(data):
+    """Identify newcomers (promoted/demoted teams) in each season. This is used to neutralise scores for these
+    teams at the start of each season.
+
+    Parameters:
+    -----------
+        data (dataframe):   a dataframe with columns div, date, season, team
+
+    Details:
+    --------
+        It is assumed that each league has a continuous data series for each year in the history provided. If
+        this is not the case, the resulting teams will not be accurate.
+
+    """
+    # assemble all teams by season, div
+    U = data.groupby(['season', 'div'])['team'].unique().reset_index()
+    Ue = U.apply(lambda x: pd.Series(x['team']), axis=1).stack().reset_index(level=1, drop=True)
+    Ue.name = 'team'
+    Ue = U.drop('team', axis=1).join(Ue)
+    # identify promoted & demoted teams
+    Ue_0 = Ue.copy()
+    Ue_0['season'] = Ue_0['season'] + 1
+    # identify teams that where there the season before..
+    Ue_1 = pd.merge(Ue_0, Ue, on=["season", "div", "team"], how="inner")
+    # identify teams that are new in each season..
+    res = anti_join(Ue_1, Ue, on=["season", "div", "team"])
+
+    return res
+
+
+
+def neutralise_scores(data, teams, n):
+    """Neutralises first n scores for teams by season and division. This is required where
+    rolling figures are calculated. Provided that some teams are promoted or demoted, the
+    numbers will not reflect the performance in the new league. Therefore, the first n observations
+    need to be neutralised (eg. set to zero)
+
+    Parameters:
+    -----------
+        data (dataframe):   a dataframe of factor scores with columns div, date, season, team, field, val
+        teams (dataframe):  a dataframe of newcoming teams with columns div, season, team
+        n (int):            the first n observations by div, season, team to replace by zero
+
+    """
+    # retrieve factor scores for the relevant teams..
+    Rt = pd.merge(data, teams, on=['div', 'season', 'team'], how='inner')
+    Rt.sort_values(['div', 'team', 'date'], inplace=True)
+    Rt = Rt.groupby(['div', 'season', 'team']).head(n)
+    # set values to zero for these fields..
+    Rt['val'] = 0
+    # remove the adjusted values and add back the new values..
+    data_ed = anti_join(data, Rt[['div', 'date', 'team']], on=['div', 'team', 'date'])
+    res = pd.concat([data_ed, Rt], axis=0, sort=False, ignore_index=True)
+    res = res.sort_values(['date', 'div', 'season']).reset_index(level=0, drop=True)
+    return res
+
+
+
+
 def fhome(data):
     """
     Reshapes the data where columns define whether it is a home match or away match to a home/away neutralised
@@ -589,13 +648,13 @@ def fgoalsup(data, field, field_name, k):
     data_fct['field'] = 'goal_superiority'
 
     # identify promoted/demoted teams & neutralise score for them..
-
-
+    team_chng = newcomers(data=data_fct)
+    res = neutralise_scores(data=data_fct, teams=team_chng, n=k-1)
+    # check: res.query("div=='E0' & season=='2019' & team=='sheffield_united'").sort_values(['date'])
     # lag factor..
-    data_fct['val'] = data_fct.groupby(['div', 'season', 'team', 'field'])['val'].shift(1)
-    data_fct.dropna(inplace=True)
-    data_fct = data_fct.sort_values(['date', 'div', 'season']).reset_index(level=0, drop=True)
-    return data_fct
+    res['val'] = res.groupby(['div', 'season', 'team', 'field'])['val'].shift(1)
+    res.dropna(inplace=True)
+    return res
 
 
 
@@ -1018,4 +1077,20 @@ odds_fields = {'odds_home_win':oh,
                'odds_draw_win':od,
                'odds_under_25_goal':btp5,
                'odds_above_25_goal': atp5}
+
+
+# UTILS ---------------------------------------------------------------------------------------------------------------
+def anti_join(x, y, on):
+    """Anti-join function that returns rows from x not matching y."""
+    oj = x.merge(y, on=on, how='outer', indicator=True)
+    z = oj[~(oj._merge == 'both')].drop('_merge', axis=1)
+    return z
+
+
+
+
+
+
+
+
 
