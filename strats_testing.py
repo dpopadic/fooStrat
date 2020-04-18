@@ -25,8 +25,12 @@ source_core = pd.read_pickle('pro_data/source_core.pkl')
 factor_library = pd.read_pickle('pro_data/factor_library.pkl')
 match_odds = pd.read_pickle('pro_data/match_odds.pkl')
 
-# construct results object
-results = con_res(source_core, field=['FTR'])
+# construct result objects
+# win-lose-draw
+res_wd = con_res(data=source_core, obj='wd', field='FTR')
+# goals
+res_gd = con_res(data=source_core, obj='gd', field=['FTHG', 'FTAG'])
+
 
 
 # SIGNAL EFFICACY -----------------------------------------------------------------------------------------------------
@@ -36,20 +40,26 @@ results = con_res(source_core, field=['FTR'])
 # get factor scores
 data_gsf = factor_library.query('field=="goal_superiority"')
 # calculate buckets
-data_gsf = comp_bucket(data_gsf, bucket_method='first', bucket=10)
+data_gsf = comp_bucket(data_gsf, bucket_method='first', bucket=5)
 # retrieve relevant results to test against
-res_custom = results.query('field=="win"').drop('field', axis=1)
+res_custom = res_wd.query('field=="win"').drop('field', axis=1)
 # compute the hit ratio by bucket for the factor
 gsf_edge = comp_edge(factor_data=data_gsf, results=res_custom, byf=['overall', 'div'])
+
 
 
 # 2) home advantage signal
 # Q: Do teams that play at home win more often than when they play away?
 data_ha = factor_library.query('field=="home"')
 data_ha.rename(columns={'val': 'bucket'}, inplace=True)
-res_custom = results.query('field=="win"').drop('field', axis=1)
+res_custom = res_wd.query('field=="win"').drop('field', axis=1)
 # compute the hit ratio for home-away
 ha_edge = comp_edge(factor_data=data_ha, results=res_custom, byf=['overall', 'div'])
+
+
+
+
+
 
 
 # create a function to show the distribution
@@ -63,18 +73,19 @@ sns.distplot(x0, color="skyblue", ax=axes[0]).set_title('Premier League')
 sns.distplot(x1, color="red", ax=axes[1]).set_title('Bundesliga')
 
 
-g = sns.catplot(x="bucket", y="val", hue="field", data=gsf_edge,
+
+lc1 = ml_map[ml_map['class']==1].loc[:, 'div'].values
+A = gsf_edge.query('field in @lc1')
+sns.set(style="dark")
+
+
+g = sns.catplot(x="field", y="val", hue="bucket", data=A,
                 height=6, kind="bar", palette="muted")
-g.despine(left=True)
+g.set_xticklabels(rotation=65, horizontalalignment='right')
+# g.set_title('Historical Probability: Goal Superiority Signal')
 g.set_ylabels("historical probability")
+g.set_xlabels("")
 
-titanic = sns.load_dataset("titanic")
-
-# Draw a nested barplot to show survival for class and sex
-g = sns.catplot(x="class", y="survived", hue="sex", data=titanic,
-                height=6, kind="bar", palette="muted")
-g.despine(left=True)
-g.set_ylabels("survival probability")
 
 
 

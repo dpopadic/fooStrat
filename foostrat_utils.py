@@ -797,13 +797,65 @@ def fodds(data, field_home, field_away, field_both):
     return moc
 
 
-def con_res(data, field):
+
+def con_res_gd(data, field):
+    """Constructs the goals difference results object.
+
+    Parameters:
+    -----------
+        data (dataframe):   a dataframe with columns season, date, div, home_team, away_team, field, val
+        field (list):       a string that defines the goals scored & goals received fields in data from home team's
+                            perspective (eg. ['FTHG', 'FTAG'])
+
+    Returns:
+    --------
+        A dataframe of goal differences for each game and team.
+
+    Example:
+    --------
+                                div  season       date                team  val
+        0       Argentina Superliga    2012 2012-08-03     arsenal_sarandi  1.0
+        1       Argentina Superliga    2012 2012-08-04      colon_santa_fe  1.0
+        2       Argentina Superliga    2012 2012-08-04             quilmes  3.0
+        3       Argentina Superliga    2012 2012-08-04         racing_club  0.0
+        4       Argentina Superliga    2012 2012-08-04     velez_sarsfield  3.0
+
+    """
+    # neutralise field for teams
+    field_name = ['g_scored', 'g_received']
+    nf0 = neutralise_field(data=data, field=field, field_name=field_name, field_numeric=True, column_field=True)
+    nf0['val'] = nf0[field_name[0]] - nf0[field_name[1]]
+    del nf0[field_name[0]]
+    del nf0[field_name[1]]
+    return nf0
+
+
+
+def con_res_wd(data, field):
     """
     Constructs the event result data in a manner that is readily available for back-testing.
 
     :param data: a dataframe with columns season, date, div, home_team, away_team, field, val
     :param field: a string that defines the event (eg. 'FTR' for full-time results)
     :return: a dataframe with results
+
+    Parameters:
+    -----------
+        data (dataframe):       a dataframe with columns season, date, div, home_team, away_team, field, val
+        field (string):         a string that defines the event (eg. 'FTR' for full-time results)
+
+    Returns:
+    --------
+        A dataframe of results 0/1 with fields win, draw for each team.
+
+    Example:
+    --------
+                      date  div field  season      team  val
+        0       1993-07-23   F1   win    1993    nantes    1
+        1       1993-07-23   F1   win    1993    monaco    0
+        2       1993-07-23   F1  draw    1993    nantes    0
+        3       1993-07-23   F1  draw    1993    monaco    0
+        4       1993-07-24   F1   win    1993  bordeaux    1
 
     """
     # query relevant field
@@ -829,6 +881,39 @@ def con_res(data, field):
     res = pd.concat([home, away, draw], axis=0, sort=True)
     res = res.sort_values(['date', 'div', 'season']).reset_index(level=0, drop=True)
     return res
+
+
+
+def con_res(data, obj, field):
+    """Constructs results objects that are required for testing.
+
+    Parameters:
+    -----------
+        data (dataframe):       a dataframe with columns season, date, div, home_team, away_team, field, val
+        obj (string):           the object to construct:
+                                    gd:     goals difference by game
+                                    wd:     win or draw by game
+        field (list or string): a string that defines the event for the object (eg. 'FTR' when wd or
+                                ['FTHG', 'FTAG'] when gd)
+
+    Returns:
+    --------
+        A dataframe with the results in optimal shape.
+
+    """
+
+    if obj == "wd":
+        if type(field) is list:
+            field = field[0]
+        res = con_res_wd(data=data, field=field)
+    elif obj == "gd":
+        res = con_res_gd(data=data, field=field)
+
+    return res
+
+
+
+
 
 
 def comp_pnl(positions, odds, results, event, stake):
@@ -1055,7 +1140,9 @@ competition = {'E0':'England Premier League',
                'Sweden Allsvenskan':'Sweden Allsvenskan',
                'Switzerland Super League':'Switzerland Super League',
                'USA MLS':'USA MLS'}
-ml_map = pd.DataFrame(list(competition.items()), columns=['Div', 'Competition'])
+# ml_map = pd.DataFrame(list(competition.items()), columns=['Div', 'Competition'])
+ml_map = pd.read_csv('mapping/leagues.csv', encoding = "ISO-8859-1", delimiter=";")
+
 
 # odds mapping
 # home win
