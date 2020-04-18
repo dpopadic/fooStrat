@@ -166,7 +166,7 @@ def process_data_major(fi_nm, extra_key, key_cols, key_cols_map):
     # key_cols_map = {'HT': 'HomeTeam', 'AT': 'AwayTeam'}
     df = pd.DataFrame()
     for f in fi_nm:
-        df0 = pd.read_excel(f, sheet_name=None)
+        df0 = pd.read_excel(f[0], sheet_name=None)
         for key, i in df0.items():
             si = extra_key[extra_key['fi_nm'] == f].iloc[0, 1]
             i[extra_key_nm] = si

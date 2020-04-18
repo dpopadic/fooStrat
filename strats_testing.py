@@ -31,6 +31,7 @@ res_wd = con_res(data=source_core, obj='wd', field='FTR')
 # goals
 res_gd = con_res(data=source_core, obj='gd', field=['FTHG', 'FTAG'])
 
+source_core.query('div=="E0"').sort_values(['date'])
 
 
 # create info_coef function..
@@ -60,11 +61,7 @@ def info_coef(data, results):
 
     A.drop(['field'], axis=1, inplace=True)
 
-    from scipy import stats
-    stats.spearmanr([1, 2, 3, 4, 5], [5, 6, 7, 8, 7])
-    x2n = np.random.randn(100, 2)
-    stats.spearmanr(x2n)
-    A.query('div=="E0" & season=="2019"')
+    A.query('div=="E0"')
 
 
 
