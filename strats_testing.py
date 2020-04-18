@@ -33,6 +33,47 @@ res_gd = con_res(data=source_core, obj='gd', field=['FTHG', 'FTAG'])
 
 
 
+# create info_coef function..
+
+data = factor_library.query('field=="goal_superiority"')
+results = res_gd
+
+def info_coef(data, results):
+    """Computes the information coefficient for a signal.
+
+    Parameters:
+    -----------
+        data (dataframe):       A dataframe with factors and columns div, season, date, team, field, val
+        results (dataframe):    A dataframe with results and columns season, div, date, team, val
+
+    Returns:
+    --------
+        A dataframe of information coefficients.
+
+    """
+    R = results.rename(columns={'val': 'gd'}).copy()
+    A = pd.merge(R, data, on=['div', 'season', 'team', 'date'], how='left')
+    r = A.groupby(['div'])["gd"].corr(A["val"], method='spearman').reset_index()
+
+    A["gd"].corr(A["val"], method='spearman')
+    A["gd"].corr(A["val"], method='spearman')
+
+    A.drop(['field'], axis=1, inplace=True)
+
+    from scipy import stats
+    stats.spearmanr([1, 2, 3, 4, 5], [5, 6, 7, 8, 7])
+    x2n = np.random.randn(100, 2)
+    stats.spearmanr(x2n)
+    A.query('div=="E0" & season=="2019"')
+
+
+
+
+
+
+
+
+
 # SIGNAL EFFICACY -----------------------------------------------------------------------------------------------------
 
 # 1) goal superiority signal
