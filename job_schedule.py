@@ -25,4 +25,4 @@ for job in cron:
 
 # cron.remove_all()
 # cron.write()
-
+# resources: http://blog.appliedinformaticsinc.com/managing-cron-jobs-with-python-crontab/

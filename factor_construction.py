@@ -34,7 +34,7 @@ data_hf = fhome(data=source_core)
 
 # next factors: points difference, last 3 games points, autocorrelation of outcomes by team,
 # head to head, chances (shots, wood hits, corner), volatility of odds, cheap (value, this might be implement at a
-# later stage)
+# later stage), game importance (top, bottom)
 
 
 # factor library ------------------------------------------------------------------------------------------------------

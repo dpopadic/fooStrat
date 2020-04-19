@@ -1099,6 +1099,44 @@ def comp_edge(factor_data, results, byf=['overall']):
 
     return res
 
+
+
+def info_coef(data, results, byf=None):
+    """Computes the information coefficient for a signal.
+
+    Parameters:
+    -----------
+        data (dataframe):       A dataframe with factors and columns div, season, date, team, field, val
+        results (dataframe):    A dataframe with results and columns season, div, date, team, val
+        byf (list):             The groups by which to calculate the statistic (eg. ['div', 'season'])
+
+    Returns:
+    --------
+        A dataframe of information coefficients.
+
+    Example:
+    --------
+                             div  season       val
+        0    Argentina Superliga    2012  0.117534
+        1    Argentina Superliga    2013  0.018842
+        2    Argentina Superliga    2014  0.012562
+        3    Argentina Superliga    2015  0.118525
+        4    Argentina Superliga    2016  0.136653
+
+    """
+    R = results.rename(columns={'val': 'gd'}).copy()
+    A = pd.merge(R, data, on=['div', 'season', 'team', 'date'], how='left')
+    # overall
+    # r0 = A["gd"].corr(A["val"], method='spearman')
+    # r0 = pd.DataFrame({'field': 'overall', 'val': [r0]})
+    # res = pd.concat([r0, r1], axis=0, ignore_index=True)
+
+    # by group
+    r1 = A.groupby(byf)["gd"].corr(A["val"], method='spearman').reset_index()
+    r1.rename(columns={'gd': 'val'}, inplace=True)
+    return r1
+
+
 # MAPPING TABLES ---------------------------------------------------------------------------
 # division mapping
 competition = {'E0':'England Premier League',

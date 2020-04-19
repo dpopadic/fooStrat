@@ -31,45 +31,6 @@ res_wd = con_res(data=source_core, obj='wd', field='FTR')
 # goals
 res_gd = con_res(data=source_core, obj='gd', field=['FTHG', 'FTAG'])
 
-source_core.query('div=="E0" & season=="2019"').sort_values(['date'])
-
-
-# create info_coef function + derive implied probability via logit..
-
-data = factor_library.query('field=="goal_superiority"')
-results = res_gd
-
-def info_coef(data, results):
-    """Computes the information coefficient for a signal.
-
-    Parameters:
-    -----------
-        data (dataframe):       A dataframe with factors and columns div, season, date, team, field, val
-        results (dataframe):    A dataframe with results and columns season, div, date, team, val
-
-    Returns:
-    --------
-        A dataframe of information coefficients.
-
-    """
-    R = results.rename(columns={'val': 'gd'}).copy()
-    A = pd.merge(R, data, on=['div', 'season', 'team', 'date'], how='left')
-    r = A.groupby(['div'])["gd"].corr(A["val"], method='spearman').reset_index()
-
-    A["gd"].corr(A["val"], method='spearman')
-    A["gd"].corr(A["val"], method='spearman')
-
-    A.drop(['field'], axis=1, inplace=True)
-
-    A.query('div=="E0"')
-
-
-
-
-
-
-
-
 
 # SIGNAL EFFICACY -----------------------------------------------------------------------------------------------------
 
@@ -83,6 +44,24 @@ data_gsf = comp_bucket(data_gsf, bucket_method='first', bucket=5)
 res_custom = res_wd.query('field=="win"').drop('field', axis=1)
 # compute the hit ratio by bucket for the factor
 gsf_edge = comp_edge(factor_data=data_gsf, results=res_custom, byf=['overall', 'div'])
+# compute IC's
+gsf_ic = info_coef(data=data_gsf, results=res_gd, byf=['div', 'season'])
+
+
+# create info_coef function + derive implied probability via logit..
+# a few options: entire dataset fit, expanding window, rolling window
+
+A = data_gsf.pivot_table(index=['season', 'div', 'date', 'team'],
+                         columns='field',
+                         values='val').reset_index()
+# merge with results
+B = pd.merge(res_custom, A, on=['div', 'season', 'date', 'team'], how='left')
+
+
+
+
+
+
 
 
 
