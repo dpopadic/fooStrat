@@ -166,7 +166,7 @@ def process_data_major(fi_nm, extra_key, key_cols, key_cols_map):
     # key_cols_map = {'HT': 'HomeTeam', 'AT': 'AwayTeam'}
     df = pd.DataFrame()
     for f in fi_nm:
-        df0 = pd.read_excel(f[0], sheet_name=None)
+        df0 = pd.read_excel(f, sheet_name=None)
         for key, i in df0.items():
             si = extra_key[extra_key['fi_nm'] == f].iloc[0, 1]
             i[extra_key_nm] = si
@@ -395,7 +395,7 @@ def update_data_historic(path, file_desc, file_key, file_key_name, file_desc_2, 
     extra_key = pd.DataFrame({'fi_nm': fi_nm,
                               file_key_name: [i[file_key[0]:file_key[1]] for i in fi_nm]})
     # process data
-    major = process_data_major(fi_nm, extra_key,
+    major = process_data_major(fi_nm=fi_nm, extra_key=extra_key,
                                key_cols={'Div': 'div',
                                          'Date': 'date',
                                          'HomeTeam': 'home_team',
