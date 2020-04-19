@@ -13,28 +13,6 @@ tbl = comp_league_standing(df_f, home_goals='FTHG', away_goals='FTAG', result='F
 # tbl = comp_league_standing(df_f, season=['2019-2020'])
 # store standings..
 tbl.to_pickle('./pro_data/league_standings.pkl')
-# tbl.query('div=="E0" & season=="2019-2020"').sort_values(["points"], ascending=False)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+# tbl.query('div=="E0" & season=="2019"').sort_values(["points"], ascending=False)
 
 

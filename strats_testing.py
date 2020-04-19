@@ -31,10 +31,10 @@ res_wd = con_res(data=source_core, obj='wd', field='FTR')
 # goals
 res_gd = con_res(data=source_core, obj='gd', field=['FTHG', 'FTAG'])
 
-source_core.query('div=="E0"').sort_values(['date'])
+source_core.query('div=="E0" & season=="2019"').sort_values(['date'])
 
 
-# create info_coef function..
+# create info_coef function + derive implied probability via logit..
 
 data = factor_library.query('field=="goal_superiority"')
 results = res_gd
