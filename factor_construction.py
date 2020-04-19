@@ -32,7 +32,9 @@ data_gsf_ed = comp_score(data=data_gsf, metric='z-score')
 data_hf = fhome(data=source_core)
 
 
-# next factors: points difference, last 3 games points, autocorrelation of outcomes by team, head to head, shots, wood hits, corner
+# next factors: points difference, last 3 games points, autocorrelation of outcomes by team,
+# head to head, chances (shots, wood hits, corner), volatility of odds, cheap (value, this might be implement at a
+# later stage)
 
 
 # factor library ------------------------------------------------------------------------------------------------------

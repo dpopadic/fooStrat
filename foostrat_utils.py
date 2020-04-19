@@ -305,7 +305,7 @@ def synchronise_data(data):
     res.loc[(res['div'] == div_season_spec), 'season'] = res.loc[(res['div'] == div_season_spec), 'season'].values - 1
     res = res.sort_values(['date', 'div', 'season']).reset_index(level=0, drop=True)
 
-    return data
+    return res
 
 
 
@@ -337,6 +337,9 @@ def update_data_latest(ex, new_1, new_2, season, path):
                                                 'HomeTeam': 'home_team',
                                                 'AwayTeam': 'away_team'},
                                       key_cols_map={'HT': 'HomeTeam', 'AT': 'AwayTeam'})
+    # data synchronisation: renaming fields so that they have the same names to make it easier
+    # to process the data later in a concise way..
+    major_latest = synchronise_data(data=major_latest)
 
     # minor leagues recent data
     minor_latest = pd.read_excel(path + new_2, sheet_name=None)
@@ -347,6 +350,7 @@ def update_data_latest(ex, new_1, new_2, season, path):
                                                 'Season': 'season',
                                                 'Home': 'home_team',
                                                 'Away': 'away_team'})
+    minor_latest = synchronise_data(data=minor_latest)
 
     # add major
     data = pd.merge(ex, major_latest,
@@ -356,10 +360,6 @@ def update_data_latest(ex, new_1, new_2, season, path):
     data = pd.merge(data, minor_latest,
                     on=['div', 'season', 'date', 'home_team', 'away_team', 'field', 'val'],
                     how='outer')
-
-    # data synchronisation: renaming fields so that they have the same names to make it easier
-    # to process the data later in a concise way..
-    data = synchronise_data(data=data)
     # store
     data.to_pickle('./pro_data/source_core.pkl')
     print("Source Data has been updated.")
