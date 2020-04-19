@@ -730,7 +730,7 @@ def max_event_odds_asym(data, field, team, new_field):
     # filter relevant fields..
     data_ed = data.loc[data['field'].isin(field), ['date', 'div', 'season', team, 'field', 'val']]
     data_ed.rename(columns={team: 'team'}, inplace=True)
-    data_ed['val'] = pd.to_numeric(data_ed.loc[:, 'val'], errors='coerce')
+    data_ed['val'] = data_ed['val'].apply(pd.to_numeric, errors='coerce')
     # retrieve the best odds..
     max_odds = data_ed.groupby(['season', 'div', 'date', 'team']).max()['val'].reset_index()
     max_odds['field'] = new_field
@@ -754,7 +754,7 @@ def max_event_odds_sym(data, field, new_field):
 
             """
     data_ed = data[(data['field'].isin(field))]
-    data_ed['val'] = pd.to_numeric(data_ed.loc[:, 'val'], errors='coerce')
+    data_ed['val'] = data_ed['val'].apply(pd.to_numeric, errors='coerce')
     max_odds = data_ed.groupby(['season', 'div', 'date', 'home_team', 'away_team']).max()['val'].reset_index()
     # home numbers
     max_odds_dh = max_odds.loc[:, max_odds.columns != 'away_team']

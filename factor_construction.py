@@ -9,7 +9,7 @@ source_core = pd.read_pickle('pro_data/source_core.pkl')
 
 # odds retrieval ------------------------------------------------------------------------------------------------------
 # get relevant odds
-match_odds = fodds(source_core,
+match_odds = fodds(data=source_core,
                    field_home=list(odds_fields.get('odds_home_win')),
                    field_away=list(odds_fields.get('odds_away_win')),
                    field_both=list(odds_fields.get('odds_draw_win')))
@@ -23,7 +23,7 @@ data_gsf_0 = fgoalsup(data=source_core, field=['FTHG', 'FTAG'], field_name=['g_s
 data_gsf = expand_field(data=data_gsf_0, impute=True)
 # calculate cross-sectional signal across divisions (enable by div)..
 data_gsf_ed = comp_score(data=data_gsf, metric='z-score')
-
+#
 
 
 
