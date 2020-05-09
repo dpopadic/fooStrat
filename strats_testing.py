@@ -4,6 +4,7 @@ import numpy as np
 from foostrat_utils import con_res, comp_pnl, comp_edge, comp_bucket, info_coef
 import matplotlib.pyplot as plt
 import seaborn as sns
+from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import classification_report
 from sklearn.metrics import confusion_matrix
@@ -51,7 +52,7 @@ gsf_edge = comp_edge(factor_data=data_gsf, results=res_custom, byf=['overall', '
 gsf_ic = info_coef(data=data_gsf, results=res_gd, byf=['div', 'season'])
 
 
-# create info_coef function + derive implied probability via logit..
+# create info_coef function + derive implied probability via logit fit..
 # a few options: entire dataset fit, expanding window, rolling window
 
 A = data_gsf.pivot_table(index=['season', 'div', 'date', 'team'],
@@ -66,7 +67,7 @@ del C['div']
 y = C['val'].values.reshape(-1,1)
 X = C['goal_superiority'].values.reshape(-1,1)
 
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.4, random_state=42)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.3, random_state=42)
 mod = LogisticRegression()
 # fit model..
 mod.fit(X, y)
@@ -77,10 +78,57 @@ y_pp = mod.predict_proba(X)
 y_pp.max()
 y_pp.min()
 y_pp.mean()
-y_pp.describe()
 # model statistics..
-confusion_matrix(y, y_pred)
+conf_mat = confusion_matrix(y, y_pred)
 cr = classification_report(y, y_pred)
+
+def accuracy_stats(conf_mat):
+    """Calculate relevant ratio's from the confusion matrix with two or more classes.
+
+    Parameters:
+    -----------
+        conf_mat (array):   a confusion matrix with at least two classes
+
+    Returns:
+    --------
+        Summary statistics in ratio format.
+
+    Details:
+    --------
+    
+
+    """
+
+# i.   accuracy: (tp + tn) / (tp + tn + fp + fn)
+# ii.  precision: tp / (tp + fp) (also called positive predictive value - PPV)
+# iii. recall: tp / (tp + fn) (also called sensitivity, hit-rate, true-positive rate)
+# iv.  F1 score: 2 * (precision * recall) / (precision + recall) -> harmonic mean of precision & recall
+# .. high precision: not many real emails predicted as spam
+# .. high recall: predicted most spam emails correctly
+
+FP = conf_mat.sum(axis=0) - np.diag(conf_mat)
+FN = conf_mat.sum(axis=1) - np.diag(conf_mat)
+TP = np.diag(conf_mat)
+TN = conf_mat.sum() - (FP + FN + TP)
+
+# Sensitivity, hit rate, recall, or true positive rate
+TPR = TP/(TP+FN)
+# Specificity or true negative rate
+TNR = TN/(TN+FP)
+# Precision or positive predictive value
+PPV = TP/(TP+FP)
+# Negative predictive value
+NPV = TN/(TN+FN)
+# Fall out or false positive rate
+FPR = FP/(FP+TN)
+# False negative rate
+FNR = FN/(TP+FN)
+# False discovery rate
+FDR = FP/(TP+FP)
+
+# Overall accuracy
+ACC = (TP+TN)/(TP+FP+FN+TN)
+
 
 (1730+277)/(1730+277+212+945)
 
