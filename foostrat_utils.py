@@ -1213,7 +1213,43 @@ def anti_join(x, y, on):
     return z
 
 
+def class_accuracy_stats(conf_mat):
+    """Calculate relevant ratio's from the confusion matrix with two classes.
 
+    Parameters:
+    -----------
+        conf_mat (array):   a confusion matrix with two classes
+
+    Returns:
+    --------
+        Summary statistics in ratio format.
+
+    Details:
+    --------
+        The following stats are calculated:
+            accuracy:   (tp + tn) / (tp + tn + fp + fn)
+            precision:  tp / (tp + fp) (also called positive predictive value - PPV)
+            recall:     tp / (tp + fn) (also called sensitivity, hit-rate, true-positive rate)
+            F1 score:   2 * (precision * recall) / (precision + recall) -> harmonic mean of precision & recall
+
+        Interpretation with spam-email classification:
+            high precision:     not many real emails predicted as spam
+            high recall:        predicted most spam emails correctly
+
+    """
+    TP = conf_mat[0, 0]
+    FN = conf_mat[0, 1]
+    FP = conf_mat[1, 0]
+    TN = conf_mat[1, 1]
+    pre = TP / (TP + FP)
+    rec = TP / (TP + FN)
+    x = {'accuracy': (TP + TN) / conf_mat.sum(),
+         'precision': pre,
+         'recall':  rec,
+         'f1': 2 * pre * rec / (pre + rec)
+         }
+    x = pd.DataFrame.from_dict(x, orient="index", columns=["val"])
+    return x
 
 
 
