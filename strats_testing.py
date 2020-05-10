@@ -50,44 +50,26 @@ gsf_edge = comp_edge(factor_data=data_gsf, results=res_custom, byf=['overall', '
 # compute IC's
 gsf_ic = info_coef(data=data_gsf, results=res_gd, byf=['div', 'season'])
 
-
-# create info_coef function + derive implied probability via logit fit..
 # a few options: entire dataset fit, expanding window, rolling window
 
-A = data_gsf.pivot_table(index=['season', 'div', 'date', 'team'],
-                         columns='field',
-                         values='val').reset_index()
-# merge with results
-B = pd.merge(res_custom, A, on=['div', 'season', 'date', 'team'], how='left')
-B = B.dropna()
+# compute probability
 
-C = B.query('div=="Ireland Premier Division"')
-del C['div']
+gsf_proba = comp_proba(scores= data_gsf, result=res_custom, field = "goal_superiority")
 
-y = C['val'].values.reshape(-1,1)
-X = C['goal_superiority'].values.reshape(-1,1)
 
-y.shape
-X.shape
-type(y)
-type(X)
 
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.3, random_state=42)
-mod = LogisticRegression()
-# fit model..
-mod.fit(X, y)
-# predict the labels of the test set..
-y_pred = mod.predict(X)
-# probability
-y_pp = mod.predict_proba(X)
-y_pp.max()
-y_pp.min()
-y_pp.mean()
-# model statistics..
+
+
+
+
+y_pp[550:580]
+y_pred[550:580]
+len(y_pp)
+len(y_pred)
+
+# confusion matrix
 conf_mat = confusion_matrix(y, y_pred)
 cstats = class_accuracy_stats(conf_mat)
-
-
 
 
 

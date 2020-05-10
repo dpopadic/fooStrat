@@ -1137,6 +1137,49 @@ def info_coef(data, results, byf=None):
     return r1
 
 
+
+def comp_proba(scores, result, field):
+    """Compute probability of an event occuring (eg. win) for a factor using a logit-model.
+
+    Parameters:
+    -----------
+        scores (dataframe):     a dataframe with at least columns date, team, field, val (eg. goal_superiority)
+        result (dataframe):     a dataframe with results and columns date, team & val (eg. 0/1 for loss/win)
+        field (string):         the field in scores to uses to fit the model (eg. "goal_superiority")
+
+    Returns:
+    --------
+        A dataframe with probabilities for each event.
+
+    # Details:
+    ----------
+        Note that the probabilities are related to the 1-event (eg. win).
+
+    """
+    acon = scores.pivot_table(index=['season', 'div', 'date', 'team'],
+                              columns='field',
+                              values='val').reset_index()
+    # merge with results
+    acon_ed = pd.merge(result, acon,
+                       on=['div', 'season', 'date', 'team'],
+                       how='left')
+    acon_ed.dropna(inplace=True)
+    # fit logit model
+    y = acon_ed['val'].values.ravel()
+    X = acon_ed[field].values.reshape(-1, 1)
+    mod = LogisticRegression()
+    mod.fit(X, y)
+    # retrieve probability
+    # note: that output is 2d array with 1st (2nd) column probability for 0 (1) with 0.5 threshold
+    y_pp = mod.predict_proba(X)[:, 1]
+    acon_ed["val"] = y_pp
+    del acon_ed[field]
+    return acon_ed
+
+
+
+
+
 # MAPPING TABLES ---------------------------------------------------------------------------
 # division mapping
 competition = {'E0':'England Premier League',
