@@ -4,9 +4,7 @@ import numpy as np
 from foostrat_utils import con_res, comp_pnl, comp_edge, comp_bucket, info_coef, class_accuracy_stats
 import matplotlib.pyplot as plt
 import seaborn as sns
-from sklearn.model_selection import train_test_split
-from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import confusion_matrix
+
 
 # next: transform this score to a probability, 1st via constructing a z-score
 # does the factor work as hypothesized?
@@ -49,29 +47,8 @@ res_custom = res_wd.query('field=="win"').drop('field', axis=1)
 gsf_edge = comp_edge(factor_data=data_gsf, results=res_custom, byf=['overall', 'div'])
 # compute IC's
 gsf_ic = info_coef(data=data_gsf, results=res_gd, byf=['div', 'season'])
-
-# a few options: entire dataset fit, expanding window, rolling window
-
-# compute probability
-
-gsf_proba = comp_proba(scores= data_gsf, result=res_custom, field = "goal_superiority")
-
-
-
-
-
-
-
-y_pp[550:580]
-y_pred[550:580]
-len(y_pp)
-len(y_pred)
-
-# confusion matrix
-conf_mat = confusion_matrix(y, y_pred)
-cstats = class_accuracy_stats(conf_mat)
-
-
+# compute probability & evaluate
+gsf_proba, gsf_evaly = comp_proba(scores= data_gsf, result=res_custom, field = "goal_superiority")
 
 
 # 2) home advantage signal

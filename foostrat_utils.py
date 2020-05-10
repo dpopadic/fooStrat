@@ -2,6 +2,8 @@ import pandas as pd
 import numpy as np
 from scipy.stats import zscore
 import os
+from sklearn.metrics import confusion_matrix
+from sklearn.linear_model import LogisticRegression
 
 # FUNCTIONS TO SUPPORT THE RUNNING OF THE PROJECT ------------------------------------
 
@@ -1149,7 +1151,9 @@ def comp_proba(scores, result, field):
 
     Returns:
     --------
-        A dataframe with probabilities for each event.
+        A few objects are returned:
+                1. A dataframe with probabilities for each event
+                2. Evaluation statistics
 
     # Details:
     ----------
@@ -1160,21 +1164,27 @@ def comp_proba(scores, result, field):
                               columns='field',
                               values='val').reset_index()
     # merge with results
-    acon_ed = pd.merge(result, acon,
-                       on=['div', 'season', 'date', 'team'],
-                       how='left')
-    acon_ed.dropna(inplace=True)
+    prob = pd.merge(result, acon,
+                    on=['div', 'season', 'date', 'team'],
+                    how='left')
+    prob.dropna(inplace=True)
     # fit logit model
-    y = acon_ed['val'].values.ravel()
-    X = acon_ed[field].values.reshape(-1, 1)
+    y = prob['val'].values.ravel()
+    X = prob[field].values.reshape(-1, 1)
     mod = LogisticRegression()
     mod.fit(X, y)
+    y_pred = mod.predict(X)
     # retrieve probability
     # note: that output is 2d array with 1st (2nd) column probability for 0 (1) with 0.5 threshold
     y_pp = mod.predict_proba(X)[:, 1]
-    acon_ed["val"] = y_pp
-    del acon_ed[field]
-    return acon_ed
+    # accurary evaluation
+    conf_mat = confusion_matrix(y, y_pred)
+    stats = class_accuracy_stats(conf_mat)
+    # reshape results
+    prob["val"] = y_pp
+    del prob[field]
+
+    return prob, stats
 
 
 
