@@ -1,7 +1,7 @@
 # STRATEGY TESTING ----------------------------------------------------------------------------------------------------
 import pandas as pd
 import numpy as np
-from foostrat_utils import con_res, comp_pnl, comp_edge, comp_bucket, info_coef, class_accuracy_stats
+from foostrat_utils import con_res, comp_pnl, comp_edge, comp_bucket, info_coef, comp_proba
 import matplotlib.pyplot as plt
 import seaborn as sns
 
@@ -35,7 +35,7 @@ res_gd = con_res(data=source_core, obj='gd', field=['FTHG', 'FTAG'])
 
 # SIGNAL EFFICACY -----------------------------------------------------------------------------------------------------
 
-# 1) goal superiority signal
+# 1) goal superiority signal -----
 # Q: Is the hit ratio higher for teams that have a higher gsf score?
 # get factor scores
 data_gsf = factor_library.query('field=="goal_superiority"')
@@ -49,9 +49,27 @@ gsf_edge = comp_edge(factor_data=data_gsf, results=res_custom, byf=['overall', '
 gsf_ic = info_coef(data=data_gsf, results=res_gd, byf=['div', 'season'])
 # compute probability & evaluate
 gsf_proba, gsf_evaly = comp_proba(scores= data_gsf, result=res_custom, field = "goal_superiority")
+# strategy construction based on mispricing
+O = match_odds.query('field == "odds_win"')
 
 
-# 2) home advantage signal
+D = pd.merge(O.rename(columns={'val':'odds'}),
+             gsf_proba.rename(columns={'val':'implied'}),
+             on=["div", "date", "season", "team"],
+             how="left")
+D["market"] = 1 / D.loc[:, "odds"]
+D["resid"] = D["implied"] - D["market"]
+a = D.query("resid>0.3")
+D.sort_values(["resid"])
+D.query("implied>=0.5")
+# match_odds need to have long- & short version
+# bet structuring strategies:
+# 1) based on highest residuals
+# 2) 
+
+
+
+# 2) home advantage signal -----
 # Q: Do teams that play at home win more often than when they play away?
 data_ha = factor_library.query('field=="home"')
 data_ha.rename(columns={'val': 'bucket'}, inplace=True)
@@ -124,9 +142,6 @@ pnl_strats = comp_pnl(positions=positions, odds=odds, results=results, event='wi
 
 
 
-
-
-# APPENDIX ------------------------------------------------------------------------------------------------------------
 
 
 
