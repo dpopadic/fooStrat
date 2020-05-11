@@ -59,14 +59,16 @@ D = pd.merge(O.rename(columns={'val':'odds'}),
              how="left")
 D["market"] = 1 / D.loc[:, "odds"]
 D["resid"] = D["implied"] - D["market"]
-a = D.query("resid>0.3")
-D.sort_values(["resid"])
-D.query("implied>=0.5")
+# good strategy: resid > 0.1 & implied > 0.55
+Po = D.query("resid>0.1 & implied>0.53").loc[:, ['season', 'div', 'date', 'team']]
 # match_odds need to have long- & short version
 # bet structuring strategies:
-# 1) based on highest residuals
-# 2) 
+# 1) specific residuals
+# 2) all significant residuals
+# 3) hedging
 
+gsf_pnl = comp_pnl(positions=Po, odds=O, results=res_wd, event='win', stake=10)
+# create a scatterplot of resid vs implied & coloured pnl
 
 
 # 2) home advantage signal -----
