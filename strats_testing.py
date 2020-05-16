@@ -52,7 +52,7 @@ gsf_proba, gsf_evaly = comp_proba(scores= data_gsf, result=res_custom, field = "
 # strategy construction based on mispricing
 O = match_odds.query('field == "odds_win"')
 
-
+# mispriced_events function
 D = pd.merge(O.rename(columns={'val':'odds'}),
              gsf_proba.rename(columns={'val':'implied'}),
              on=["div", "date", "season", "team"],
@@ -66,10 +66,31 @@ Po = D.query("resid>0.1 & implied>0.53").loc[:, ['season', 'div', 'date', 'team'
 # 1) specific residuals
 # 2) all significant residuals
 # 3) hedging
-
-gsf_pnl = comp_pnl(positions=Po, odds=O, results=res_wd, event='win', stake=10)
 # create a scatterplot of resid vs implied & coloured pnl
 
+gsf_pnl = comp_pnl(positions=Po, odds=O, results=res_wd, event='win', stake=10)
+
+
+import matplotlib.pyplot as plt
+
+A = gsf_pnl.loc[:,["date", "payoff_cum"]]
+A.rename(columns={"payoff_cum": "val"}, inplace = True)
+A.set_index("date", inplace=True)
+
+plt.figure()
+A["payoff_cum"].plot(kind='line')
+plt.suptitle("P&L of Goal Superiority Factor", x=0.1, y=.95, horizontalalignment='left', verticalalignment='top')
+plt.title("initial investment of 10$", y=1, fontsize=7, loc="left")
+
+plt_tsline(data=A, title="P&L of Goal Superiority Factor", subtitle="initial investment of 10$")
+
+data = A.copy()
+
+data = data.set_index("date")
+fig = plt.figure()
+fig = data["val"].plot(kind="line")
+fig = plt.suptitle("P&L of Goal Superiority Factor", x=0.1, y=.95, horizontalalignment='left', verticalalignment='top')
+fig = plt.title("initial investment of 10$", y=1, fontsize=7, loc="left")
 
 # 2) home advantage signal -----
 # Q: Do teams that play at home win more often than when they play away?
