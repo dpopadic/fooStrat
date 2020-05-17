@@ -2,9 +2,7 @@
 import pandas as pd
 import numpy as np
 from foostrat_utils import con_res, comp_pnl, comp_edge, comp_bucket, info_coef, comp_proba
-import matplotlib.pyplot as plt
-import seaborn as sns
-
+import charut as cu
 
 # next: transform this score to a probability, 1st via constructing a z-score
 # does the factor work as hypothesized?
@@ -18,6 +16,8 @@ import seaborn as sns
 # other approaches: find what kind of bets are the most mispriced
 # factors: 3y h2h, last 10 matches in all competitions, average goals, moment of goals
 # compute information coefficient (..lagged + odds/payoff required
+
+# python -m pip install -e /Users/dariopopadic/PycharmProjects/charut
 
 
 # DATA PREPARATIONS ---------------------------------------------------------------------------------------------------
@@ -70,27 +70,11 @@ Po = D.query("resid>0.1 & implied>0.53").loc[:, ['season', 'div', 'date', 'team'
 
 gsf_pnl = comp_pnl(positions=Po, odds=O, results=res_wd, event='win', stake=10)
 
+cu.plt_tsline(data=gsf_pnl.loc[:,['date', 'payoff_cum']],
+              title="P&L of Goal Superiority Factor",
+              subtitle="initial investment of 10$"
+              var_names={'payoff_cum':'val'})
 
-import matplotlib.pyplot as plt
-
-A = gsf_pnl.loc[:,["date", "payoff_cum"]]
-A.rename(columns={"payoff_cum": "val"}, inplace = True)
-A.set_index("date", inplace=True)
-
-plt.figure()
-A["payoff_cum"].plot(kind='line')
-plt.suptitle("P&L of Goal Superiority Factor", x=0.1, y=.95, horizontalalignment='left', verticalalignment='top')
-plt.title("initial investment of 10$", y=1, fontsize=7, loc="left")
-
-plt_tsline(data=A, title="P&L of Goal Superiority Factor", subtitle="initial investment of 10$")
-
-data = A.copy()
-
-data = data.set_index("date")
-fig = plt.figure()
-fig = data["val"].plot(kind="line")
-fig = plt.suptitle("P&L of Goal Superiority Factor", x=0.1, y=.95, horizontalalignment='left', verticalalignment='top')
-fig = plt.title("initial investment of 10$", y=1, fontsize=7, loc="left")
 
 # 2) home advantage signal -----
 # Q: Do teams that play at home win more often than when they play away?
