@@ -915,6 +915,32 @@ def con_res(data, obj, field):
 
 
 
+def comp_mispriced(prob, odds, prob_threshold, res_threshold):
+    """
+    Parameters
+    ----------
+    prob:   pandas dataframe
+            implied probabilities from a model for each event with columns date, team
+    odds:   pandas dataframe
+            market odds from bookmaker
+    prob_threshold: float
+                    implied probability threshold for events to look at
+    res_threshold:  float
+                    magnitude of mispricing residual to look at
+    Returns
+    -------
+    A pandas dataframe with mispriced events.
+
+    """
+    resi = pd.merge(odds.rename(columns={'val': 'odds'}),
+                    prob.rename(columns={'val': 'implied'}),
+                    on=["div", "season", "date", "team"],
+                    how="left")
+    resi["market"] = 1 / resi.loc[:, "odds"]
+    resi["resid"] = resi["implied"] - resi["market"]
+    pos = resi.query("resid>@res_threshold & implied>@prob_threshold").loc[:, ['season', 'div', 'date', 'team']]
+    pos.reset_index(inplace=True, drop=True)
+    return pos
 
 
 

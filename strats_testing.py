@@ -46,28 +46,9 @@ gsf_edge = comp_edge(factor_data=data_gsf, results=res_custom, byf=['overall', '
 gsf_ic = info_coef(data=data_gsf, results=res_gd, byf=['div', 'season'])
 # compute probability & evaluate
 gsf_proba, gsf_evaly = comp_proba(scores= data_gsf, result=res_custom, field = "goal_superiority")
+odds_event = match_odds.query('field == "odds_win"')
+gsf_pos = comp_mispriced(prob=gsf_proba, odds=odds_event, prob_threshold=0.53, res_threshold=0.1)
 
-def comp_mispriced(prob, odds):
-    """
-    Parameters
-    ----------
-    prob:   pandas dataframe
-            implied probabilities from a model for each event with columns date, team
-
-
-    """
-# strategy construction based on mispricing
-O = match_odds.query('field == "odds_win"')
-
-# mispriced_events function
-D = pd.merge(O.rename(columns={'val':'odds'}),
-             gsf_proba.rename(columns={'val':'implied'}),
-             on=["div", "date", "season", "team"],
-             how="left")
-D["market"] = 1 / D.loc[:, "odds"]
-D["resid"] = D["implied"] - D["market"]
-# good strategy: resid > 0.1 & implied > 0.55
-Po = D.query("resid>0.1 & implied>0.53").loc[:, ['season', 'div', 'date', 'team']]
 # match_odds need to have long- & short version
 # bet structuring strategies:
 # 1) specific residuals
@@ -75,7 +56,7 @@ Po = D.query("resid>0.1 & implied>0.53").loc[:, ['season', 'div', 'date', 'team'
 # 3) hedging
 # create a scatterplot of resid vs implied & coloured pnl
 
-gsf_pnl = comp_pnl(positions=Po, odds=O, results=res_wd, event='win', stake=10)
+gsf_pnl = comp_pnl(positions=gsf_pos, odds=odds_event, results=res_wd, event='win', stake=10)
 
 cu.plt_tsline(data=gsf_pnl.loc[:,['date', 'payoff_cum']],
               title="P&L of Goal Superiority Factor",
