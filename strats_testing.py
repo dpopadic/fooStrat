@@ -17,9 +17,6 @@ import charut as cu
 # factors: 3y h2h, last 10 matches in all competitions, average goals, moment of goals
 # compute information coefficient (..lagged + odds/payoff required
 
-# python -m pip install -e /Users/dariopopadic/PycharmProjects/charut
-
-
 # DATA PREPARATIONS ---------------------------------------------------------------------------------------------------
 # load all required data
 source_core = pd.read_pickle('pro_data/source_core.pkl')
@@ -49,6 +46,16 @@ gsf_edge = comp_edge(factor_data=data_gsf, results=res_custom, byf=['overall', '
 gsf_ic = info_coef(data=data_gsf, results=res_gd, byf=['div', 'season'])
 # compute probability & evaluate
 gsf_proba, gsf_evaly = comp_proba(scores= data_gsf, result=res_custom, field = "goal_superiority")
+
+def comp_mispriced(prob, odds):
+    """
+    Parameters
+    ----------
+    prob:   pandas dataframe
+            implied probabilities from a model for each event with columns date, team
+
+
+    """
 # strategy construction based on mispricing
 O = match_odds.query('field == "odds_win"')
 
