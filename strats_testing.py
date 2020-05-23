@@ -1,9 +1,9 @@
 # STRATEGY TESTING ----------------------------------------------------------------------------------------------------
 import pandas as pd
 import numpy as np
-from foostrat_utils import con_res, comp_pnl, comp_edge, comp_bucket, info_coef, comp_proba
+from foostrat_utils import con_res, comp_pnl, comp_edge, comp_bucket, info_coef, comp_proba, comp_mispriced
 import charut as cu
-
+import chartify as cfy
 # next: transform this score to a probability, 1st via constructing a z-score
 # does the factor work as hypothesized?
 # what are fair odds?
@@ -42,6 +42,7 @@ data_gsf = comp_bucket(data_gsf, bucket_method='first', bucket=5)
 res_custom = res_wd.query('field=="win"').drop('field', axis=1)
 # compute the hit ratio by bucket for the factor
 gsf_edge = comp_edge(factor_data=data_gsf, results=res_custom, byf=['overall', 'div'])
+gsf_edge2 = comp_edge(factor_data=data_gsf, results=res_custom, byf=['season'])
 # compute IC's
 gsf_ic = info_coef(data=data_gsf, results=res_gd, byf=['div', 'season'])
 # compute probability & evaluate
@@ -60,7 +61,7 @@ gsf_pnl = comp_pnl(positions=gsf_pos, odds=odds_event, results=res_wd, event='wi
 
 cu.plt_tsline(data=gsf_pnl.loc[:,['date', 'payoff_cum']],
               title="P&L of Goal Superiority Factor",
-              subtitle="initial investment of 10$"
+              subtitle="initial investment of 10$",
               var_names={'payoff_cum':'val'})
 
 
