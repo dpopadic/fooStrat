@@ -3,7 +3,6 @@ import pandas as pd
 import numpy as np
 from foostrat_utils import con_res, comp_pnl, comp_edge, comp_bucket, info_coef, comp_proba, comp_mispriced
 import charut as cu
-import chartify as cfy
 # next: transform this score to a probability, 1st via constructing a z-score
 # does the factor work as hypothesized?
 # what are fair odds?
