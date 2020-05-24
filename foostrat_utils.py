@@ -705,8 +705,10 @@ def fform(data, field, type):
     # lag factor
     ha = ha.sort_values(['team', 'date']).reset_index(drop=True)
     ha['val'] = ha.groupby(['team', 'field'])['val'].shift(1)
-
-    return ha
+    # neutralise for new entrants
+    team_chng = newcomers(data=ha)
+    res = neutralise_scores(data=ha, teams=team_chng, n=5 - 1)
+    return res
 
 
 
