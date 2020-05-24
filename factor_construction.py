@@ -1,7 +1,7 @@
 # FACTOR CALCULATION --------------------------------------------------------------------------------------------------
 import pandas as pd
 import numpy as np
-from foostrat_utils import fgoalsup, fhome, odds_fields, fodds, expand_field, jitter, comp_score
+from foostrat_utils import fgoalsup, fhome, fform, odds_fields, fodds, expand_field, jitter, comp_score
 
 # load source data..
 source_core = pd.read_pickle('pro_data/source_core.pkl')
@@ -30,7 +30,6 @@ data_gsf_ed = comp_score(data=data_gsf, metric='z-score')
 # last 5, home, away, overall
 
 data_form = fform(data=source_core, field="FTR", type="all")
-
 
 
 
