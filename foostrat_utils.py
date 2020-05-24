@@ -694,14 +694,15 @@ def fform(data, field, type):
                                    'away_team']].rename(columns={'away_team': 'team'}), a], axis=1)
 
     if type=='home':
-        ha = h.copy()
+        ha = h.reset_index(drop=True).copy()
     elif type=='away':
         ha = a.copy()
     elif type=='all':
         ha = pd.concat([h, a], axis=0).reset_index(drop=True)
 
-    ha['val'] = ha.sort_values('date').groupby('team').rolling(5, min_periods=1)['val'].sum().reset_index(drop=True)
-    ha['field'] = 'form'
+    ha = ha.set_index('date')
+    ha['val'] = ha.sort_values('date').groupby('team')['val'].rolling(5, min_periods=1).sum().reset_index(drop=True)
+    ha['field'] = 'form' + '_' + type
     # lag factor
     ha = ha.sort_values(['team', 'date']).reset_index(drop=True)
     ha['val'] = ha.groupby(['team', 'field'])['val'].shift(1)

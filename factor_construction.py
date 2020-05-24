@@ -29,11 +29,11 @@ data_gsf_ed = comp_score(data=data_gsf, metric='z-score')
 
 # last 5, home, away, overall
 
-data_form = fform(data=source_core, field="FTR", type="all")
-
-
-
-
+data_form = fform(data=source_core, field="FTR", type="home")
+a = data_form.dropna().sort_values('date')
+ha.dropna().sort_values('date')
+a = ha.query("season=='2019' & div=='E0'")
+a.query("team=='arsenal'")['val'].rolling(2).sum()
 
 
 # home factor ---------------------------------------------------------------------------------------------------------
