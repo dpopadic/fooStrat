@@ -700,7 +700,6 @@ def fform(data, field, type):
     elif type=='all':
         ha = pd.concat([h, a], axis=0).reset_index(drop=True)
 
-    ha = ha.set_index('date')
     ha['val'] = ha.sort_values('date').groupby('team')['val'].rolling(5, min_periods=1).sum().reset_index(drop=True)
     ha['field'] = 'form' + '_' + type
     # lag factor

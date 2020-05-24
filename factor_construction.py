@@ -33,7 +33,7 @@ data_form = fform(data=source_core, field="FTR", type="home")
 a = data_form.dropna().sort_values('date')
 ha.dropna().sort_values('date')
 a = ha.query("season=='2019' & div=='E0'")
-a.query("team=='arsenal'")['val'].rolling(2).sum()
+a.query("team=='arsenal'")
 
 
 # home factor ---------------------------------------------------------------------------------------------------------
