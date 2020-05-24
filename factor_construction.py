@@ -5,7 +5,7 @@ from foostrat_utils import fgoalsup, fhome, odds_fields, fodds, expand_field, ji
 
 # load source data..
 source_core = pd.read_pickle('pro_data/source_core.pkl')
-
+league_standings = pd.read_pickle('pro_data/league_standings.pkl')
 
 # odds retrieval ------------------------------------------------------------------------------------------------------
 # get relevant odds
@@ -23,7 +23,17 @@ data_gsf_0 = fgoalsup(data=source_core, field=['FTHG', 'FTAG'], field_name=['g_s
 data_gsf = expand_field(data=data_gsf_0, impute=True)
 # calculate cross-sectional signal across divisions (enable by div)..
 data_gsf_ed = comp_score(data=data_gsf, metric='z-score')
-#
+
+
+# form ----------------------------------------------------------------------------------------------------------------
+
+# last 5, home, away, overall
+
+data_form = fform(data=source_core, field="FTR", type="all")
+
+
+
+
 
 
 

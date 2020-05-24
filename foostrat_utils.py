@@ -657,7 +657,46 @@ def fgoalsup(data, field, field_name, k):
     # res.dropna(inplace=True)
     return res
 
+def fform(data, field, type):
+    """Computes the form factor for each team. The form is derived by looking at the last 5 wins/losses
+    for each team.
 
+    Parameters:
+    -----------
+        data:   pandas dataframe
+                a dataframe with columns div, date, season, home_team, away_team, field, val
+        field:  str
+                the relevant field in the field column of data to the calculate the factor
+        type:   str
+                whether to calculate factor for home, away or all matches
+
+    """
+
+    data_ed = data.query('field==@field').loc[:, ['div',
+                                                  'season',
+                                                  'date',
+                                                  'home_team',
+                                                  'away_team',
+                                                  'val']]
+    h = data_ed.loc[:, 'val'].apply(lambda x: 3 if x == 'H' else (1 if x == 'D' else 0))
+    a = data_ed.loc[:, 'val'].apply(lambda x: 3 if x == 'A' else (1 if x == 'D' else 0))
+
+    h = pd.concat([data_ed.loc[:, ['div',
+                                   'season',
+                                   'date',
+                                   'home_team']].rename(columns={'home_team': 'team'}), h], axis=1)
+    a = pd.concat([data_ed.loc[:, ['div',
+                                   'season',
+                                   'date',
+                                   'away_team']].rename(columns={'away_team': 'team'}), a], axis=1)
+    ha = pd.concat([h, a], axis=0).reset_index()
+    ha['val'] = ha.sort_values('date').groupby('team').rolling(5, min_periods=1)['val'].sum().reset_index(drop=True)
+    ha['field'] = 'form'
+    # lag factor
+    ha = ha.sort_values(['team', 'date']).reset_index(drop=True)
+    ha['val'] = ha.groupby(['team', 'field'])['val'].shift(1)
+
+    return ha
 
 def expand_field(data, group=None, impute=False):
     """Expands factors across the entire date spectrum so that cross-sectional analysis
