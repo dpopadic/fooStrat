@@ -34,7 +34,10 @@ data_hf = fhome(data=source_core)
 
 # next factors: points difference, last 3 games points, autocorrelation of outcomes by team,
 # head to head, chances (shots, wood hits, corner), volatility of odds, cheap (value, this might be implement at a
-# later stage), game importance (top, bottom)
+# later stage), game importance (top, bottom), clean sheets (no goal), home-away strength, home-away, minutes per
+# goal scored, corners, possesion, shots, avg goals per match (scoring rate), league position, failed to score %,
+# points per game, scored both halves, conceded/won both halves, lost to nil, losing half-time & winning/draw full-time,
+# form (last 5), league
 
 
 # factor library ------------------------------------------------------------------------------------------------------

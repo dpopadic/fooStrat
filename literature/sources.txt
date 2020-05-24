@@ -8,6 +8,11 @@ http://football-data.co.uk/downloadm.php
 https://www.football-data.co.uk/all_new_data.php
 https://www.indatabet.com/ft-free-2in1.html
 
+# - more detailed data
+https://footystats.org/download-stats-csv
+# - ideas for more factors:
+https://www.soccerstats.com/favourites.asp
+
 # - Glossary of Betting Terminology
 http://www.betgps.com/glossary_of_betting_terms.php
 
