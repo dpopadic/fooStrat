@@ -661,7 +661,8 @@ def fgoalsup(data, field, field_name, k):
 
 def fform(data, field, type):
     """Computes the form factor for each team. The form is derived by looking at the last 5 wins/losses
-    for each team.
+    for each team and calculating the number of points achieved over those games (3 for win, 1 for draw &
+    0 for loss).
 
     Parameters:
     -----------

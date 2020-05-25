@@ -7,6 +7,28 @@ from foostrat_utils import fgoalsup, fhome, fform, odds_fields, fodds, expand_fi
 source_core = pd.read_pickle('pro_data/source_core.pkl')
 league_standings = pd.read_pickle('pro_data/league_standings.pkl')
 
+# FACTOR LIBRARY ------------------------------------------------------------------------------------------------------
+# 1. goal superiority
+# 2. form (home, away, all of last 5 games)
+# 3. home advantage
+# 4. consistence (avg goals per match / scoring rate, failed to score, point per game)
+# 5. leage position (position & points difference)
+# 6. head to head
+# 7. attack strength (shots, shots on target, wood hits, corners)
+# 8. defense strength (clean sheets)
+# 9. volatility of odds (the larger the better)
+# 10. game importance (points difference to top/bottom 5)
+# 11. turnaround ability (losing half-time & winning/draw full-time)
+# 12.
+# next factors: points difference, last 3 games points, autocorrelation of outcomes by team,
+# head to head, chances (shots, wood hits, corner), volatility of odds (the bigger the better),
+# cheap (value, this might be implement at a later stage), game importance (top, bottom), clean sheets (no goal),
+# home-away strength, home-away, minutes per
+# goal scored, corners, possesion, shots, avg goals per match (scoring rate), league position, failed to score %,
+# points per game, scored both halves, conceded/won both halves, lost to nil, losing half-time & winning/draw full-time,
+# form (last 5), league
+
+
 # odds retrieval ------------------------------------------------------------------------------------------------------
 # get relevant odds
 match_odds = fodds(data=source_core,
@@ -45,14 +67,6 @@ data_ftot_ed = comp_score(data=data_ftot_ed, metric='z-score')
 # no need for expansion for boolean factors!
 data_hf = fhome(data=source_core)
 
-
-# next factors: points difference, last 3 games points, autocorrelation of outcomes by team,
-# head to head, chances (shots, wood hits, corner), volatility of odds (the bigger the better),
-# cheap (value, this might be implement at a
-# later stage), game importance (top, bottom), clean sheets (no goal), home-away strength, home-away, minutes per
-# goal scored, corners, possesion, shots, avg goals per match (scoring rate), league position, failed to score %,
-# points per game, scored both halves, conceded/won both halves, lost to nil, losing half-time & winning/draw full-time,
-# form (last 5), league
 
 
 # factor library ------------------------------------------------------------------------------------------------------
