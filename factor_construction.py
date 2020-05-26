@@ -46,6 +46,15 @@ data_gsf = expand_field(data=data_gsf_0, impute=True)
 # calculate cross-sectional signal across divisions (enable by div)..
 data_gsf_ed = comp_score(data=data_gsf, metric='z-score')
 
+source_core.query("div==@i & (field=='FTHG' | field=='FTAG')")['date'].unique()
+aa=data_fct.query("div==@i")
+source_core.query("div==@i & (field=='FTHG' | field=='FTAG')")
+data_fct['div'].unique()
+i='Japan J1 League'
+team_chng.query('div==@i')
+aa0=res.query('div==@i')
+aaa0=data_ed.sort_values('date')
+
 
 # form ----------------------------------------------------------------------------------------------------------------
 
@@ -70,6 +79,9 @@ data_hf = fhome(data=source_core)
 
 
 # factor library ------------------------------------------------------------------------------------------------------
+
+# competition-specific factor library: flib_e0
+
 factor_library = pd.concat([data_gsf_ed, data_fh_ed, data_fa_ed, data_ftot_ed, data_hf],
                            axis=0,
                            sort=False,

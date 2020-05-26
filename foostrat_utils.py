@@ -538,13 +538,18 @@ def neutralise_scores(data, teams, n):
     """Neutralises first n scores for teams by season and division. This is required where
     rolling figures are calculated. Provided that some teams are promoted or demoted, the
     numbers will not reflect the performance in the new league. Therefore, the first n observations
-    need to be neutralised (eg. set to zero)
+    need to be neutralised (eg. set to zero).
 
     Parameters:
     -----------
         data (dataframe):   a dataframe of factor scores with columns div, date, season, team, field, val
         teams (dataframe):  a dataframe of newcoming teams with columns div, season, team
         n (int):            the first n observations by div, season, team to replace by zero
+
+    Details:
+    --------
+    In cases where the data is not available for previous years (eg. Japan J1 League), factors for all teams
+    but not only newcomers will be neutralised.
 
     """
     # retrieve factor scores for the relevant teams..
@@ -632,7 +637,11 @@ def fgoalsup(data, field, field_name, k):
 
     """
     # neutralise data..
-    data_goals_co = neutralise_field(data, field=field, field_name=field_name, field_numeric=True, column_field=True)
+    data_goals_co = neutralise_field(data,
+                                     field=field,
+                                     field_name=field_name,
+                                     field_numeric=True,
+                                     column_field=True)
 
     # compute stat..
     data_goals_co_i = data_goals_co.set_index('date')
@@ -713,28 +722,27 @@ def fform(data, field, type):
 
 
 
-def expand_field(data, group=None, impute=False):
+def expand_field(data, impute=False):
     """Expands factors across the entire date spectrum so that cross-sectional analysis
-    on the factor can be performed.
+    on the factor can be performed. This means that for every competition (eg. Premier League),
+    on each play-day there is a factor for all teams.
+
     Parameters:
     -----------
-        data (dataframe): A dataframe of historical factor scores (eg. goal superiority) with
-                          columns div, season, team, date, field, val
-        group (string): Optional, a string indicating for which group to expand (eg. season). If not
-                        defined it will be applied across all groups in data.
-        impute (boolean): True or False whether to impute values for each date for missing data
+        data:   pandas dataframe
+                A dataframe of historical factor scores (eg. goal superiority) with
+                columns div, season, team, date, field, val
+        impute: boolean, default False
+                Whether to impute values for each date for missing data
 
     Details:
     --------
-    Note that the date expansion happens across div to enable cross-sectional factor building.
+    Note that the date expansion happens for each available date in data enabling cross-sectional factor
+    building by competition.
+    Note that imputation is performed by competition.
 
     """
-
-    if group is not None:
-        gf = group
-    else:
-        gf = data['div'].unique()
-
+    gf = data['div'].unique()
     res = pd.DataFrame()
     for i in gf:
         data_f = data.query('div==@i')
@@ -744,10 +752,22 @@ def expand_field(data, group=None, impute=False):
         # date universe
         date_univ = pd.DataFrame(data.loc[:, 'date'].unique(), columns={'date'}).sort_values(by='date')
         # copy forward all factors
-        data_ed = pd.merge(date_univ, data_ed, on='date', how='outer').sort_values(by='date')
-        data_ed = data_ed.fillna(method='ffill')
+        data_ed = pd.merge(date_univ,
+                           data_ed,
+                           on='date',
+                           how='outer').sort_values(by='date')
+        data_ed = data_ed.fillna(method='ffill') # note that all teams ever played are included
+
+        aa=data_ed.dropna()
+
         # need to filter only teams playing in the season otherwise duplicates issue
-        data_ed = pd.melt(data_ed, id_vars=['div', 'season', 'date', 'field'], var_name='team', value_name='val')
+        data_ed = pd.melt(data_ed,
+                          id_vars=['div', 'season', 'date', 'field'],
+                          var_name='team',
+                          value_name='val')
+        # drop na in fields
+        data_ed = data_ed[data_ed['field'].notna()]
+
         # all teams played in each  season
         tmp = data_f.groupby(['div', 'season'])['team'].unique().reset_index()
         team_seas = tmp.apply(lambda x: pd.Series(x['team']), axis=1).stack().reset_index(level=1, drop=True)
@@ -760,7 +780,7 @@ def expand_field(data, group=None, impute=False):
         res = res.append(fexp, ignore_index=True, sort=False)
 
     if impute is True:
-        res['val'] = res.groupby('date')['val'].transform(lambda x: x.fillna(x.mean()))
+        res['val'] = res.groupby(['date', 'div'])['val'].transform(lambda x: x.fillna(x.mean()))
 
     return res
 
