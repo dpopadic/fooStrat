@@ -83,6 +83,7 @@ data_fh_ed = comp_score(data=data_fh_ed, metric='z-score')
 data_fa = fform(data=source_core, field="FTR", type="away")
 data_fa_ed = expand_field(data=data_fa, impute=True)
 data_fa_ed = comp_score(data=data_fa_ed, metric='z-score')
+data_fa_ed[data_fa_ed['val'].notna()].sort_values('date')
 
 data_ftot = fform(data=source_core, field="FTR", type="all")
 data_ftot_ed = expand_field(data=data_ftot, impute=True)
@@ -99,7 +100,7 @@ data_hf = fhome(data=source_core)
 # factor library ------------------------------------------------------------------------------------------------------
 
 # competition-specific factor library: flib_e0
-
+# function: con_flib
 factor_library = pd.concat([data_gsf_ed, data_fh_ed, data_fa_ed, data_ftot_ed, data_hf],
                            axis=0,
                            sort=False,

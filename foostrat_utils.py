@@ -782,6 +782,9 @@ def expand_field(data, impute=False):
     if impute is True:
         res['val'] = res.groupby(['date', 'div'])['val'].transform(lambda x: x.fillna(x.mean()))
 
+    # remove na where no data at all
+    res = res[res['val'].notna()].sort_values('date')
+
     return res
 
 
