@@ -19,7 +19,8 @@ league_standings = pd.read_pickle('pro_data/league_standings.pkl')
 # 9. volatility of odds (the larger the better)
 # 10. game importance (points difference to top/bottom 5)
 # 11. turnaround ability (losing half-time & winning/draw full-time)
-# 12.
+
+# note: all factors should be z-scores so it's easy to construct a composite signal if needed
 # next factors: points difference, last 3 games points, autocorrelation of outcomes by team,
 # head to head, chances (shots, wood hits, corner), volatility of odds (the bigger the better),
 # cheap (value, this might be implement at a later stage), game importance (top, bottom), clean sheets (no goal),
@@ -28,6 +29,11 @@ league_standings = pd.read_pickle('pro_data/league_standings.pkl')
 # points per game, scored both halves, conceded/won both halves, lost to nil, losing half-time & winning/draw full-time,
 # form (last 5), league
 
+# modelling:
+# - explanatory variables:  factor library for a given competition
+# - target variable:        win-draw-lose, >/< 2.5 goals, btts
+# .. this means there're 3 models for each competition
+# .. walk-forward model validation with 3 year initial window
 
 # odds retrieval ------------------------------------------------------------------------------------------------------
 # get relevant odds
@@ -46,14 +52,6 @@ data_gsf = expand_field(data=data_gsf_0, impute=True)
 # calculate cross-sectional signal across divisions (enable by div)..
 data_gsf_ed = comp_score(data=data_gsf, metric='z-score')
 
-source_core.query("div==@i & (field=='FTHG' | field=='FTAG')")['date'].unique()
-aa=data_fct.query("div==@i")
-source_core.query("div==@i & (field=='FTHG' | field=='FTAG')")
-data_fct['div'].unique()
-i='Japan J1 League'
-team_chng.query('div==@i')
-aa0=res.query('div==@i')
-aaa0=data_ed.sort_values('date')
 
 
 # form ----------------------------------------------------------------------------------------------------------------

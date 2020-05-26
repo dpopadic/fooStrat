@@ -737,9 +737,9 @@ def expand_field(data, impute=False):
 
     Details:
     --------
-    Note that the date expansion happens for each available date in data enabling cross-sectional factor
-    building by competition.
-    Note that imputation is performed by competition.
+    - Note that the date expansion happens for each available date in data enabling cross-sectional factor
+    building by competition
+    - Note that imputation is performed by competition
 
     """
     gf = data['div'].unique()
@@ -1085,7 +1085,7 @@ def jitter(x, noise_reduction=1000000):
 
 def comp_score(data, metric):
     """
-    Computes a cross-sectional score across leagues (div) at any point in time.
+    Computes a cross-sectional score by league (div) at any point in time.
 
     Parameters:
     -----------
@@ -1100,9 +1100,9 @@ def comp_score(data, metric):
 
     if metric == 'z-score':
         # calculate cross-sectional z-score
-        data['val'] = data.groupby(['date'])['val'].transform(lambda x: zscore(x))
+        data['val'] = data.groupby(['date', 'div'])['val'].transform(lambda x: zscore(x))
     elif metric == 'percentile':
-        data['val'] = data.groupby(['date'])['val'].rank(pct=True)
+        data['val'] = data.groupby(['date', 'div'])['val'].rank(pct=True)
     else:
         data
 
