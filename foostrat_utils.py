@@ -668,7 +668,7 @@ def fgoalsup(data, field, field_name, k):
 
 
 
-def fform(data, field, type):
+def fform(data, field, type, k=5):
     """Computes the form factor for each team. The form is derived by looking at the last 5 wins/losses
     for each team and calculating the number of points achieved over those games (3 for win, 1 for draw &
     0 for loss).
@@ -681,6 +681,8 @@ def fform(data, field, type):
                 the relevant field in the field column of data to the calculate the factor
         type:   str
                 whether to calculate factor for home, away or all matches
+        k:      int, default 5
+                the number of games to look at when calculating the form
 
     """
 
@@ -704,20 +706,26 @@ def fform(data, field, type):
                                    'away_team']].rename(columns={'away_team': 'team'}), a], axis=1)
 
     if type=='home':
-        ha = h.reset_index(drop=True).copy()
+        ha = h.reset_index(drop=True)
     elif type=='away':
-        ha = a.copy()
+        ha = a.reset_index(drop=True)
     elif type=='all':
         ha = pd.concat([h, a], axis=0).reset_index(drop=True)
 
-    ha['val'] = ha.sort_values('date').groupby('team')['val'].rolling(5, min_periods=1).sum().reset_index(drop=True)
-    ha['field'] = 'form' + '_' + type
+    ha_ed = ha.set_index('date')
+    ha_ed = ha_ed.sort_values('date').groupby('team')['val'].rolling(k, min_periods=1).sum().reset_index()
+    # add back the other data
+    ha_fin = pd.merge(ha[['div', 'date', 'season', 'team']],
+                      ha_ed, on=['team', 'date'],
+                      how='left')
+
+    ha_fin['field'] = 'form' + '_' + type
     # lag factor
-    ha = ha.sort_values(['team', 'date']).reset_index(drop=True)
-    ha['val'] = ha.groupby(['team', 'field'])['val'].shift(1)
+    ha_fin = ha_fin.sort_values(['team', 'date']).reset_index(drop=True)
+    ha_fin['val'] = ha_fin.groupby(['team', 'field'])['val'].shift(1)
     # neutralise for new entrants
-    team_chng = newcomers(data=ha)
-    res = neutralise_scores(data=ha, teams=team_chng, n=5 - 1)
+    team_chng = newcomers(data=ha_fin)
+    res = neutralise_scores(data=ha_fin, teams=team_chng, n=k-1)
     return res
 
 
@@ -783,7 +791,7 @@ def expand_field(data, impute=False):
         res['val'] = res.groupby(['date', 'div'])['val'].transform(lambda x: x.fillna(x.mean()))
 
     # remove na where no data at all
-    res = res[res['val'].notna()].sort_values('date')
+    res = res[res['val'].notna()].sort_values('date').reset_index(drop=True)
 
     return res
 

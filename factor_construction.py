@@ -35,6 +35,7 @@ league_standings = pd.read_pickle('pro_data/league_standings.pkl')
 # 9. prediction uncertainty
 # 9.1 volatility of odds
 # 9.2 historical prediction accuracy
+# 9.3 pricing spread (eg. 1 - p(win) - p(loss) - p(draw), the higher the more uncertain)
 # 10. game slippage
 # 10.1 game relevance (points difference to top/bottom 5)
 # 10.2 tiredness of team (days since last game played)
@@ -55,6 +56,8 @@ league_standings = pd.read_pickle('pro_data/league_standings.pkl')
 # .. this means there're 3 models for each competition
 # .. walk-forward model validation with 3 year initial window
 
+# it's important to do it by league 1st because of data issues that can be present (see Japan J1 League & kobe team)
+
 # odds retrieval ------------------------------------------------------------------------------------------------------
 # get relevant odds
 match_odds = fodds(data=source_core,
@@ -66,12 +69,11 @@ match_odds.to_pickle('./pro_data/match_odds.pkl')
 
 # goal superiority rating ---------------------------------------------------------------------------------------------
 # compute factor
-data_gsf_0 = fgoalsup(data=source_core, field=['FTHG', 'FTAG'], field_name=['g_scored', 'g_received'], k=5)
+data_gsf_0 = fgoalsup(data=source_core, field=['FTHG', 'FTAG'], field_name=['g_scored', 'g_received'], k=3)
 # expand across time (and impute across divisions)
 data_gsf = expand_field(data=data_gsf_0, impute=True)
 # calculate cross-sectional signal across divisions (enable by div)..
 data_gsf_ed = comp_score(data=data_gsf, metric='z-score')
-
 
 
 # form ----------------------------------------------------------------------------------------------------------------
@@ -83,12 +85,10 @@ data_fh_ed = comp_score(data=data_fh_ed, metric='z-score')
 data_fa = fform(data=source_core, field="FTR", type="away")
 data_fa_ed = expand_field(data=data_fa, impute=True)
 data_fa_ed = comp_score(data=data_fa_ed, metric='z-score')
-data_fa_ed[data_fa_ed['val'].notna()].sort_values('date')
 
 data_ftot = fform(data=source_core, field="FTR", type="all")
 data_ftot_ed = expand_field(data=data_ftot, impute=True)
 data_ftot_ed = comp_score(data=data_ftot_ed, metric='z-score')
-
 
 
 # home factor ---------------------------------------------------------------------------------------------------------
