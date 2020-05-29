@@ -68,11 +68,12 @@ match_odds.to_pickle('./pro_data/match_odds.pkl')
 
 
 # goal superiority rating ---------------------------------------------------------------------------------------------
+# generic function to generate comform factor: norm_factor
 # compute factor
 data_gsf_0 = fgoalsup(data=source_core, field=['FTHG', 'FTAG'], field_name=['g_scored', 'g_received'], k=3)
-# expand across time (and impute across divisions)
+# expand across time (and impute by division)
 data_gsf = expand_field(data=data_gsf_0, impute=True)
-# calculate cross-sectional signal across divisions (enable by div)..
+# calculate cross-sectional signal by divisions..
 data_gsf_ed = comp_score(data=data_gsf, metric='z-score')
 
 
@@ -98,7 +99,6 @@ data_hf = fhome(data=source_core)
 
 
 # factor library ------------------------------------------------------------------------------------------------------
-
 con_flib(data=[data_gsf_ed,
                data_fh_ed,
                data_fa_ed,
