@@ -99,31 +99,19 @@ data_hf = fhome(data=source_core)
 
 # factor library ------------------------------------------------------------------------------------------------------
 
-# competition-specific factor library: flib_e0
-# function: con_flib
+con_flib(data=[data_gsf_ed,
+               data_fh_ed,
+               data_fa_ed,
+               data_ftot_ed,
+               data_hf],
+         update=False)
 
-a = [data_gsf_ed, data_fh_ed, data_fa_ed, data_ftot_ed, data_hf]
 
-con_flib(data=[data_gsf_ed, data_fh_ed, data_fa_ed, data_ftot_ed, data_hf])
 
-def con_flib(data):
-    """Builds the factor library.
 
-    Parameters:
-    -----------
-        data:   list
-                a list of pandas dataframe's with factors across leagues
 
-    """
-    for i in data[0].loc[:, 'div'].unique():
-        # extract from each dataframe
-        print(i)
 
-    factor_library = pd.concat([data_gsf_ed, data_fh_ed, data_fa_ed, data_ftot_ed, data_hf],
-                               axis=0,
-                               sort=False,
-                               ignore_index=True)
-    factor_library.to_pickle('./pro_data/factor_library.pkl')
+
 
 
 

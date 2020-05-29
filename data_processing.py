@@ -27,7 +27,9 @@ update_data_latest(ex=source_core,
                    season='2019-2020',
                    path='src_data/')
 
-
+# meta data ----------------------------------------------------------
+leagues_map = pd.DataFrame(source_core.loc[:, 'div'].unique(), columns={'div'})
+leagues_map.to_pickle('src_data/leagues_map.pkl')
 
 
 

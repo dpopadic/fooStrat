@@ -425,6 +425,44 @@ def update_data_historic(path, file_desc, file_key, file_key_name, file_desc_2, 
     print("Source Data History has been updated.")
 
 
+
+def con_flib(data, dir='./pro_data/', update = True):
+    """Builds or updates the factor library.
+
+    Parameters:
+    -----------
+        data:   list
+                a list of pandas dataframe's with factors across leagues
+        dir:    str, default pro_data
+                a directory where to store the factor library
+        update: boolean, default True
+                Whether to update or create entirely new
+
+    Details:
+    --------
+    Note that when update is True, it's assumed that there is a factor library
+    present by league.
+
+    """
+    data_ed = pd.concat(data, axis=0, sort=False, ignore_index=True)
+
+    for i in data_ed.loc[:, 'div'].unique():
+
+        data_new = data_ed.query("div==@i")
+        ik = i.lower().replace(" ", "_").replace("-", "_")
+
+        if update is False:
+            data_new.to_pickle(dir + 'flib_' + ik + '.pkl')
+        else:
+            data_ex = pd.read_pickle(dir + 'flib_' + ik + '.pkl')
+            res = pd.concat([data_ex, data_new], axis=0, sort=False, ignore_index=True)
+            res.to_pickle(dir + 'flib_' + ik + '.pkl')
+
+        print("Factor library for " + i + " is updated.")
+
+
+
+
 # FACTOR CONSTRUCTION ------------------------------------------------------------------
 
 
