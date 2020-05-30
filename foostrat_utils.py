@@ -603,6 +603,22 @@ def neutralise_scores(data, teams, n):
     return res
 
 
+def norm_factor(data):
+    """Normalise factor data by expanding observations across the date spectrum and imputing missing data by
+    comptetition.
+
+    Parameters:
+    -----------
+        data:   pandas dataframe
+                data with columns div, season, date, team, field, val
+
+    """
+    # expand across time (and impute by division)
+    data_exp = expand_field(data=data, impute=True)
+    # calculate cross-sectional signal
+    res = comp_score(data=data_exp, metric='z-score')
+
+    return res
 
 
 def fhome(data):

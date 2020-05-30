@@ -1,7 +1,7 @@
 # FACTOR CALCULATION --------------------------------------------------------------------------------------------------
 import pandas as pd
 import numpy as np
-from foostrat_utils import fgoalsup, fhome, fform, odds_fields, fodds, expand_field, jitter, comp_score
+from foostrat_utils import fgoalsup, fhome, fform, odds_fields, fodds, expand_field, comp_score, con_flib
 
 # load source data..
 source_core = pd.read_pickle('pro_data/source_core.pkl')
@@ -59,7 +59,7 @@ league_standings = pd.read_pickle('pro_data/league_standings.pkl')
 # it's important to do it by league 1st because of data issues that can be present (see Japan J1 League & kobe team)
 
 # odds retrieval ------------------------------------------------------------------------------------------------------
-# get relevant odds
+# store relevant odds
 match_odds = fodds(data=source_core,
                    field_home=list(odds_fields.get('odds_home_win')),
                    field_away=list(odds_fields.get('odds_away_win')),
@@ -68,34 +68,23 @@ match_odds.to_pickle('./pro_data/match_odds.pkl')
 
 
 # goal superiority rating ---------------------------------------------------------------------------------------------
-# generic function to generate comform factor: norm_factor
-# compute factor
-data_gsf_0 = fgoalsup(data=source_core, field=['FTHG', 'FTAG'], field_name=['g_scored', 'g_received'], k=3)
-# expand across time (and impute by division)
-data_gsf = expand_field(data=data_gsf_0, impute=True)
-# calculate cross-sectional signal by divisions..
-data_gsf_ed = comp_score(data=data_gsf, metric='z-score')
+gsf = fgoalsup(data=source_core, field=['FTHG', 'FTAG'], field_name=['g_scored', 'g_received'], k=3)
+gsf = norm_factor(data=gsf)
 
 
 # form ----------------------------------------------------------------------------------------------------------------
+fh = fform(data=source_core, field="FTR", type="home")
+fh = norm_factor(data=fh)
 
-data_fh = fform(data=source_core, field="FTR", type="home")
-data_fh_ed = expand_field(data=data_fh, impute=True)
-data_fh_ed = comp_score(data=data_fh_ed, metric='z-score')
+fa = fform(data=source_core, field="FTR", type="away")
+fa = norm_factor(data=fa)
 
-data_fa = fform(data=source_core, field="FTR", type="away")
-data_fa_ed = expand_field(data=data_fa, impute=True)
-data_fa_ed = comp_score(data=data_fa_ed, metric='z-score')
-
-data_ftot = fform(data=source_core, field="FTR", type="all")
-data_ftot_ed = expand_field(data=data_ftot, impute=True)
-data_ftot_ed = comp_score(data=data_ftot_ed, metric='z-score')
-
+ftot = fform(data=source_core, field="FTR", type="all")
+ftot = norm_factor(data=ftot)
 
 # home factor ---------------------------------------------------------------------------------------------------------
 # no need for expansion for boolean factors!
 data_hf = fhome(data=source_core)
-
 
 
 # factor library ------------------------------------------------------------------------------------------------------
