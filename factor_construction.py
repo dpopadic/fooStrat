@@ -8,39 +8,6 @@ source_core = pd.read_pickle('pro_data/source_core.pkl')
 league_standings = pd.read_pickle('pro_data/league_standings.pkl')
 
 # FACTOR LIBRARY ------------------------------------------------------------------------------------------------------
-# 1. goal superiority
-# 2. form
-# 2.1 home form
-# 2.2 away form
-# 2.3 total form
-# 3. home advantage
-# 4. consistence
-# 4.1 avg goals per match / scoring rate
-# 4.2 failed to score
-# 4.3 points per game
-# 5. leage position
-# 5.1 position residual
-# 5.2 points residual
-# 6. head to head
-# 6.1 direct points difference
-# 6.2 team cluster points difference
-# 7. attack strength
-# 7.1 shots
-# 7.2 shots on target
-# 7.3 wood hits
-# 7.4 corners
-# 8. defense strength
-# 8.1 clean sheets
-# 8.2 goals conceded
-# 9. prediction uncertainty
-# 9.1 volatility of odds
-# 9.2 historical prediction accuracy
-# 9.3 pricing spread (eg. 1 - p(win) - p(loss) - p(draw), the higher the more uncertain)
-# 10. game slippage
-# 10.1 game relevance (points difference to top/bottom 5)
-# 10.2 tiredness of team (days since last game played)
-# 11. turnaround ability (losing half-time & winning/draw full-time)
-
 # note: all factors should be z-scores so it's easy to construct a composite signal if needed
 # next factors: points difference, last 3 games points, autocorrelation of outcomes by team,
 # head to head, chances (shots, wood hits, corner), volatility of odds (the bigger the better),
