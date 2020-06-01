@@ -426,7 +426,7 @@ def update_data_historic(path, file_desc, file_key, file_key_name, file_desc_2, 
 
 
 
-def con_flib(data, dir='./pro_data/', update = True):
+def update_flib(data, dir='./pro_data/', update = True):
     """Builds or updates the factor library.
 
     Parameters:
