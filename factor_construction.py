@@ -1,7 +1,7 @@
 # FACTOR CALCULATION --------------------------------------------------------------------------------------------------
 import pandas as pd
 import numpy as np
-from foostrat_utils import fgoalsup, fhome, fform, odds_fields, fodds, expand_field, comp_score, con_flib
+from foostrat_utils import fgoalsup, fhome, fform, odds_fields, fodds, expand_field, comp_score, con_flib, norm_factor
 
 # load source data..
 source_core = pd.read_pickle('pro_data/source_core.pkl')
@@ -52,16 +52,11 @@ ftot = norm_factor(data=ftot)
 
 # home factor ---------------------------------------------------------------------------------------------------------
 # no need for expansion for boolean factors!
-data_hf = fhome(data=source_core)
+hf = fhome(data=source_core)
 
 
 # factor library ------------------------------------------------------------------------------------------------------
-con_flib(data=[data_gsf_ed,
-               data_fh_ed,
-               data_fa_ed,
-               data_ftot_ed,
-               data_hf],
-         update=False)
+con_flib(data=[gsf, fh, fa, ftot, hf], update=True)
 
 
 

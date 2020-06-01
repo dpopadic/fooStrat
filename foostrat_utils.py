@@ -436,7 +436,7 @@ def con_flib(data, dir='./pro_data/', update = True):
         dir:    str, default pro_data
                 a directory where to store the factor library
         update: boolean, default True
-                Whether to update or create entirely new
+                Whether to update or create new factor library
 
     Details:
     --------
