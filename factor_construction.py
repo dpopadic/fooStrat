@@ -24,6 +24,7 @@ league_standings = pd.read_pickle('pro_data/league_standings.pkl')
 # .. walk-forward model validation with 3 year initial window
 
 # it's important to do it by league 1st because of data issues that can be present (see Japan J1 League & kobe team)
+# see project factor library build-out fore more info on github
 
 # odds retrieval ------------------------------------------------------------------------------------------------------
 # store relevant odds
