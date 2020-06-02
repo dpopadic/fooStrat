@@ -61,27 +61,7 @@ update_flib(data=[gsf], update=True)
 field = "goal_superiority"
 
 
-def delete_flib(field, path='pro_data/'):
-    """Delete fields from the factor library.
 
-    Parameters:
-    -----------
-        field:  str
-                the field(s) to be deleted from the factor library
-        dir:    str, default pro_data
-                a directory where to store the factor library
-
-    """
-    # retrieve source path
-    dat_path = os.path.join(os.getcwd(), path[:-1], '')
-    files = [path + f for f in os.listdir(dat_path) if f[:5] == "flib_"]
-    i = 1
-    for i in range(len(files)):
-        data_ex = pd.read_pickle(files[i])
-        res = data_ex.query("field not in @field")
-        res.to_pickle(dir + 'flib_' + ik + '.pkl')
-
-        print("Factor library for " + i + " is updated.")
 
 
 
