@@ -445,7 +445,7 @@ def update_flib(data, dir='./pro_data/', update = True):
 
     """
     data_ed = pd.concat(data, axis=0, sort=False, ignore_index=True)
-
+    # i = 'F1'
     for i in data_ed.loc[:, 'div'].unique():
 
         data_new = data_ed.query("div==@i")
@@ -455,8 +455,16 @@ def update_flib(data, dir='./pro_data/', update = True):
             data_new.to_pickle(dir + 'flib_' + ik + '.pkl')
         else:
             data_ex = pd.read_pickle(dir + 'flib_' + ik + '.pkl')
-            res = pd.concat([data_ex, data_new], axis=0, sort=False, ignore_index=True)
-            res.to_pickle(dir + 'flib_' + ik + '.pkl')
+            # find what is new
+            # 1st identify mutual
+            data_mut = pd.merge(data_new.loc[:, ['div', 'season', 'team', 'date', 'field']],
+                                data_ex.loc[:, ['div', 'season', 'team', 'date', 'field']],
+                                on=['div', 'season', 'team', 'date', 'field'],
+                                how="inner")
+            data_res = anti_join(x=data_new,
+                                 y=data_mut,
+                                 on=['div', 'season', 'team', 'date', 'field'])
+            data_res.to_pickle(dir + 'flib_' + ik + '.pkl')
 
         print("Factor library for " + i + " is updated.")
 
@@ -476,13 +484,13 @@ def delete_flib(field, path='pro_data/'):
     # retrieve source path
     dat_path = os.path.join(os.getcwd(), path[:-1], '')
     files = [path + f for f in os.listdir(dat_path) if f[:5] == "flib_"]
-    i = 1
+    # i = 0
     for i in range(len(files)):
         data_ex = pd.read_pickle(files[i])
         res = data_ex.query("field not in @field")
-        res.to_pickle(dir + 'flib_' + ik + '.pkl')
+        res.to_pickle(files[i])
 
-        print("Factor library for " + i + " is updated.")
+    print("Factor library is updated.")
 
 
 # FACTOR CONSTRUCTION ------------------------------------------------------------------
