@@ -57,7 +57,7 @@ hf = fhome(data=source_core)
 
 # factor library ------------------------------------------------------------------------------------------------------
 delete_flib(field="goal_superiority")
-update_flib(data=[gsf], update=True)
+update_flib(data=[fh], update=True)
 
 field = "goal_superiority"
 

@@ -456,15 +456,18 @@ def update_flib(data, dir='./pro_data/', update = True):
         else:
             data_ex = pd.read_pickle(dir + 'flib_' + ik + '.pkl')
             # find what is new
-            # 1st identify mutual
+            # 1st identify mutual observations
             data_mut = pd.merge(data_new.loc[:, ['div', 'season', 'team', 'date', 'field']],
                                 data_ex.loc[:, ['div', 'season', 'team', 'date', 'field']],
                                 on=['div', 'season', 'team', 'date', 'field'],
                                 how="inner")
-            data_res = anti_join(x=data_new,
+            # remove already existing from source
+            data_res = anti_join(x=data_ex,
                                  y=data_mut,
                                  on=['div', 'season', 'team', 'date', 'field'])
-            data_res.to_pickle(dir + 'flib_' + ik + '.pkl')
+            # add new data
+            res = pd.concat([data_res, data_new], axis=0, sort=True, ignore_index=True)
+            res.to_pickle(dir + 'flib_' + ik + '.pkl')
 
         print("Factor library for " + i + " is updated.")
 
