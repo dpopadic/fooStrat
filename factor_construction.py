@@ -59,7 +59,8 @@ hf = fhome(data=source_core)
 delete_flib(field="goal_superiority")
 update_flib(data=[gsf, fh, fa, ftot, hf], update=True)
 
-field = "goal_superiority"
+flib_x = pd.read_pickle('pro_data/flib_d1.pkl')
+flib_x.field.unique()
 
 
 

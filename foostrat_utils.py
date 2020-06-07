@@ -467,6 +467,7 @@ def update_flib(data, dir='./pro_data/', update = True):
                                  on=['div', 'season', 'team', 'date', 'field'])
             # add new data
             res = pd.concat([data_res, data_new], axis=0, sort=True, ignore_index=True)
+            res = res.reset_index(drop=True)
             res.to_pickle(dir + 'flib_' + ik + '.pkl')
 
         print("Factor library for " + i + " is updated.")
