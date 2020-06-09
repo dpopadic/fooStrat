@@ -698,6 +698,81 @@ def fhome(data):
     return res
 
 
+def feat_goalbased(data, k):
+    """Compute goal based factors. Goal based factors are:
+
+        - goal superiority rating
+        - average goals per game
+        - failed to score
+        - points per game
+
+    These statistics are calculated over the last 5 games for each team.
+
+    Parameters:
+    -----------
+    data:       pandas dataframe
+                a dataframe with columns div, date, season, home_team, away_team, field, val
+    k:          integer
+                the lookback window to be used
+
+    """
+    # neutralise data..
+    data_goals_co = neutralise_field(data,
+                                     field=['FTHG', 'FTAG'],
+                                     field_name=['g_scored', 'g_received'],
+                                     field_numeric=True,
+                                     column_field=True)
+
+    # compute stat..
+    data_goals_co_i = data_goals_co.set_index('date')
+
+    # ----- feature: goal superiority (last 5)
+    feat_gsup = data_goals_co_i.sort_values('date').groupby(['team'])[['g_scored', 'g_received']]. \
+        rolling(k, min_periods=1).sum().reset_index()
+    feat_gsup['val'] = feat_gsup['g_scored'] - feat_gsup['g_received']
+    feat_gsup.drop(['g_scored', 'g_received'], axis=1, inplace=True)
+    feat_gsup['field'] = 'goal_superiority'
+
+    # ----- feature: average goals per game (last 5)
+    feat_agpg = data_goals_co_i.sort_values('date').groupby(['team'])['g_scored']. \
+        rolling(k, min_periods=1).mean().reset_index()
+    feat_agpg.rename(columns={'g_scored': 'val'}, inplace=True)
+    feat_agpg['field'] = 'avg_goal_scored'
+
+    # ----- feature: failed to score (last 5)
+    feat_fts = data_goals_co_i.copy()
+    feat_fts['val'] = feat_fts['g_scored'].apply(lambda x: 1 if x == 0 else 0)
+    feat_fts = feat_fts.sort_values('date').groupby(['team'])['val'].rolling(k, min_periods=1).sum().reset_index()
+    feat_fts['field'] = 'failed_scoring'
+
+    # ----- feature: points per game (last 5)
+    feat_ppg = data_goals_co_i.copy()
+    feat_ppg['val'] = feat_ppg.loc[:, ['g_scored', 'g_received']]. \
+        apply(lambda x: 3 if x[0] > x[1] else (1 if x[0] == x[1] else 0), axis=1)
+    feat_ppg = feat_ppg.sort_values('date').groupby(['team'])['val']. \
+        rolling(k, min_periods=1).sum().reset_index()
+    feat_ppg['val'] = feat_ppg['val'] / k
+    feat_ppg['field'] = 'points_per_game'
+
+    # bind all together
+    feat_all = pd.concat([feat_gsup, feat_agpg, feat_fts, feat_ppg], axis=0, sort=True)
+    data_fct = pd.merge(data_goals_co[['div', 'date', 'season', 'team']],
+                        feat_all, on=['team', 'date'],
+                        how='left')
+
+    # lag factor..
+    data_fct.sort_values(['team', 'date', 'field'], inplace=True)
+    data_fct['val'] = data_fct.groupby(['team', 'field'])['val'].shift(1)
+
+    # identify promoted/demoted teams & neutralise score for them..
+    team_chng = newcomers(data=data_fct)
+    res = neutralise_scores(data=data_fct, teams=team_chng, n=k - 1)
+    # check: a = res.query("div=='E0' & season=='2019' & team=='sheffield_united'").sort_values(['date'])
+    # res['val'] = res.groupby(['div', 'season', 'team', 'field'])['val'].shift(1)
+    # res.dropna(inplace=True)
+    return res
+
+
 
 def fgoalsup(data, field, field_name, k):
     """Calculates the goal superiority factor across divisions and seasons for each team on a

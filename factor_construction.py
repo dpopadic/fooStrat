@@ -1,7 +1,8 @@
 # FACTOR CALCULATION --------------------------------------------------------------------------------------------------
 import pandas as pd
 import numpy as np
-from foostrat_utils import fgoalsup, fhome, fform, odds_fields, fodds, expand_field, comp_score, update_flib, norm_factor
+from foostrat_utils import fgoalsup, fhome, fform, odds_fields, fodds, expand_field, \
+    comp_score, update_flib, norm_factor, feat_goalbased
 
 # load source data..
 source_core = pd.read_pickle('pro_data/source_core.pkl')
@@ -57,55 +58,9 @@ hf = fhome(data=source_core)
 
 # consistence ---------------------------------------------------------------------------------------------------------
 
-data = source_core
-field = ['FTHG', 'FTAG']
-field_name = ['g_scored', 'g_received']
-k = 5
-def fconsistency(data, field, field_name, k):
-    """Compute consistency factor. The consistency factor is determined by the three features:
-        1. average goals scored
-        2. % of games failed to score
-        3. average points per game
-    These statistics are calculated over the last 5 games for each team.
 
-    Parameters:
-    -----------
-    data:       pandas dataframe
-                a dataframe with columns div, date, season, home_team, away_team, field, val
-    field:      list
-                a list specifying the field name for home- & away-goals (eg. ['FTHG', 'FTAG']) in this order
-    field_name: list
-                a list with new field name for fields (eg. ['g_scored', 'g_received'])
-    k:          integer
-                the lookback window to be used
+fgb = feat_goalbased(data=source_core, k=5)
 
-    """
-    # neutralise data..
-    data_goals_co = neutralise_field(data,
-                                     field=field,
-                                     field_name=field_name,
-                                     field_numeric=True,
-                                     column_field=True)
-
-    # compute stat..
-    data_goals_co_i = data_goals_co.set_index('date')
-    # feature 1 - average goals per game (last 5)
-    data_goals_co1 = data_goals_co_i.sort_values('date').groupby(['team'])[field_name]. \
-        rolling(k, min_periods=1).mean().reset_index()
-
-    data_goals_co1['val'] = data_goals_co1[field_name[0]]
-    data_goals_co1.drop(field_name, axis=1, inplace=True)
-    data_fct = pd.merge(data_goals_co[['div', 'date', 'season', 'team']],
-                        data_goals_co1, on=['team', 'date'],
-                        how='left')
-    data_fct['field'] = 'avg_goal_scored'
-    # lag factor..
-    data_fct.sort_values(['team', 'date'], inplace=True)
-    data_fct['val'] = data_fct.groupby(['team', 'field'])['val'].shift(1)
-
-    # identify promoted/demoted teams & neutralise score for them..
-    team_chng = newcomers(data=data_fct)
-    res = neutralise_scores(data=data_fct, teams=team_chng, n=k - 1)
 
 
 
