@@ -19,6 +19,7 @@ import charut as cu
 # DATA PREPARATIONS ---------------------------------------------------------------------------------------------------
 # load all required data
 source_core = pd.read_pickle('pro_data/source_core.pkl')
+factor_library = pd.read_pickle('pro_data/flib_e0.pkl')
 factor_library = pd.read_pickle('pro_data/factor_library.pkl')
 match_odds = pd.read_pickle('pro_data/match_odds.pkl')
 
@@ -47,7 +48,7 @@ gsf_ic = info_coef(data=data_gsf, results=res_gd, byf=['div', 'season'])
 # compute probability & evaluate
 gsf_proba, gsf_evaly = comp_proba(scores= data_gsf, result=res_custom, field = "goal_superiority")
 odds_event = match_odds.query('field == "odds_win"')
-gsf_pos = comp_mispriced(prob=gsf_proba, odds=odds_event, prob_threshold=0.53, res_threshold=0.1)
+gsf_pos = comp_mispriced(prob=gsf_proba, odds=odds_event, prob_threshold=0.53, res_threshold=0.05)
 
 # match_odds need to have long- & short version
 # bet structuring strategies:
@@ -71,7 +72,8 @@ data_ha.rename(columns={'val': 'bucket'}, inplace=True)
 res_custom = res_wd.query('field=="win"').drop('field', axis=1)
 # compute the hit ratio for home-away
 ha_edge = comp_edge(factor_data=data_ha, results=res_custom, byf=['overall', 'div'])
-
+f0 = ['E0', 'D1']
+ha_edge.query("field in @f0")
 
 
 
