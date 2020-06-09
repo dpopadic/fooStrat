@@ -892,6 +892,26 @@ def fform(data, field, type, k=5):
     return res
 
 
+def feat_resbased(data):
+    """Calculates result based features. These are:
+        - form home
+        - form away
+        - form overall
+
+    Parameters:
+    -----------
+    data:       pandas dataframe
+                a dataframe with columns div, date, season, home_team, away_team, field, val
+    k:          integer
+                the lookback window to be used
+
+    """
+    fh = fform(data=data, field="FTR", type="home")
+    fa = fform(data=data, field="FTR", type="away")
+    ftot = fform(data=data, field="FTR", type="all")
+    feat_all = pd.concat([fh, fa, feat_fts, ftot], axis=0, sort=True)
+    return feat_all
+
 
 def expand_field(data, impute=False):
     """Expands factors across the entire date spectrum so that cross-sectional analysis

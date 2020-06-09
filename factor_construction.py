@@ -1,8 +1,8 @@
 # FACTOR CALCULATION --------------------------------------------------------------------------------------------------
 import pandas as pd
 import numpy as np
-from foostrat_utils import fgoalsup, fhome, fform, odds_fields, fodds, expand_field, \
-    comp_score, update_flib, norm_factor, feat_goalbased
+from foostrat_utils import fhome, odds_fields, fodds, expand_field, \
+    comp_score, update_flib, norm_factor, feat_goalbased, feat_resbased
 
 # load source data..
 source_core = pd.read_pickle('pro_data/source_core.pkl')
@@ -35,31 +35,20 @@ match_odds = fodds(data=source_core,
                    field_both=list(odds_fields.get('odds_draw_win')))
 match_odds.to_pickle('./pro_data/match_odds.pkl')
 
+# goal based factors --------------------------------------------------------------------------------------------------
+fgb = feat_goalbased(data=source_core, k=5)
+fgb = norm_factor(data=fgb)
 
-# goal superiority rating ---------------------------------------------------------------------------------------------
-gsf = fgoalsup(data=source_core, field=['FTHG', 'FTAG'], field_name=['g_scored', 'g_received'], k=3)
-gsf = norm_factor(data=gsf)
+
+# result based factors ------------------------------------------------------------------------------------------------
+frb = feat_resbased(data=source_core)
+frb = norm_factor(data=frb)
 
 
-# form ----------------------------------------------------------------------------------------------------------------
-fh = fform(data=source_core, field="FTR", type="home")
-fh = norm_factor(data=fh)
-
-fa = fform(data=source_core, field="FTR", type="away")
-fa = norm_factor(data=fa)
-
-ftot = fform(data=source_core, field="FTR", type="all")
-ftot = norm_factor(data=ftot)
 
 # home factor ---------------------------------------------------------------------------------------------------------
 # no need for expansion for boolean factors!
 hf = fhome(data=source_core)
-
-
-# consistence ---------------------------------------------------------------------------------------------------------
-
-
-fgb = feat_goalbased(data=source_core, k=5)
 
 
 
