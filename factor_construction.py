@@ -44,6 +44,8 @@ fgb = norm_factor(data=fgb)
 frb = feat_resbased(data=source_core)
 frb = norm_factor(data=frb)
 
+# standings based factors ---------------------------------------------------------------------------------------------
+
 
 
 # home factor ---------------------------------------------------------------------------------------------------------
