@@ -109,6 +109,7 @@ def comp_league_standing(data,
     metr = dfc_tot_pts.groupby(by=['div', 'season', 'team'])[['points', 'goals_scored', 'goals_received']]. \
         cumsum().reset_index(level=0, drop=True)
     dfc_tot_pts_ed = pd.concat([dfc_tot_pts[['date', 'div', 'season', 'team']], metr], axis=1)
+
     # verify..
     # a = dfc_tot_pts_ed.query("div=='E0' & season=='2019' & team=='liverpool'")
 
