@@ -2,7 +2,7 @@
 import pandas as pd
 import numpy as np
 from foostrat_utils import fhome, odds_fields, fodds, expand_field, \
-    comp_score, update_flib, norm_factor, feat_goalbased, feat_resbased
+    comp_score, update_flib, norm_factor, feat_goalbased, feat_resbased, comp_league_standing
 
 # load source data..
 source_core = pd.read_pickle('pro_data/source_core.pkl')
@@ -45,6 +45,23 @@ frb = feat_resbased(data=source_core)
 frb = norm_factor(data=frb)
 
 # standings based factors ---------------------------------------------------------------------------------------------
+
+data = source_core
+
+def feat_stanbased(data):
+    """Calculates standings based factors. These are:
+        - position residual
+        - points residual
+
+    """
+
+    df_0 = data[(data.field == 'FTR') | (data.field == 'FTHG') | (data.field == 'FTAG')]
+    # compute rolling league standings
+    df_1 = comp_league_standing(data=df_0, home_goals='FTHG', away_goals='FTAG', result='FTR')
+
+    # average points residual
+
+
 
 
 

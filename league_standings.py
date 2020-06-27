@@ -12,6 +12,7 @@ df_f = df[(df.field == 'FTR') | (df.field == 'FTHG') | (df.field == 'FTAG')]
 # compute leade standings by date in addition to overall..
 tbl = comp_league_standing(data=df_f, home_goals='FTHG', away_goals='FTAG', result='FTR')
 
+a = tbl.query("season=='2019' & team == 'liverpool'")
 
 # tbl = comp_league_standing(df_f, season=['2019-2020'])
 # store standings..
