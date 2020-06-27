@@ -134,6 +134,7 @@ def comp_league_standing(data,
 
 
 
+
 def process_data_major(fi_nm, extra_key, key_cols, key_cols_map):
     """Processes the structured data that is stored in tabs in multiple excel files and puts them together tidied up.
     The excel files need not to have the same fields/columns but they do need to have the key columns present. Key
