@@ -11,6 +11,8 @@ df = pd.read_pickle('pro_data/source_core.pkl')
 df_f = df[(df.field == 'FTR') | (df.field == 'FTHG') | (df.field == 'FTAG')]
 # compute leade standings by date in addition to overall..
 tbl = comp_league_standing(data=df_f, home_goals='FTHG', away_goals='FTAG', result='FTR')
+
+
 # tbl = comp_league_standing(df_f, season=['2019-2020'])
 # store standings..
 tbl.to_pickle('./pro_data/league_standings.pkl')

@@ -38,7 +38,6 @@ def ret_xl_cols(file_names, id_col):
 
 def comp_league_standing(data,
                          season=None,
-                         rolling=True,
                          home_goals='FTHG',
                          away_goals='FTAG',
                          result='FTR'):
@@ -53,8 +52,6 @@ def comp_league_standing(data,
         season:     list
                     a list of values in season for which to calculate standings (defaults to None in which case
                     standings for all seasons are calculated)
-        rolling:    boolean, True
-                    whether to calulcate total standings
         home_goals: str
                     home goals field in data
         away_goals: str
@@ -97,35 +94,43 @@ def comp_league_standing(data,
                          home_goals: 'goals_received'}, inplace=True)
     df_a = df_a.drop([result], axis=1)
 
-    # consolidate..
+    # consolidate
     dfc = pd.concat([df_h, df_a], axis=0, sort=True)
     dfc[['goals_scored', 'goals_received']] = dfc[['goals_scored', 'goals_received']].apply(pd.to_numeric,
                                                                                             errors='coerce')
-    # overall..
-    # dfc_tot_pts = dfc.groupby(by=['div', 'season', 'team'])[['points', 'goals_scored', 'goals_received']].sum()
 
     # over time
     dfc_tot_pts = dfc.sort_values(['date']).reset_index(drop=True)
     metr = dfc_tot_pts.groupby(by=['div', 'season', 'team'])[['points', 'goals_scored', 'goals_received']]. \
         cumsum().reset_index(level=0, drop=True)
     dfc_tot_pts_ed = pd.concat([dfc_tot_pts[['date', 'div', 'season', 'team']], metr], axis=1)
-    # verify..
-    # a = dfc_tot_pts_ed.query("div=='E0' & season=='2019' & team=='liverpool'")
 
-    # number of wins..
-    df_wdl = dfc.loc[:, ['season', 'div', 'date', 'team', 'res', 'points']]
-    dfc_agg_wdl = df_wdl.pivot_table(index=['div', 'season', 'team'],
+    # number of wins, losses, draws
+    df_wdl = dfc.loc[:, ['season', 'div', 'date', 'team', 'res']]
+    df_wdl['dummy'] = 1
+    df_wdl = df_wdl.sort_values(['date']).reset_index(drop=True)
+    dfc_agg_wdl = df_wdl.pivot_table(index=['div', 'season', 'date', 'team'],
                                      columns='res',
-                                     values='points',
-                                     aggfunc='count').reset_index()
+                                     values='dummy').reset_index()
+    dfc_agg_wdl = dfc_agg_wdl.fillna(0)
+    dfc_agg_wdlc = dfc_agg_wdl.groupby(['div', 'season', 'team'])[['d', 'l', 'w']]. \
+        cumsum().reset_index(level=0, drop=True)
+    dfc_agg_wdl = pd.concat([dfc_agg_wdl[['date', 'div', 'season', 'team']], dfc_agg_wdlc], axis=1)
 
-    # add number of wins to standings..
-    tbl = pd.merge(dfc_tot_pts, dfc_agg_wdl, on=['div', 'season', 'team'], how='left')
+    # rename columns
+    dfc_agg_wdl.rename(columns={'w': 'wins', 'l': 'losses', 'd': 'draws'}, inplace=True)
 
-    # rankings..
-    tbl['rank'] = tbl.groupby(['div', 'season'])['points'].rank(ascending=False,
-                                                                method='first').reset_index(drop=True)
-    return tbl
+    # add number of wins, draws & losses to standings
+    res = pd.merge(dfc_tot_pts_ed, dfc_agg_wdl, on=['div', 'season', 'team', 'date'], how='left')
+
+    # rankings
+    res['rank'] = res.groupby(['div', 'season', 'date'])['points'].rank(ascending=False,
+                                                                        method='first').reset_index(drop=True)
+
+    # verify
+    # a = res.query("div=='E0' & season=='2019' & team=='liverpool'")
+
+    return res
 
 
 
