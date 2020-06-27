@@ -45,6 +45,9 @@ def comp_league_standing(data,
     season. The input table therefore needs to have the following columns:
     div, season, date, home_team, away_team, field, val
 
+    Note that an adjustment for newcomers / demoted teams is not required here since no observations
+    from previous seasons are taken into account.
+
     Parameters:
     -----------
         data:       pandas dataframe
@@ -666,20 +669,23 @@ def neutralise_scores(data, teams, n):
     return res
 
 
-def norm_factor(data):
+def norm_factor(data, neutralise=True):
     """Normalise factor data by expanding observations across the date spectrum and imputing missing data by
     comptetition.
 
     Parameters:
     -----------
-        data:   pandas dataframe
-                data with columns div, season, date, team, field, val
+        data:           pandas dataframe
+                        data with columns div, season, date, team, field, val
+        neutralise:     boolean, True
+                        whether to calculate z-scores from the input signal
 
     """
     # expand across time (and impute by division)
-    data_exp = expand_field(data=data, impute=True)
-    # calculate cross-sectional signal
-    res = comp_score(data=data_exp, metric='z-score')
+    res = expand_field(data=data, impute=True)
+    if neutralise == True:
+        # calculate cross-sectional signal
+        res = comp_score(data=res, metric='z-score')
 
     return res
 
@@ -938,8 +944,40 @@ def feat_resbased(data):
     fh = fform(data=data, field="FTR", type="home")
     fa = fform(data=data, field="FTR", type="away")
     ftot = fform(data=data, field="FTR", type="all")
-    feat_all = pd.concat([fh, fa, feat_fts, ftot], axis=0, sort=True)
+    feat_all = pd.concat([fh, fa, ftot], axis=0, sort=True)
     return feat_all
+
+
+def feat_stanbased(data):
+    """Calculates standings based factors. These are:
+        - position residual
+        - points residual
+
+        Note that the normalisation takes place within the function here so that the
+        standings based factors can be calculated.
+    """
+
+    df_0 = data[(data.field == 'FTR') | (data.field == 'FTHG') | (data.field == 'FTAG')]
+    # compute rolling league standings
+    df_1 = comp_league_standing(data=df_0, home_goals='FTHG', away_goals='FTAG', result='FTR')
+
+    # points advantage
+    tmp_1 = df_1.loc[:, ['div', 'season', 'date', 'team', 'points']]
+    tmp_1['field'] = "points_advantage"
+    tmp_1.rename(columns={'points': 'val'}, inplace=True)
+
+    # rank position
+    tmp_2 = df_1.loc[:, ['div', 'season', 'date', 'team', 'rank']]
+    tmp_2['field'] = "rank_position"
+    tmp_2.rename(columns={'rank': 'val'}, inplace=True)
+
+    res = pd.concat([tmp_1, tmp_2],
+                    axis=0,
+                    sort=False,
+                    ignore_index=True)
+
+    return res
+
 
 
 def expand_field(data, impute=False):
