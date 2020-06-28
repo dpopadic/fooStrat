@@ -35,7 +35,9 @@ res_gd = con_res(data=source_core, obj='gd', field=['FTHG', 'FTAG'])
 # 1) goal superiority signal -----
 # Q: Is the hit ratio higher for teams that have a higher gsf score?
 # get factor scores
-data_gsf = factor_library.query('field=="goal_superiority"')
+fm = factor_library['field'].unique()[0]
+
+data_gsf = factor_library.query('field==@fm')
 # calculate buckets
 data_gsf = comp_bucket(data_gsf, bucket_method='first', bucket=5)
 # retrieve relevant results to test against
@@ -46,9 +48,9 @@ gsf_edge2 = comp_edge(factor_data=data_gsf, results=res_custom, byf=['season'])
 # compute IC's
 gsf_ic = info_coef(data=data_gsf, results=res_gd, byf=['div', 'season'])
 # compute probability & evaluate
-gsf_proba, gsf_evaly = comp_proba(scores= data_gsf, result=res_custom, field = "goal_superiority")
+gsf_proba, gsf_evaly = comp_proba(scores= data_gsf, result=res_custom, field = fm)
 odds_event = match_odds.query('field == "odds_win"')
-gsf_pos = comp_mispriced(prob=gsf_proba, odds=odds_event, prob_threshold=0.53, res_threshold=0.05)
+gsf_pos = comp_mispriced(prob=gsf_proba, odds=odds_event, prob_threshold=0.51, res_threshold=0.02)
 
 # match_odds need to have long- & short version
 # bet structuring strategies:
@@ -92,36 +94,9 @@ sns.distplot(x1, color="red", ax=axes[1]).set_title('Bundesliga')
 
 
 
-lc1 = ml_map[ml_map['class']==1].loc[:, 'div'].values
-A = gsf_edge.query('field in @lc1')
-sns.set(style="dark")
-
-
-g = sns.catplot(x="field", y="val", hue="bucket", data=A,
-                height=6, kind="bar", palette="muted")
-g.set_xticklabels(rotation=65, horizontalalignment='right')
-# g.set_title('Historical Probability: Goal Superiority Signal')
-g.set_ylabels("historical probability")
-g.set_xlabels("")
-
-
-
-
-
-iris = sns.load_dataset("iris")
-
-sns.pairplot(iris, hue="species")
-
-grid = sns.FacetGrid(gsf_edge, row="field", col="bucket", margin_titles=True)
-grid.map(plt.hist, "val", bins=np.linspace(0, 40, 15));
-
-
 # PNL ANALYSIS --------------------------------------------------------------------------------------------------------
 
 # run a logistic regression for all data to rertieve a probability
-
-
-
 # top bucket..
 P = gsf_data.query('bucket==10 & div=="E0"').loc[:, ['season', 'div', 'date', 'team']]
 P.sort_values(by=['season', 'date'], inplace=True)
