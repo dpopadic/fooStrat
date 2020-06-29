@@ -76,8 +76,8 @@ def comp_league_standing(data,
                              columns='field',
                              values='val',
                              aggfunc='sum').reset_index()
-    df_fw[['season', 'div', 'home_team', 'away_team']] = \
-        df_fw[['season', 'div', 'home_team', 'away_team']].astype(str, errors='ignore')
+    # df_fw[['season', 'div', 'home_team', 'away_team']] = \
+    #     df_fw[['season', 'div', 'home_team', 'away_team']].astype(str, errors='ignore')
 
     # home team stats..
     df_h = df_fw.loc[:, ['season', 'div', 'date', 'home_team', away_goals, home_goals, result]]
@@ -960,6 +960,7 @@ def feat_stanbased(data):
     df_0 = data[(data.field == 'FTR') | (data.field == 'FTHG') | (data.field == 'FTAG')]
     # compute rolling league standings
     df_1 = comp_league_standing(data=df_0, home_goals='FTHG', away_goals='FTAG', result='FTR')
+    df_1.dtypes
 
     # points advantage
     tmp_1 = df_1.loc[:, ['div', 'season', 'date', 'team', 'points']]
@@ -975,6 +976,10 @@ def feat_stanbased(data):
                     axis=0,
                     sort=False,
                     ignore_index=True)
+
+    # lag factor
+    res = res.sort_values(['team', 'date']).reset_index(drop=True)
+    res['val'] = res.groupby(['team', 'field'])['val'].shift(1)
 
     return res
 
@@ -1435,6 +1440,7 @@ def comp_edge(factor_data, results, byf=['overall']):
     results = results.rename(columns={'val': 'result'})
     # bring results & signals together
     er_ed = pd.merge(factor_data, results, on=['div', 'season', 'date', 'team'], how='left')
+
     # erase non-events..
     er_ed.dropna(subset=['result'], inplace=True)
     res = pd.DataFrame()
@@ -1501,8 +1507,8 @@ def info_coef(data, results, byf=None):
 
 
 
-def comp_proba(scores, result, field):
-    """Compute probability of an event occuring (eg. win) for a factor using a logit-model.
+def est_prob(scores, result, field):
+    """Estimate probability of an event occuring (eg. win) for a factor using a logit-model.
 
     Parameters:
     -----------

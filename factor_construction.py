@@ -2,7 +2,8 @@
 import pandas as pd
 import numpy as np
 from foostrat_utils import fhome, odds_fields, fodds, expand_field, \
-    comp_score, update_flib, norm_factor, feat_goalbased, feat_resbased, comp_league_standing, feat_stanbased
+    comp_score, update_flib, norm_factor, feat_goalbased, feat_resbased, \
+    comp_league_standing, feat_stanbased, delete_flib
 
 # load source data..
 source_core = pd.read_pickle('pro_data/source_core.pkl')
@@ -47,13 +48,54 @@ frb = norm_factor(data=frb)
 fsb = feat_stanbased(data=source_core)
 fsb = norm_factor(data=fsb, neutralise=False)
 
+data_in = source_core
+data_out = frb
+
+fsb.dtypes
+
+data_out.columns
+data_in.columns
+field = ['season', 'div', 'date']
+
+
+def ver_type(data_in, data_out, field):
+    """Make sure data types of input and output are in sync. Make adjustments if not.
+
+    Parameters:
+    -----------
+        data_in:    pandas dataframe
+                    the target data format
+        data_out:   pandas dataframe
+                    the data that needs to be checked
+        field:      list
+                    the fields that need to be set in sync if they are not
+
+    """
+    i = field[0]
+    for i in field:
+        if data_in[i].dtypes == data_out[i]:
+            pass
+        else:
+            data_out[i]
+
+    if field_numeric == True:
+        data_ed['val'] = pd.to_numeric(data_ed.loc[:, 'val'], errors='coerce')
+
+
+
+
+
+
+
 # home factor ---------------------------------------------------------------------------------------------------------
 # no need for expansion for boolean factors!
 hf = fhome(data=source_core)
 
 # factor library ------------------------------------------------------------------------------------------------------
-# delete_flib(field="goal_superiority")
-update_flib(data=[fgb, frb, fsb, hf], update=False)
+fsb.field.unique()
+delete_flib(field=["points_advantage", "rank_position"])
+
+update_flib(data=[fsb], update=True)
 
 # verify..
 flib_x = pd.read_pickle('pro_data/flib_d1.pkl')

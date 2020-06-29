@@ -1,7 +1,7 @@
 # STRATEGY TESTING ----------------------------------------------------------------------------------------------------
 import pandas as pd
 import numpy as np
-from foostrat_utils import con_res, comp_pnl, comp_edge, comp_bucket, info_coef, comp_proba, comp_mispriced
+from foostrat_utils import con_res, comp_pnl, comp_edge, comp_bucket, info_coef, est_prob, comp_mispriced
 import charut as cu
 # next: transform this score to a probability, 1st via constructing a z-score
 # does the factor work as hypothesized?
@@ -20,7 +20,6 @@ import charut as cu
 # load all required data
 source_core = pd.read_pickle('pro_data/source_core.pkl')
 factor_library = pd.read_pickle('pro_data/flib_e0.pkl')
-factor_library = pd.read_pickle('pro_data/factor_library.pkl')
 match_odds = pd.read_pickle('pro_data/match_odds.pkl')
 
 # construct result objects
@@ -29,13 +28,15 @@ res_wd = con_res(data=source_core, obj='wd', field='FTR')
 # goals
 res_gd = con_res(data=source_core, obj='gd', field=['FTHG', 'FTAG'])
 
+source_core.dtypes
+match_odds.dtypes
 
 # SIGNAL EFFICACY -----------------------------------------------------------------------------------------------------
 
 # 1) goal superiority signal -----
 # Q: Is the hit ratio higher for teams that have a higher gsf score?
 # get factor scores
-fm = factor_library['field'].unique()[0]
+fm = factor_library['field'].unique()[9]
 
 data_gsf = factor_library.query('field==@fm')
 # calculate buckets
@@ -44,13 +45,14 @@ data_gsf = comp_bucket(data_gsf, bucket_method='first', bucket=5)
 res_custom = res_wd.query('field=="win"').drop('field', axis=1)
 # compute the hit ratio by bucket for the factor
 gsf_edge = comp_edge(factor_data=data_gsf, results=res_custom, byf=['overall', 'div'])
+
 gsf_edge2 = comp_edge(factor_data=data_gsf, results=res_custom, byf=['season'])
 # compute IC's
 gsf_ic = info_coef(data=data_gsf, results=res_gd, byf=['div', 'season'])
 # compute probability & evaluate
-gsf_proba, gsf_evaly = comp_proba(scores= data_gsf, result=res_custom, field = fm)
+gsf_proba, gsf_evaly = est_prob(scores=data_gsf, result=res_custom, field = fm)
 odds_event = match_odds.query('field == "odds_win"')
-gsf_pos = comp_mispriced(prob=gsf_proba, odds=odds_event, prob_threshold=0.51, res_threshold=0.02)
+gsf_pos = comp_mispriced(prob=gsf_proba, odds=odds_event, prob_threshold=0.53, res_threshold=0.03)
 
 # match_odds need to have long- & short version
 # bet structuring strategies:
