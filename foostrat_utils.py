@@ -1179,7 +1179,13 @@ def reshape_wdl(data, event):
     Parameters:
     -----------
         data:   pandas dataframe
-        event:  win, lose, draw
+                A dataframe with columns season, date, div, home_team, away_team, field, val
+        event:  str
+                How to shape the result. Options are:
+                    win     highlight whether a team won with 0 / 1
+                    lose    highlight whether a team lost with 0 / 1
+                    draw    highlight whether a team drew with 0 / 1
+                    wdl     highlight what the team did: win, lose, draw
 
     """
 
@@ -1201,13 +1207,13 @@ def reshape_wdl(data, event):
     elif event == "lose":
         # home team
         home = data.loc[:, ['div', 'season', 'date', 'home_team', 'val']]
-        home['val'] = home.loc[:, 'val'].apply(lambda x: 1 if x in ['A', 'D'] else 0)
+        home['val'] = home.loc[:, 'val'].apply(lambda x: 1 if x == 'A' else 0)
         home['field'] = "lose"
         home.rename(columns={'home_team': 'team'}, inplace=True)
 
         # away team
         away = data.loc[:, ['div', 'season', 'date', 'away_team', 'val']]
-        away['val'] = away.loc[:, 'val'].apply(lambda x: 1 if x in ['H', 'D'] else 0)
+        away['val'] = away.loc[:, 'val'].apply(lambda x: 1 if x == 'H' else 0)
         away['field'] = "lose"
         away.rename(columns={'away_team': 'team'}, inplace=True)
 
@@ -1222,12 +1228,27 @@ def reshape_wdl(data, event):
                        value_name='team')
         res.drop(['variable'], axis=1, inplace=True)
 
+    elif event == "wdl":
+        # home team
+        home = data.loc[:, ['div', 'season', 'date', 'home_team', 'val']]
+        home['val'] = home.loc[:, 'val'].apply(lambda x: "win" if x == 'H' else ("draw" if x == "D" else "lose"))
+        home['field'] = "result"
+        home.rename(columns={'home_team': 'team'}, inplace=True)
+
+        # away team
+        away = data.loc[:, ['div', 'season', 'date', 'away_team', 'val']]
+        away['val'] = away.loc[:, 'val'].apply(lambda x: "win" if x == 'A' else ("draw" if x == "D" else "lose"))
+        away['field'] = "result"
+        away.rename(columns={'away_team': 'team'}, inplace=True)
+
+        res = pd.concat([home, away], axis=0, sort=True)
+
     res = res.reset_index(level=0, drop=True)
 
     return res
 
 
-def con_res_wd(data, field):
+def con_res_wd(data, field, encoding=True):
     """
     Constructs the event result data in a manner that is readily available for back-testing.
 
@@ -1235,6 +1256,7 @@ def con_res_wd(data, field):
     -----------
         data (dataframe):       a dataframe with columns season, date, div, home_team, away_team, field, val
         field (string):         a string that defines the event (eg. 'FTR' for full-time results)
+        encoding (string):      whether to encode the events or not (defaults to True)
 
     Returns:
     --------
@@ -1254,13 +1276,16 @@ def con_res_wd(data, field):
     rel_field = field
     res_tmp = data.query('field == @rel_field')
 
-    # win, draw lose one-hot encoding
-    d_win = reshape_wdl(data = res_tmp, event="win")
-    d_lose = reshape_wdl(data=res_tmp, event="lose")
-    d_draw = reshape_wdl(data=res_tmp, event="draw")
+    if encoding == True:
+        # win, draw lose one-hot encoding
+        d_win = reshape_wdl(data=res_tmp, event="win")
+        d_lose = reshape_wdl(data=res_tmp, event="lose")
+        d_draw = reshape_wdl(data=res_tmp, event="draw")
 
-    res = pd.concat([d_win, d_lose, d_draw], axis=0, sort=True)
-    res = res.sort_values(['date', 'div', 'season']).reset_index(level=0, drop=True)
+        res = pd.concat([d_win, d_lose, d_draw], axis=0, sort=True)
+        res = res.sort_values(['date', 'div', 'season']).reset_index(level=0, drop=True)
+    else:
+        res = reshape_wdl(data=res_tmp, event="wdl")
 
     return res
 

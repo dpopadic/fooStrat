@@ -1,7 +1,7 @@
 # STRATEGY TESTING ----------------------------------------------------------------------------------------------------
 import pandas as pd
 import numpy as np
-from foostrat_utils import con_res, comp_pnl, comp_edge, comp_bucket, info_coef, est_prob, comp_mispriced
+from foostrat_utils import con_res, comp_pnl, comp_edge, comp_bucket, info_coef, est_prob, comp_mispriced, con_res_wd
 import charut as cu
 # next: transform this score to a probability, 1st via constructing a z-score
 # does the factor work as hypothesized?
@@ -52,22 +52,20 @@ gsf_proba, gsf_evaly = est_prob(scores=data_gsf, result=res_custom, field = fm)
 
 
 scores = factor_library
-results = res_wd
+results = con_res_wd(data=source_core, field=['FTR'], encoding=False)
 
 def est_prob2(scores):
     """Computes probabilities"""
     acon = scores.pivot_table(index=['season', 'div', 'date', 'team'],
                               columns='field',
                               values='val').reset_index()
-
-    rcon = results.pivot_table(index=['season', 'div', 'date', 'team'],
-                               columns='field',
-                               values='val').reset_index()
+    rcon = results.drop(['field'], axis=1)
+    rcon.rename(columns={'val': 'result'}, inplace=True)
 
     # add results
-    acon2 = pd.merge(result, acon,
-                    on=['div', 'season', 'date', 'team'],
-                    how='left')
+    arcon = pd.merge(rcon, acon,
+                     on=['div', 'season', 'date', 'team'],
+                     how='inner')
 
 
 
