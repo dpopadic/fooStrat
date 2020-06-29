@@ -28,8 +28,6 @@ res_wd = con_res(data=source_core, obj='wd', field='FTR')
 # goals
 res_gd = con_res(data=source_core, obj='gd', field=['FTHG', 'FTAG'])
 
-source_core.dtypes
-match_odds.dtypes
 
 # SIGNAL EFFICACY -----------------------------------------------------------------------------------------------------
 
@@ -43,14 +41,36 @@ data_gsf = factor_library.query('field==@fm')
 data_gsf = comp_bucket(data_gsf, bucket_method='first', bucket=5)
 # retrieve relevant results to test against
 res_custom = res_wd.query('field=="win"').drop('field', axis=1)
+
 # compute the hit ratio by bucket for the factor
 gsf_edge = comp_edge(factor_data=data_gsf, results=res_custom, byf=['overall', 'div'])
-
 gsf_edge2 = comp_edge(factor_data=data_gsf, results=res_custom, byf=['season'])
 # compute IC's
 gsf_ic = info_coef(data=data_gsf, results=res_gd, byf=['div', 'season'])
 # compute probability & evaluate
 gsf_proba, gsf_evaly = est_prob(scores=data_gsf, result=res_custom, field = fm)
+
+
+scores = factor_library
+results = res_wd
+
+def est_prob2(scores):
+    """Computes probabilities"""
+    acon = scores.pivot_table(index=['season', 'div', 'date', 'team'],
+                              columns='field',
+                              values='val').reset_index()
+
+    rcon = results.pivot_table(index=['season', 'div', 'date', 'team'],
+                               columns='field',
+                               values='val').reset_index()
+
+    # add results
+    acon2 = pd.merge(result, acon,
+                    on=['div', 'season', 'date', 'team'],
+                    how='left')
+
+
+
 odds_event = match_odds.query('field == "odds_win"')
 gsf_pos = comp_mispriced(prob=gsf_proba, odds=odds_event, prob_threshold=0.53, res_threshold=0.03)
 

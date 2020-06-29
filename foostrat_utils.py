@@ -1173,13 +1173,63 @@ def con_res_gd(data, field):
 
 
 
+def reshape_wdl(data, event):
+    """Reshape win, draw, lose events for teams.
+
+    Parameters:
+    -----------
+        data:   pandas dataframe
+        event:  win, lose, draw
+
+    """
+
+    if event == "win":
+        # home team
+        home = data.loc[:, ['div', 'season', 'date', 'home_team', 'val']]
+        home['val'] = home.loc[:, 'val'].apply(lambda x: 1 if x == 'H' else 0)
+        home['field'] = "win"
+        home.rename(columns={'home_team': 'team'}, inplace=True)
+
+        # away team
+        away = data.loc[:, ['div', 'season', 'date', 'away_team', 'val']]
+        away['val'] = away.loc[:, 'val'].apply(lambda x: 1 if x == 'A' else 0)
+        away['field'] = "win"
+        away.rename(columns={'away_team': 'team'}, inplace=True)
+
+        res = pd.concat([home, away], axis=0, sort=True)
+
+    elif event == "lose":
+        # home team
+        home = data.loc[:, ['div', 'season', 'date', 'home_team', 'val']]
+        home['val'] = home.loc[:, 'val'].apply(lambda x: 1 if x in ['A', 'D'] else 0)
+        home['field'] = "lose"
+        home.rename(columns={'home_team': 'team'}, inplace=True)
+
+        # away team
+        away = data.loc[:, ['div', 'season', 'date', 'away_team', 'val']]
+        away['val'] = away.loc[:, 'val'].apply(lambda x: 1 if x in ['H', 'D'] else 0)
+        away['field'] = "lose"
+        away.rename(columns={'away_team': 'team'}, inplace=True)
+
+        res = pd.concat([home, away], axis=0, sort=True)
+
+    elif event == "draw":
+        draw = data.copy()
+        draw['val'] = data.loc[:, 'val'].apply(lambda x: 1 if x == 'D' else 0)
+        draw['field'] = 'draw'
+        res = pd.melt(draw,
+                       id_vars=['div', 'season', 'date', 'field', 'val'],
+                       value_name='team')
+        res.drop(['variable'], axis=1, inplace=True)
+
+    res = res.reset_index(level=0, drop=True)
+
+    return res
+
+
 def con_res_wd(data, field):
     """
     Constructs the event result data in a manner that is readily available for back-testing.
-
-    :param data: a dataframe with columns season, date, div, home_team, away_team, field, val
-    :param field: a string that defines the event (eg. 'FTR' for full-time results)
-    :return: a dataframe with results
 
     Parameters:
     -----------
@@ -1188,7 +1238,7 @@ def con_res_wd(data, field):
 
     Returns:
     --------
-        A dataframe of results 0/1 with fields win, draw for each team.
+        A dataframe of results 0/1 with fields win, draw, lost for each team.
 
     Example:
     --------
@@ -1203,25 +1253,15 @@ def con_res_wd(data, field):
     # query relevant field
     rel_field = field
     res_tmp = data.query('field == @rel_field')
-    # home team
-    home = res_tmp.loc[:, ['div', 'season', 'date', 'home_team', 'val']]
-    home['val'] = home.loc[:, 'val'].apply(lambda x: 1 if x == 'H' else 0)
-    home['field'] = "win"
-    home.rename(columns={'home_team': 'team'}, inplace=True)
-    # away team
-    away = res_tmp.loc[:, ['div', 'season', 'date', 'away_team', 'val']]
-    away['val'] = away.loc[:, 'val'].apply(lambda x: 1 if x == 'A' else 0)
-    away['field'] = "win"
-    away.rename(columns={'away_team': 'team'}, inplace=True)
-    # draws
-    draw = res_tmp.copy()
-    draw['val'] = res_tmp.loc[:, 'val'].apply(lambda x: 1 if x == 'D' else 0)
-    draw['field'] = 'draw'
-    draw = pd.melt(draw, id_vars=['div', 'season', 'date', 'field', 'val'], value_name='team')
-    draw.drop(['variable'], axis=1, inplace=True)
-    # bring together
-    res = pd.concat([home, away, draw], axis=0, sort=True)
+
+    # win, draw lose one-hot encoding
+    d_win = reshape_wdl(data = res_tmp, event="win")
+    d_lose = reshape_wdl(data=res_tmp, event="lose")
+    d_draw = reshape_wdl(data=res_tmp, event="draw")
+
+    res = pd.concat([d_win, d_lose, d_draw], axis=0, sort=True)
     res = res.sort_values(['date', 'div', 'season']).reset_index(level=0, drop=True)
+
     return res
 
 
