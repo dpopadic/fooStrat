@@ -53,13 +53,14 @@ from scipy import stats
 from scipy.stats import randint
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.model_selection import RandomizedSearchCV
+from sklearn.model_selection import GridSearchCV
 from sklearn.metrics import roc_auc_score
 
 scores = factor_library
 results = con_res_wd(data=source_core, field=['FTR'], encoding=False)
 
-def resh_rfm(scores, results):
-    """Reshape data ready for modelling."""
+def est_prob_rf(scores, results):
+    """Estimate probability using a random forest classification model."""
     acon = scores.pivot_table(index=['season', 'div', 'date', 'team'],
                               columns='field',
                               values='val').reset_index()
@@ -72,6 +73,7 @@ def resh_rfm(scores, results):
                      on=['div', 'season', 'date', 'team'],
                      how='inner')
 
+    arcon = arcon.query("season in ['2019']").reset_index(drop=True)
     # drop not needed variables
     arcon_0 = arcon.drop(['date', 'div', 'team', 'season'], axis=1)
     # drop rows where variables have no data at all
@@ -83,20 +85,24 @@ def resh_rfm(scores, results):
     X = arcon_1.drop('result', axis=1).values
 
     # setup the parameters and distributions to sample from..
-    param_dist = {"max_depth": [3, None],
-                  "max_features": randint(1, 9),
+    param_dist = {"max_depth": [9, None],
+                  "max_features": randint(1, 6),
                   "min_samples_leaf": randint(1, 9),
                   "criterion": ["gini", "entropy"]}
     # instantiate a Decision Tree classifier
     tree = DecisionTreeClassifier()
     # instantiate the RandomizedSearchCV object
     tree_cv = RandomizedSearchCV(tree, param_dist, cv=5)
+    # tree_cv = GridSearchCV(estimator=tree, param_grid=param_dist, cv=5)
     # fit it to the data
     tree_cv.fit(X, y)
-    tree_cv.classes_
     y_pp = tree_cv.predict_proba(X)
     y_pp = pd.DataFrame(y_pp, columns = tree_cv.classes_)
     stats.describe(y_pp)
+
+    # add back id info
+    res_0 = pd.concat([arcon, y_pp], axis=1)
+    res_0 = pd.concat([arcon.loc[:, ['date', 'div', 'season', 'team']], y_pp], axis=1)
 
 
 
