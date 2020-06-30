@@ -11,7 +11,6 @@ import charut as cu
 # calculate IC
 # derive probabilities
 # calculate ic's (correlation between factor & goal difference in next game)
-# problem: Chelsea missing on 22/02/2020!
 # other approaches: find what kind of bets are the most mispriced
 # factors: 3y h2h, last 10 matches in all competitions, average goals, moment of goals
 # compute information coefficient (..lagged + odds/payoff required
@@ -50,22 +49,54 @@ gsf_ic = info_coef(data=data_gsf, results=res_gd, byf=['div', 'season'])
 # compute probability & evaluate
 gsf_proba, gsf_evaly = est_prob(scores=data_gsf, result=res_custom, field = fm)
 
+from scipy import stats
+from scipy.stats import randint
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.model_selection import RandomizedSearchCV
+from sklearn.metrics import roc_auc_score
 
 scores = factor_library
 results = con_res_wd(data=source_core, field=['FTR'], encoding=False)
 
-def est_prob2(scores):
-    """Computes probabilities"""
+def resh_rfm(scores, results):
+    """Reshape data ready for modelling."""
     acon = scores.pivot_table(index=['season', 'div', 'date', 'team'],
                               columns='field',
                               values='val').reset_index()
+
     rcon = results.drop(['field'], axis=1)
     rcon.rename(columns={'val': 'result'}, inplace=True)
 
-    # add results
+    # signals and results
     arcon = pd.merge(rcon, acon,
                      on=['div', 'season', 'date', 'team'],
                      how='inner')
+
+    # drop not needed variables
+    arcon_0 = arcon.drop(['date', 'div', 'team', 'season'], axis=1)
+    # drop rows where variables have no data at all
+    arcon_0 = arcon_0.dropna().reset_index(level=0, drop=True)
+    arcon_1 = pd.get_dummies(arcon_0, columns=['home'])
+
+    # variable seperation
+    y = arcon_1['result'].values.reshape(-1, 1)
+    X = arcon_1.drop('result', axis=1).values
+
+    # setup the parameters and distributions to sample from..
+    param_dist = {"max_depth": [3, None],
+                  "max_features": randint(1, 9),
+                  "min_samples_leaf": randint(1, 9),
+                  "criterion": ["gini", "entropy"]}
+    # instantiate a Decision Tree classifier
+    tree = DecisionTreeClassifier()
+    # instantiate the RandomizedSearchCV object
+    tree_cv = RandomizedSearchCV(tree, param_dist, cv=5)
+    # fit it to the data
+    tree_cv.fit(X, y)
+    tree_cv.classes_
+    y_pp = tree_cv.predict_proba(X)
+    y_pp = pd.DataFrame(y_pp, columns = tree_cv.classes_)
+    stats.describe(y_pp)
 
 
 
