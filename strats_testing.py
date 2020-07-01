@@ -104,10 +104,11 @@ def est_prob_rf(scores, results):
     res_0 = pd.concat([arcon, y_pp], axis=1)
     res_0 = pd.concat([arcon.loc[:, ['date', 'div', 'season', 'team']], y_pp], axis=1)
 
-
+a = res_0.loc[:, ['date', 'div', 'season', 'team', 'win']]
+a.rename(columns={'win': 'val'}, inplace=True)
 
 odds_event = match_odds.query('field == "odds_win"')
-gsf_pos = comp_mispriced(prob=gsf_proba, odds=odds_event, prob_threshold=0.53, res_threshold=0.03)
+gsf_pos = comp_mispriced(prob=a, odds=odds_event, prob_threshold=0.55, res_threshold=0.1)
 
 # match_odds need to have long- & short version
 # bet structuring strategies:

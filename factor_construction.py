@@ -32,7 +32,7 @@ source_core = pd.read_pickle('pro_data/source_core.pkl')
 match_odds = fodds(data=source_core,
                    field_home=list(odds_fields.get('odds_home_win')),
                    field_away=list(odds_fields.get('odds_away_win')),
-                   field_both=list(odds_fields.get('odds_draw_win')))
+                   field_draw=list(odds_fields.get('odds_draw_win')))
 match_odds.to_pickle('./pro_data/match_odds.pkl')
 
 
