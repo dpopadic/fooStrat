@@ -1,7 +1,8 @@
 # STRATEGY TESTING ----------------------------------------------------------------------------------------------------
 import pandas as pd
 import numpy as np
-from foostrat_utils import con_res, comp_pnl, comp_edge, comp_bucket, info_coef, est_prob, comp_mispriced, con_res_wd
+from foostrat_utils import con_res, comp_pnl, comp_edge, comp_bucket, info_coef, est_prob, \
+    comp_mispriced, con_res_wd, con_mod_datset
 import charut as cu
 # next: transform this score to a probability, 1st via constructing a z-score
 # does the factor work as hypothesized?
@@ -23,7 +24,7 @@ match_odds = pd.read_pickle('pro_data/match_odds.pkl')
 
 # construct result objects
 # win-lose-draw
-res_wd = con_res(data=source_core, obj='wd', field='FTR')
+res_wd = con_res(data=source_core, obj='wdl', field='FTR')
 # goals
 res_gd = con_res(data=source_core, obj='gd', field=['FTHG', 'FTAG'])
 
@@ -49,6 +50,8 @@ gsf_ic = info_coef(data=data_gsf, results=res_gd, byf=['div', 'season'])
 # compute probability & evaluate
 gsf_proba, gsf_evaly = est_prob(scores=data_gsf, result=res_custom, field = fm)
 
+
+
 from scipy import stats
 from scipy.stats import randint
 from sklearn.tree import DecisionTreeClassifier
@@ -56,16 +59,17 @@ from sklearn.model_selection import RandomizedSearchCV
 from sklearn.model_selection import GridSearchCV
 from sklearn.metrics import roc_auc_score
 
-
 results = con_res_wd(data=source_core, field=['FTR'], encoding=False)
 arcon = con_mod_datset(scores=factor_library, results=results)
 
 
 
-
-
-def est_prob_rf(scores, results):
+def est_prob_rf(data):
     """Estimate probability using a random forest classification model."""
+    # construct date universe
+    per_ind = pd.DataFrame(arcon["date"].unique(), columns=['date']).sort_values(by="date")
+
+    # make rolling k estimations
 
     arcon = arcon.query("season in ['2019']").reset_index(drop=True)
     # drop not needed variables
