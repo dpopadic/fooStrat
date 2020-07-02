@@ -1316,7 +1316,7 @@ def con_res(data, obj, field):
         data (dataframe):       a dataframe with columns season, date, div, home_team, away_team, field, val
         obj (string):           the object to construct:
                                     gd:     goals difference by game
-                                    wd:     win or draw by game
+                                    wdl:     win or draw by game
         field (list or string): a string that defines the event for the object (eg. 'FTR' when wd or
                                 ['FTHG', 'FTAG'] when gd)
 
@@ -1326,7 +1326,7 @@ def con_res(data, obj, field):
 
     """
 
-    if obj == "wd":
+    if obj == "wdl":
         if type(field) is list:
             field = field[0]
         res = con_res_wd(data=data, field=field)
@@ -1334,6 +1334,36 @@ def con_res(data, obj, field):
         res = con_res_gd(data=data, field=field)
 
     return res
+
+
+def con_mod_datset(scores, results):
+    """Construct the modelling data set.
+
+    Parameters:
+    -----------
+        scores:     pandas dataframe
+                    signals for each team with columns season, div, date, team, field, val
+        results:    pandas dataframe
+                    results of games with columns season, div, date, team, val
+
+    """
+    # reshape to wide format
+    acon = scores.pivot_table(index=['season', 'div', 'date', 'team'],
+                              columns='field',
+                              values='val').reset_index()
+
+    rcon = results.drop(['field'], axis=1)
+    rcon.rename(columns={'val': 'result'}, inplace=True)
+
+    # signals and results
+    arcon = pd.merge(rcon, acon,
+                     on=['div', 'season', 'date', 'team'],
+                     how='inner')
+
+    # drop rows where variables have no data at all
+    arcon = arcon.dropna().reset_index(level=0, drop=True)
+
+    return arcon
 
 
 

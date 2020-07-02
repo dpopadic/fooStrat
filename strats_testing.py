@@ -56,28 +56,20 @@ from sklearn.model_selection import RandomizedSearchCV
 from sklearn.model_selection import GridSearchCV
 from sklearn.metrics import roc_auc_score
 
-scores = factor_library
+
 results = con_res_wd(data=source_core, field=['FTR'], encoding=False)
+arcon = con_mod_datset(scores=factor_library, results=results)
+
+
+
+
 
 def est_prob_rf(scores, results):
     """Estimate probability using a random forest classification model."""
-    acon = scores.pivot_table(index=['season', 'div', 'date', 'team'],
-                              columns='field',
-                              values='val').reset_index()
-
-    rcon = results.drop(['field'], axis=1)
-    rcon.rename(columns={'val': 'result'}, inplace=True)
-
-    # signals and results
-    arcon = pd.merge(rcon, acon,
-                     on=['div', 'season', 'date', 'team'],
-                     how='inner')
 
     arcon = arcon.query("season in ['2019']").reset_index(drop=True)
     # drop not needed variables
     arcon_0 = arcon.drop(['date', 'div', 'team', 'season'], axis=1)
-    # drop rows where variables have no data at all
-    arcon_0 = arcon_0.dropna().reset_index(level=0, drop=True)
     arcon_1 = pd.get_dummies(arcon_0, columns=['home'])
 
     # variable seperation
@@ -103,6 +95,7 @@ def est_prob_rf(scores, results):
     # add back id info
     res_0 = pd.concat([arcon, y_pp], axis=1)
     res_0 = pd.concat([arcon.loc[:, ['date', 'div', 'season', 'team']], y_pp], axis=1)
+
 
 a = res_0.loc[:, ['date', 'div', 'season', 'team', 'win']]
 a.rename(columns={'win': 'val'}, inplace=True)
