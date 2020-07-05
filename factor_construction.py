@@ -40,9 +40,14 @@ match_odds.to_pickle('./pro_data/match_odds.pkl')
 data_ed = neutralise_field(data=source_core, field=['FTHG', 'FTAG'])
 data_ed = data_ed.loc[:, ['div', 'season', 'date', 'team']]
 test = data_ed.sort_values('date').groupby(['div', 'season', 'team']).apply(lambda x: range(1, 1 + len(x)))
-test_1 = test.explode().reset_index(drop=True)
 
-pd.concat([data_ed, test_1], axis=1)
+test_1 = test.explode().reset_index(level=0, drop=True)
+test_2 = pd.DataFrame(test_1.values, columns=['val'])
+
+res = pd.concat([data_ed, test_2], axis=1)
+
+
+
 
 # goal based factors --------------------------------------------------------------------------------------------------
 fgb = feat_goalbased(data=source_core, k=5)
