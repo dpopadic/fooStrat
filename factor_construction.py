@@ -37,6 +37,7 @@ match_odds.to_pickle('./pro_data/match_odds.pkl')
 
 # game day dataset
 game_day = con_gameday(data=source_core)
+game_day.query("div=='E0' & team=='liverpool' & season=='2019'").sort_values('date')
 game_day.to_pickle('./pro_data/game_day.pkl')
 
 

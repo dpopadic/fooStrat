@@ -1381,6 +1381,7 @@ def con_gameday(data):
     gd_1 = gd_0.explode().reset_index(level=0, drop=True)
     gd_1 = pd.DataFrame(gd_1.values, columns=['val'])
     res = pd.concat([data_ed, gd_1], axis=1)
+    return res
 
 
 
