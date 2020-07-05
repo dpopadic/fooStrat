@@ -1367,6 +1367,23 @@ def con_mod_datset(scores, results):
 
 
 
+def con_gameday(data):
+    """Compute the game day for every team.
+    Parameters:
+    -----------
+        data:   pd dataframe
+                a dataframe with columns div, season, date, team, field, val
+
+    """
+    data_ed = neutralise_field(data=data, field=['FTHG', 'FTAG'])
+    data_ed = data_ed.loc[:, ['div', 'season', 'date', 'team']]
+    gd_0 = data_ed.sort_values('date').groupby(['div', 'season', 'team']).apply(lambda x: range(1, 1 + len(x)))
+    gd_1 = gd_0.explode().reset_index(level=0, drop=True)
+    gd_1 = pd.DataFrame(gd_1.values, columns=['val'])
+    res = pd.concat([data_ed, gd_1], axis=1)
+
+
+
 def comp_mispriced(prob, odds, prob_threshold, res_threshold):
     """
     Parameters

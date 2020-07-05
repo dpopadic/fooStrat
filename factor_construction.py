@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 from foostrat_utils import fhome, odds_fields, fodds, expand_field, \
     comp_score, update_flib, norm_factor, feat_goalbased, feat_resbased, \
-    comp_league_standing, feat_stanbased, delete_flib
+    comp_league_standing, feat_stanbased, delete_flib, con_gameday
 
 # load source data..
 source_core = pd.read_pickle('pro_data/source_core.pkl')
@@ -35,18 +35,9 @@ match_odds = fodds(data=source_core,
                    field_draw=list(odds_fields.get('odds_draw_win')))
 match_odds.to_pickle('./pro_data/match_odds.pkl')
 
-
 # game day dataset
-data_ed = neutralise_field(data=source_core, field=['FTHG', 'FTAG'])
-data_ed = data_ed.loc[:, ['div', 'season', 'date', 'team']]
-test = data_ed.sort_values('date').groupby(['div', 'season', 'team']).apply(lambda x: range(1, 1 + len(x)))
-
-test_1 = test.explode().reset_index(level=0, drop=True)
-test_2 = pd.DataFrame(test_1.values, columns=['val'])
-
-res = pd.concat([data_ed, test_2], axis=1)
-
-
+game_day = con_gameday(data=source_core)
+game_day.to_pickle('./pro_data/game_day.pkl')
 
 
 # goal based factors --------------------------------------------------------------------------------------------------
