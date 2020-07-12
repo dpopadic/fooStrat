@@ -1377,19 +1377,21 @@ def con_gameday(data):
     """
     data_ed = neutralise_field(data=data, field=['FTHG', 'FTAG'])
     data_ed = data_ed.loc[:, ['div', 'season', 'date', 'team']]
-    data2 = data_ed.query("div=='E0' & season=='2019'").reset_index(level=0, drop=True)
-    
-    
-    data2 = data2.sort_values('date').reset_index(drop=True)
-    gd_0 = data2.sort_values('date').groupby(['div', 'season', 'team'], sort=False).apply(lambda x: range(1, 1 + len(x)))
+    data2 = data_ed.query("div=='E0' & season=='2019'").sort_values('date').reset_index(level=0, drop=True)
+
+
+    gd_0 = data2.groupby(['div', 'season', 'team'], sort=False).apply(lambda x: range(1, 1 + len(x)))
     
 
     res.query("div=='E0' & team=='liverpool' & season=='2019'")
+    gd_1.query("div=='E0' & team=='liverpool' & season=='2019'")
 
     gd_0 = gd_0.reset_index()
     gd_0.rename(columns={0: 'val'}, inplace=True)
     gd_1 = gd_0.explode('val').reset_index(drop=True)
 
+    # corrct till here, error happens at concat stage..
+    # need date here in correct order!
     res = pd.concat([data2.loc[:, 'date'], gd_1], axis=1)
 
     return res
