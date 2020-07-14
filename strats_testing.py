@@ -21,6 +21,7 @@ import charut as cu
 source_core = pd.read_pickle('pro_data/source_core.pkl')
 factor_library = pd.read_pickle('pro_data/flib_e0.pkl')
 match_odds = pd.read_pickle('pro_data/match_odds.pkl')
+game_day = pd.read_pickle('pro_data/game_day.pkl')
 
 # construct result objects
 # win-lose-draw
@@ -62,18 +63,22 @@ from sklearn.metrics import roc_auc_score
 results = con_res_wd(data=source_core, field=['FTR'], encoding=False)
 arcon = con_mod_datset(scores=factor_library, results=results)
 
+from pandas_datareader import data as web
 
 
 def est_prob_rf(data):
     """Estimate probability using a random forest classification model."""
     # construct date universe
     per_ind = pd.DataFrame(arcon["date"].unique(), columns=['date']).sort_values(by="date")
+    per_ind['val'] = 1
+    per_ind_t = per_ind.set_index('date').last('3Y').reset_index()
 
     # make rolling k estimations
+    date_univ = pd.DataFrame(game_day.query("div == 'E0'")['date'].unique(), columns=['date'])
 
-    arcon = arcon.query("season in ['2019']").reset_index(drop=True)
+    arcon_spec = arcon.query("season in ['2017', '2018', '2019']").reset_index(drop=True)
     # drop not needed variables
-    arcon_0 = arcon.drop(['date', 'div', 'team', 'season'], axis=1)
+    arcon_0 = arcon_spec.drop(['date', 'div', 'team', 'season'], axis=1)
     arcon_1 = pd.get_dummies(arcon_0, columns=['home'])
 
     # variable seperation
@@ -97,8 +102,8 @@ def est_prob_rf(data):
     stats.describe(y_pp)
 
     # add back id info
-    res_0 = pd.concat([arcon, y_pp], axis=1)
-    res_0 = pd.concat([arcon.loc[:, ['date', 'div', 'season', 'team']], y_pp], axis=1)
+    res_0 = pd.concat([arcon_spec, y_pp], axis=1)
+    res_0 = pd.concat([arcon_spec.loc[:, ['date', 'div', 'season', 'team']], y_pp], axis=1)
 
 
 a = res_0.loc[:, ['date', 'div', 'season', 'team', 'win']]
