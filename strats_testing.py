@@ -19,7 +19,7 @@ import charut as cu
 # DATA PREPARATIONS ---------------------------------------------------------------------------------------------------
 # load all required data
 source_core = pd.read_pickle('pro_data/source_core.pkl')
-factor_library = pd.read_pickle('pro_data/flib_e0.pkl')
+factor_library = pd.read_pickle('pro_data/flib_d1.pkl')
 match_odds = pd.read_pickle('pro_data/match_odds.pkl')
 game_day = pd.read_pickle('pro_data/game_day.pkl')
 
@@ -63,11 +63,10 @@ from sklearn.metrics import roc_auc_score
 results = con_res_wd(data=source_core, field=['FTR'], encoding=False)
 arcon = con_mod_datset(scores=factor_library, results=results)
 
-# make rolling k estimations
-date_univ = pd.DataFrame(game_day.query("div == 'E0'")['date'].unique(), columns=['date'])
 
+start_date = "2015"
 
-def est_hist_prob_rf(arcon):
+def est_hist_prob_rf(arcon, start_date = None):
     """Estimate probability using a random forest classification model."""
 
     # construct date universe
@@ -81,11 +80,15 @@ def est_hist_prob_rf(arcon):
                   "min_samples_leaf": randint(1, 9),
                   "criterion": ["gini", "entropy"]}
 
-    res_1 = pd.DataFrame()
-    for t in per_ind.query("date >= 2020")['date']:
+    per_iter = per_ind['date']
+    if start_date is not None:
+        per_iter = per_ind.query("date >= @start_date")['date']
+
+    res_f = pd.DataFrame()
+    for t in per_iter:
 
         # last 3y of obervations
-        # t = per_ind.query("date >= 2020")['date'].iloc[0]
+        # t = per_ind.query("date >= 2020")['date'].iloc[1]
         per_ind_t = per_ind.query("date <= @t").set_index('date').last('156W').reset_index()
         arcon_spec = pd.merge(arcon, per_ind_t, how="inner", on="date")
 
@@ -110,21 +113,25 @@ def est_hist_prob_rf(arcon):
 
         # add back id info
         # res_0 = pd.concat([arcon_spec, y_pp], axis=1)
-        res_0 = pd.concat([arcon_spec.loc[:, ['date', 'div', 'season', 'team']], y_pp], axis=1)
+        res_0 = pd.concat([arcon_spec.loc[:, ['date', 'div', 'season', 'team', 'result']], y_pp], axis=1)
+        res_1 = res_0[res_0['date'] == t].reset_index(drop=True)
+        res_f = pd.concat([res_f, res_1])
+
+        print(t)
 
 
 
-        print(per_ind_t.date.min())
 
+event = "win"
+event_of =  "odds_" + event
+a = res_f.loc[:, ['date', 'div', 'season', 'team', event]]
+a.rename(columns={event: 'val'}, inplace=True)
 
-
-
-
-a = res_0.loc[:, ['date', 'div', 'season', 'team', 'win']]
-a.rename(columns={'win': 'val'}, inplace=True)
-
-odds_event = match_odds.query('field == "odds_win"')
+odds_event = match_odds.query('field == @event_of')
 gsf_pos = comp_mispriced(prob=a, odds=odds_event, prob_threshold=0.55, res_threshold=0.1)
+gsf_pnl = comp_pnl(positions=gsf_pos, odds=odds_event, results=res_wd, event=event, stake=10)
+
+
 
 # match_odds need to have long- & short version
 # bet structuring strategies:
@@ -133,7 +140,6 @@ gsf_pos = comp_mispriced(prob=a, odds=odds_event, prob_threshold=0.55, res_thres
 # 3) hedging
 # create a scatterplot of resid vs implied & coloured pnl
 
-gsf_pnl = comp_pnl(positions=gsf_pos, odds=odds_event, results=res_wd, event='win', stake=10)
 
 cu.plt_tsline(data=gsf_pnl.loc[:,['date', 'payoff_cum']],
               title="P&L of Goal Superiority Factor",
