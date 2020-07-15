@@ -63,49 +63,61 @@ from sklearn.metrics import roc_auc_score
 results = con_res_wd(data=source_core, field=['FTR'], encoding=False)
 arcon = con_mod_datset(scores=factor_library, results=results)
 
-from pandas_datareader import data as web
+# make rolling k estimations
+date_univ = pd.DataFrame(game_day.query("div == 'E0'")['date'].unique(), columns=['date'])
 
 
-def est_prob_rf(data):
+def est_hist_prob_rf(arcon):
     """Estimate probability using a random forest classification model."""
+
     # construct date universe
     per_ind = pd.DataFrame(arcon["date"].unique(), columns=['date']).sort_values(by="date")
-    per_ind['val'] = 1
-    # last 3y of obervations
-    per_ind_t = per_ind.set_index('date').last('3Y').reset_index()
+    per_ind['dummy'] = 1
 
-
-    # make rolling k estimations
-    date_univ = pd.DataFrame(game_day.query("div == 'E0'")['date'].unique(), columns=['date'])
-
-    arcon_spec = arcon.query("season in ['2017', '2018', '2019']").reset_index(drop=True)
-    # drop not needed variables
-    arcon_0 = arcon_spec.drop(['date', 'div', 'team', 'season'], axis=1)
-    arcon_1 = pd.get_dummies(arcon_0, columns=['home'])
-
-    # variable seperation
-    y = arcon_1['result'].values.reshape(-1, 1)
-    X = arcon_1.drop('result', axis=1).values
-
-    # setup the parameters and distributions to sample from..
+    # global ml parameter settings
+    # setup the parameters and distributions to sample from
     param_dist = {"max_depth": [9, None],
                   "max_features": randint(1, 6),
                   "min_samples_leaf": randint(1, 9),
                   "criterion": ["gini", "entropy"]}
-    # instantiate a Decision Tree classifier
-    tree = DecisionTreeClassifier()
-    # instantiate the RandomizedSearchCV object
-    tree_cv = RandomizedSearchCV(tree, param_dist, cv=5)
-    # tree_cv = GridSearchCV(estimator=tree, param_grid=param_dist, cv=5)
-    # fit it to the data
-    tree_cv.fit(X, y)
-    y_pp = tree_cv.predict_proba(X)
-    y_pp = pd.DataFrame(y_pp, columns = tree_cv.classes_)
-    stats.describe(y_pp)
 
-    # add back id info
-    res_0 = pd.concat([arcon_spec, y_pp], axis=1)
-    res_0 = pd.concat([arcon_spec.loc[:, ['date', 'div', 'season', 'team']], y_pp], axis=1)
+    res_1 = pd.DataFrame()
+    for t in per_ind.query("date >= 2020")['date']:
+
+        # last 3y of obervations
+        # t = per_ind.query("date >= 2020")['date'].iloc[0]
+        per_ind_t = per_ind.query("date <= @t").set_index('date').last('156W').reset_index()
+        arcon_spec = pd.merge(arcon, per_ind_t, how="inner", on="date")
+
+        # drop not needed variables
+        arcon_0 = arcon_spec.drop(['date', 'div', 'team', 'season', 'dummy'], axis=1)
+        arcon_1 = pd.get_dummies(arcon_0, columns=['home'])
+
+        # explanatory and target variables declarations
+        y = arcon_1['result'].values.reshape(-1, 1)
+        X = arcon_1.drop('result', axis=1).values
+
+        # instantiate a Decision Tree classifier
+        tree = DecisionTreeClassifier()
+        # instantiate the RandomizedSearchCV object
+        tree_cv = RandomizedSearchCV(tree, param_dist, cv=5)
+        # tree_cv = GridSearchCV(estimator=tree, param_grid=param_dist, cv=5)
+        # fit it to the data
+        tree_cv.fit(X, y)
+        y_pp = tree_cv.predict_proba(X)
+        y_pp = pd.DataFrame(y_pp, columns=tree_cv.classes_)
+        # stats.describe(y_pp)
+
+        # add back id info
+        # res_0 = pd.concat([arcon_spec, y_pp], axis=1)
+        res_0 = pd.concat([arcon_spec.loc[:, ['date', 'div', 'season', 'team']], y_pp], axis=1)
+
+
+
+        print(per_ind_t.date.min())
+
+
+
 
 
 a = res_0.loc[:, ['date', 'div', 'season', 'team', 'win']]
