@@ -71,7 +71,9 @@ def est_prob_rf(data):
     # construct date universe
     per_ind = pd.DataFrame(arcon["date"].unique(), columns=['date']).sort_values(by="date")
     per_ind['val'] = 1
+    # last 3y of obervations
     per_ind_t = per_ind.set_index('date').last('3Y').reset_index()
+
 
     # make rolling k estimations
     date_univ = pd.DataFrame(game_day.query("div == 'E0'")['date'].unique(), columns=['date'])
