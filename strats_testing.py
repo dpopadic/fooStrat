@@ -19,7 +19,7 @@ import charut as cu
 # DATA PREPARATIONS ---------------------------------------------------------------------------------------------------
 # load all required data
 source_core = pd.read_pickle('pro_data/source_core.pkl')
-factor_library = pd.read_pickle('pro_data/flib_d1.pkl')
+factor_library = pd.read_pickle('pro_data/flib_e0.pkl')
 match_odds = pd.read_pickle('pro_data/match_odds.pkl')
 game_day = pd.read_pickle('pro_data/game_day.pkl')
 
@@ -93,12 +93,20 @@ def est_hist_prob_rf(arcon, start_date = None):
         arcon_spec = pd.merge(arcon, per_ind_t, how="inner", on="date")
 
         # drop not needed variables
-        arcon_0 = arcon_spec.drop(['date', 'div', 'team', 'season', 'dummy'], axis=1)
-        arcon_1 = pd.get_dummies(arcon_0, columns=['home'])
+        as_train = arcon_spec[arcon_spec['date'] < t].reset_index(drop=True)
+        as_train_0 = as_train.drop(['date', 'div', 'team', 'season', 'dummy'], axis=1)
+        as_train_0 = pd.get_dummies(as_train_0, columns=['home'])
+
+        as_test = arcon_spec[arcon_spec['date'] == t].reset_index(drop=True)
+        as_test_0 = as_test.drop(['date', 'div', 'team', 'season', 'dummy'], axis=1)
+        as_test_0 = pd.get_dummies(as_test_0, columns=['home'])
 
         # explanatory and target variables declarations
-        y = arcon_1['result'].values.reshape(-1, 1)
-        X = arcon_1.drop('result', axis=1).values
+        # -- train
+        y_train = as_train_0['result'].values.reshape(-1, 1)
+        X_train = as_train_0.drop('result', axis=1).values
+        # -- test
+        X_test = as_test_0.drop('result', axis=1).values
 
         # instantiate a Decision Tree classifier
         tree = DecisionTreeClassifier()
@@ -106,18 +114,19 @@ def est_hist_prob_rf(arcon, start_date = None):
         tree_cv = RandomizedSearchCV(tree, param_dist, cv=5)
         # tree_cv = GridSearchCV(estimator=tree, param_grid=param_dist, cv=5)
         # fit it to the data
-        tree_cv.fit(X, y)
-        y_pp = tree_cv.predict_proba(X)
+        tree_cv.fit(X_train, y_train)
+        y_pp = tree_cv.predict_proba(X_test)
         y_pp = pd.DataFrame(y_pp, columns=tree_cv.classes_)
         # stats.describe(y_pp)
 
         # add back id info
         # res_0 = pd.concat([arcon_spec, y_pp], axis=1)
-        res_0 = pd.concat([arcon_spec.loc[:, ['date', 'div', 'season', 'team', 'result']], y_pp], axis=1)
-        res_1 = res_0[res_0['date'] == t].reset_index(drop=True)
-        res_f = pd.concat([res_f, res_1])
+        res_0 = pd.concat([as_test.loc[:, ['date', 'div', 'season', 'team', 'result']], y_pp], axis=1)
+        res_f = pd.concat([res_f, res_0])
 
         print(t)
+
+    res_f.reset_index(drop=True, inplace=True)
 
 
 
@@ -128,8 +137,8 @@ a = res_f.loc[:, ['date', 'div', 'season', 'team', event]]
 a.rename(columns={event: 'val'}, inplace=True)
 
 odds_event = match_odds.query('field == @event_of')
-gsf_pos = comp_mispriced(prob=a, odds=odds_event, prob_threshold=0.55, res_threshold=0.1)
-gsf_pnl = comp_pnl(positions=gsf_pos, odds=odds_event, results=res_wd, event=event, stake=10000)
+gsf_pos = comp_mispriced(prob=a, odds=odds_event, prob_threshold=0.5, res_threshold=0.10)
+gsf_pnl = comp_pnl(positions=gsf_pos, odds=odds_event, results=res_wd, event=event, stake=10)
 
 
 
