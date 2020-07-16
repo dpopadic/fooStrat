@@ -129,7 +129,7 @@ a.rename(columns={event: 'val'}, inplace=True)
 
 odds_event = match_odds.query('field == @event_of')
 gsf_pos = comp_mispriced(prob=a, odds=odds_event, prob_threshold=0.55, res_threshold=0.1)
-gsf_pnl = comp_pnl(positions=gsf_pos, odds=odds_event, results=res_wd, event=event, stake=10)
+gsf_pnl = comp_pnl(positions=gsf_pos, odds=odds_event, results=res_wd, event=event, stake=10000)
 
 
 
