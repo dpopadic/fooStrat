@@ -2,7 +2,7 @@
 import pandas as pd
 import numpy as np
 from foostrat_utils import con_res, comp_pnl, comp_edge, comp_bucket, info_coef, est_prob, \
-    comp_mispriced, con_res_wd, con_mod_datset
+    comp_mispriced, con_res_wd, con_mod_datset,con_est_dates
 import charut as cu
 # next: transform this score to a probability, 1st via constructing a z-score
 # does the factor work as hypothesized?
@@ -23,7 +23,9 @@ factor_library = pd.read_pickle('pro_data/flib_e0.pkl')
 match_odds = pd.read_pickle('pro_data/match_odds.pkl')
 game_day = pd.read_pickle('pro_data/game_day.pkl')
 
-# construct result objects
+# construct test objects
+# model estimation dates
+mest_dates = con_est_dates(data=game_day, k =5)
 # win-lose-draw
 res_wd = con_res(data=source_core, obj='wdl', field='FTR')
 # goals
@@ -61,32 +63,17 @@ from sklearn.model_selection import GridSearchCV
 from sklearn.metrics import roc_auc_score
 
 results = con_res_wd(data=source_core, field=['FTR'], encoding=False)
+# flib = factor_library.query("team == 'liverpool'")
 arcon = con_mod_datset(scores=factor_library, results=results)
 
 
 start_date = "2015"
-
-# establish model re-estimation dates
-# methodology: after every team played at least 5 or 10 games
-
-
-mest_dates = con_est_dates(data=game_day, k =5)
-
-
-
-
-
-
-
+est_dates = mest_dates
 
 # try: estimate a model for a single team
 
-def est_hist_prob_rf(arcon, start_date = None):
+def est_hist_prob_rf(arcon, start_date = None, est_dates):
     """Estimate probability using a random forest classification model."""
-
-    # construct date universe
-    per_ind = pd.DataFrame(arcon["date"].unique(), columns=['date']).sort_values(by="date")
-    per_ind['dummy'] = 1
 
     # global ml parameter settings
     # setup the parameters and distributions to sample from
@@ -95,26 +82,31 @@ def est_hist_prob_rf(arcon, start_date = None):
                   "min_samples_leaf": randint(1, 9),
                   "criterion": ["gini", "entropy"]}
 
-    per_iter = per_ind['date']
+    # construct date universe
+    per_ind = est_dates[(est_dates['div'] == arcon['div'].iloc[0])]
     if start_date is not None:
-        per_iter = per_ind.query("date >= @start_date")['date']
+        per_iter = per_ind[(est_dates['date'] >= start_date)]['date'].copy()
+    else:
+        per_iter = per_ind['date'].copy()
+
 
     res_f = pd.DataFrame()
     for t in per_iter:
 
         # last 3y of obervations
-        # t = per_ind.query("date >= 2020")['date'].iloc[1]
+        # t = per_iter.iloc[0]
         per_ind_t = per_ind.query("date <= @t").set_index('date').last('156W').reset_index()
-        arcon_spec = pd.merge(arcon, per_ind_t, how="inner", on="date")
+        arcon_spec = pd.merge(arcon, per_ind_t['date'], how="inner", on="date")
+        # one-hot encoding
+        arcon_spec = pd.get_dummies(arcon_spec, columns=['home'])
 
         # drop not needed variables
         as_train = arcon_spec[arcon_spec['date'] < t].reset_index(drop=True)
-        as_train_0 = as_train.drop(['date', 'div', 'team', 'season', 'dummy'], axis=1)
-        as_train_0 = pd.get_dummies(as_train_0, columns=['home'])
+        as_train_0 = as_train.drop(['date', 'div', 'team', 'season'], axis=1)
 
+        # prediction data set
         as_test = arcon_spec[arcon_spec['date'] == t].reset_index(drop=True)
-        as_test_0 = as_test.drop(['date', 'div', 'team', 'season', 'dummy'], axis=1)
-        as_test_0 = pd.get_dummies(as_test_0, columns=['home'])
+        as_test_0 = as_test.drop(['date', 'div', 'team', 'season'], axis=1)
 
         # explanatory and target variables declarations
         # -- train
