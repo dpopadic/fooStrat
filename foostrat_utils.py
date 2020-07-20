@@ -1383,6 +1383,25 @@ def con_gameday(data):
     return data_ed
 
 
+def con_est_dates(data, k):
+    """Compute the model estimation dates for each division and season. The model estimation
+    dates are calculated so that every team has at least k games in between two estimation dates.
+
+    Parameters:
+    -----------
+        data:   pd dataframe
+                game day data with columns season, div, date, team, val
+        k:      int
+                the time lag in periods between estimation dates (eg. k=5)
+    """
+
+    data_ed = data.groupby(['season', 'team'])['date'].cumcount() % k
+    res = data[data_ed == k - 1]
+    res.reset_index(drop=True, inplace=True)
+    # retrieve the max date after n games
+    res = res.groupby(['div', 'season', 'val'])['date'].max()
+    res = res.reset_index().loc[:, ['div', 'season', 'date']]
+    return res
 
 def comp_mispriced(prob, odds, prob_threshold, res_threshold):
     """

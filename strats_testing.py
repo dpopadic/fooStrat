@@ -68,16 +68,18 @@ start_date = "2015"
 
 # establish model re-estimation dates
 # methodology: after every team played at least 5 or 10 games
-a = game_day[(game_day['season'] == 2019)  & (game_day['team'] == 'liverpool')]
-b = a.iloc[::5, :]
 
-game_day.groupby(['season', 'team'])['team'].apply(lambda x: x % 3 == 0)
-c = game_day.groupby(['season', 'team'])['date'].cumcount() % 5
-d = game_day[c == 4]
 
-d[(d['season'] == 2019)  & (d['team'] == 'liverpool')]
+mest_dates = con_est_dates(data=game_day, k =5)
 
-game_day.iloc[lambda game_day: game_day['A'] > 0, :]
+
+
+
+
+
+
+
+# try: estimate a model for a single team
 
 def est_hist_prob_rf(arcon, start_date = None):
     """Estimate probability using a random forest classification model."""
