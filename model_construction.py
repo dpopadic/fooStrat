@@ -1,5 +1,7 @@
 # MODEL CONSTRUCTION --------------------------------------------------------------------------------------------------
 import pandas as pd
+import numpy as np
+import random as rn
 from scipy import stats
 from scipy.stats import randint
 from sklearn.tree import DecisionTreeClassifier
@@ -25,9 +27,9 @@ def est_hist_prob_rf(arcon, start_date = None, est_dates):
 
     # global ml parameter settings
     # setup the parameters and distributions to sample from
-    param_dist = {"max_depth": [9, None],
-                  "max_features": randint(1, 6),
-                  "min_samples_leaf": randint(1, 9),
+    param_dist = {"max_depth": [10, None],
+                  "max_features": ['log2', 'auto', 'sqrt'],
+                  "min_samples_leaf": [2, 10, 20],
                   "criterion": ["gini", "entropy"]}
 
     # construct date universe
