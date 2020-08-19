@@ -5,6 +5,7 @@ import random as rn
 from scipy import stats
 from scipy.stats import randint
 from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import AdaBoostClassifier
 from sklearn.model_selection import RandomizedSearchCV
 from sklearn.model_selection import GridSearchCV
 from sklearn.metrics import roc_auc_score
@@ -18,8 +19,11 @@ results = con_res_wd(data=source_core, field=['FTR'], encoding=False)
 arcon = con_mod_datset(scores=factor_library, results=results)
 
 
-start_date = "2015"
+start_date = "2015-01-01"
 est_dates = mest_dates
+
+
+
 
 
 def est_hist_prob_rf(arcon, start_date = None, est_dates):
@@ -67,9 +71,14 @@ def est_hist_prob_rf(arcon, start_date = None, est_dates):
 
         # instantiate a Decision Tree classifier
         tree = DecisionTreeClassifier()
+
         # instantiate the RandomizedSearchCV object
-        tree_cv = RandomizedSearchCV(tree, param_dist, cv=5)
-        # tree_cv = GridSearchCV(estimator=tree, param_grid=param_dist, cv=5)
+        tree_cv = GridSearchCV(estimator=tree, param_grid=param_dist, cv=5)
+
+        # instantiate ada..
+        ada = AdaBoostClassifier(base_estimator=tree_cv, n_estimators=5, random_state=1)
+        ada.fit(X_train, y_train)
+
         # fit it to the data
         tree_cv.fit(X_train, y_train)
         y_pp = tree_cv.predict_proba(X_test)
