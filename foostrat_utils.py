@@ -1336,7 +1336,7 @@ def con_res(data, obj, field):
     return res
 
 
-def con_mod_datset(scores, results):
+def con_mod_datset_0(scores, results):
     """Construct the modelling data set.
 
     Parameters:
@@ -1364,6 +1364,48 @@ def con_mod_datset(scores, results):
     arcon = arcon.dropna().reset_index(level=0, drop=True)
 
     return arcon
+
+
+
+def con_mod_datset_1(data, per_ind, t):
+    """Construct the modelling dataset for a single model fit at time t. The default lookback
+    period is 3 years.
+
+    Parameters:
+    -----------
+        data:       pd dataframe
+        per_ind:    pd dataframe
+        t:          datetime64
+
+    Returns:
+    --------
+        X_train, X_test, y_train, meta
+    """
+    # last 3y of obervations
+    per_ind_t = per_ind.query("date <= @t").set_index('date').last('156W').reset_index()
+    data_ed = pd.merge(data, per_ind_t['date'], how="inner", on="date")
+    # one-hot encoding
+    data_ed = pd.get_dummies(data_ed, columns=['home'])
+
+    # drop not needed variables
+    as_train = data_ed[data_ed['date'] < t].reset_index(drop=True)
+    as_train_0 = as_train.drop(['date', 'div', 'team', 'season'], axis=1)
+
+    # prediction data set
+    as_test = data_ed[data_ed['date'] == t].reset_index(drop=True)
+    as_test_0 = as_test.drop(['date', 'div', 'team', 'season'], axis=1)
+
+    # explanatory and target variables declarations
+    # -- train
+    y_train = as_train_0['result'].values.reshape(-1, 1)
+    X_train = as_train_0.drop('result', axis=1).values
+    # -- test
+    X_test = as_test_0.drop('result', axis=1).values
+
+    # meta data with keys
+    meta = as_test.loc[:, ['date', 'div', 'season', 'team', 'result']]
+
+    return X_train, X_test, y_train, meta
 
 
 

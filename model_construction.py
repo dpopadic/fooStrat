@@ -9,6 +9,7 @@ from sklearn.ensemble import AdaBoostClassifier
 from sklearn.model_selection import RandomizedSearchCV
 from sklearn.model_selection import GridSearchCV
 from sklearn.metrics import roc_auc_score
+from foostrat_utils import con_res, con_res_wd, con_mod_datset_0
 
 factor_library = pd.read_pickle('pro_data/flib_e0.pkl')
 source_core = pd.read_pickle('pro_data/source_core.pkl')
@@ -16,7 +17,7 @@ match_odds = pd.read_pickle('pro_data/match_odds.pkl')
 # datasets for evaluation
 res_wd = con_res(data=source_core, obj='wdl', field='FTR')
 results = con_res_wd(data=source_core, field=['FTR'], encoding=False)
-arcon = con_mod_datset(scores=factor_library, results=results)
+arcon = con_mod_datset_0(scores=factor_library, results=results)
 
 
 start_date = "2015-01-01"
@@ -25,8 +26,7 @@ est_dates = mest_dates
 
 
 
-
-def est_hist_prob_rf(arcon, start_date = None, est_dates):
+def est_hist_prob_rf(arcon, start_date=None, est_dates):
     """Estimate probability using a random forest classification model."""
 
     # global ml parameter settings
@@ -46,48 +46,29 @@ def est_hist_prob_rf(arcon, start_date = None, est_dates):
 
     res_f = pd.DataFrame()
     for t in per_iter:
-
-        # last 3y of obervations
         # t = per_iter.iloc[0]
-        per_ind_t = per_ind.query("date <= @t").set_index('date').last('156W').reset_index()
-        arcon_spec = pd.merge(arcon, per_ind_t['date'], how="inner", on="date")
-        # one-hot encoding
-        arcon_spec = pd.get_dummies(arcon_spec, columns=['home'])
-
-        # drop not needed variables
-        as_train = arcon_spec[arcon_spec['date'] < t].reset_index(drop=True)
-        as_train_0 = as_train.drop(['date', 'div', 'team', 'season'], axis=1)
-
-        # prediction data set
-        as_test = arcon_spec[arcon_spec['date'] == t].reset_index(drop=True)
-        as_test_0 = as_test.drop(['date', 'div', 'team', 'season'], axis=1)
-
-        # explanatory and target variables declarations
-        # -- train
-        y_train = as_train_0['result'].values.reshape(-1, 1)
-        X_train = as_train_0.drop('result', axis=1).values
-        # -- test
-        X_test = as_test_0.drop('result', axis=1).values
-
+        X_train, X_test, y_train, meta = con_mod_datset_1(data=arcon, per_ind=per_ind, t=t)
         # instantiate a Decision Tree classifier
-        tree = DecisionTreeClassifier()
-
+        # tree = DecisionTreeClassifier()
         # instantiate the RandomizedSearchCV object
-        tree_cv = GridSearchCV(estimator=tree, param_grid=param_dist, cv=5)
+        # tree_cv = GridSearchCV(estimator=tree, param_grid=param_dist, cv=5)
 
         # instantiate ada..
-        ada = AdaBoostClassifier(base_estimator=tree_cv, n_estimators=5, random_state=1)
+        tree = DecisionTreeClassifier(max_depth=2, max_features="auto", min_samples_leaf=10, random_state=1)
+        ada = AdaBoostClassifier(base_estimator=tree, n_estimators=5, random_state=1)
         ada.fit(X_train, y_train)
+        y_pp = ada.predict_proba(X_test)
+        y_pp = pd.DataFrame(y_pp, columns=ada.classes_)
 
         # fit it to the data
-        tree_cv.fit(X_train, y_train)
-        y_pp = tree_cv.predict_proba(X_test)
-        y_pp = pd.DataFrame(y_pp, columns=tree_cv.classes_)
+        #tree_cv.fit(X_train, y_train)
+        #y_pp = tree_cv.predict_proba(X_test)
+        #y_pp = pd.DataFrame(y_pp, columns=tree_cv.classes_)
         # stats.describe(y_pp)
 
         # add back id info
         # res_0 = pd.concat([arcon_spec, y_pp], axis=1)
-        res_0 = pd.concat([as_test.loc[:, ['date', 'div', 'season', 'team', 'result']], y_pp], axis=1)
+        res_0 = pd.concat([meta.loc[:, ['date', 'div', 'season', 'team', 'result']], y_pp], axis=1)
         res_f = pd.concat([res_f, res_0])
 
         print(t)
