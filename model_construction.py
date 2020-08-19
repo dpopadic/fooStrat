@@ -9,7 +9,7 @@ from sklearn.ensemble import AdaBoostClassifier
 from sklearn.model_selection import RandomizedSearchCV
 from sklearn.model_selection import GridSearchCV
 from sklearn.metrics import roc_auc_score
-from foostrat_utils import con_res, con_res_wd, con_est_dates, con_mod_datset_0, con_mod_datset_1
+from foostrat_utils import con_res, con_res_wd, con_est_dates, con_mod_datset_0, con_mod_datset_1, comp_mispriced, comp_pnl
 
 factor_library = pd.read_pickle('pro_data/flib_e0.pkl')
 source_core = pd.read_pickle('pro_data/source_core.pkl')
@@ -17,10 +17,10 @@ match_odds = pd.read_pickle('pro_data/match_odds.pkl')
 game_day = pd.read_pickle('pro_data/game_day.pkl')
 
 # datasets for evaluation
+arcon = con_mod_datset_0(scores=factor_library, results=results)
 res_wd = con_res(data=source_core, obj='wdl', field='FTR')
 results = con_res_wd(data=source_core, field=['FTR'], encoding=False)
-arcon = con_mod_datset_0(scores=factor_library, results=results)
-mest_dates = con_est_dates(data=game_day, k =5)
+mest_dates = con_est_dates(data=game_day, k=5)
 
 start_date = "2015-01-01"
 est_dates = mest_dates
@@ -41,9 +41,9 @@ def est_hist_prob_rf(arcon, start_date=None, est_dates):
     # construct date universe
     per_ind = est_dates[(est_dates['div'] == arcon['div'].iloc[0])]
     if start_date is not None:
-        per_iter = per_ind[(est_dates['date'] >= start_date)]['date'].copy()
+        per_iter = per_ind[(est_dates['date'] >= start_date)]['date']
     else:
-        per_iter = per_ind['date'].copy()
+        per_iter = per_ind['date']
 
     res_f = pd.DataFrame()
     for t in per_iter:
@@ -82,9 +82,7 @@ def est_hist_prob_rf(arcon, start_date=None, est_dates):
     res_f.reset_index(drop=True, inplace=True)
 
 
-
-
-event = "win"
+event = "draw"
 event_of =  "odds_" + event
 a = res_f.loc[:, ['date', 'div', 'season', 'team', event]]
 a.rename(columns={event: 'val'}, inplace=True)
@@ -92,5 +90,7 @@ a.rename(columns={event: 'val'}, inplace=True)
 odds_event = match_odds.query('field == @event_of')
 gsf_pos = comp_mispriced(prob=a, odds=odds_event, prob_threshold=0.5, res_threshold=0.10)
 gsf_pnl = comp_pnl(positions=gsf_pos, odds=odds_event, results=res_wd, event=event, stake=10)
+
+
 
 
