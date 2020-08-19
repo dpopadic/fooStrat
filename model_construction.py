@@ -9,16 +9,18 @@ from sklearn.ensemble import AdaBoostClassifier
 from sklearn.model_selection import RandomizedSearchCV
 from sklearn.model_selection import GridSearchCV
 from sklearn.metrics import roc_auc_score
-from foostrat_utils import con_res, con_res_wd, con_mod_datset_0
+from foostrat_utils import con_res, con_res_wd, con_est_dates, con_mod_datset_0, con_mod_datset_1
 
 factor_library = pd.read_pickle('pro_data/flib_e0.pkl')
 source_core = pd.read_pickle('pro_data/source_core.pkl')
 match_odds = pd.read_pickle('pro_data/match_odds.pkl')
+game_day = pd.read_pickle('pro_data/game_day.pkl')
+
 # datasets for evaluation
 res_wd = con_res(data=source_core, obj='wdl', field='FTR')
 results = con_res_wd(data=source_core, field=['FTR'], encoding=False)
 arcon = con_mod_datset_0(scores=factor_library, results=results)
-
+mest_dates = con_est_dates(data=game_day, k =5)
 
 start_date = "2015-01-01"
 est_dates = mest_dates
@@ -43,19 +45,23 @@ def est_hist_prob_rf(arcon, start_date=None, est_dates):
     else:
         per_iter = per_ind['date'].copy()
 
-
     res_f = pd.DataFrame()
     for t in per_iter:
         # t = per_iter.iloc[0]
-        X_train, X_test, y_train, meta = con_mod_datset_1(data=arcon, per_ind=per_ind, t=t)
+        X_train, X_test, y_train, id_test = con_mod_datset_1(data=arcon, per_ind=per_ind, t=t)
         # instantiate a Decision Tree classifier
         # tree = DecisionTreeClassifier()
         # instantiate the RandomizedSearchCV object
         # tree_cv = GridSearchCV(estimator=tree, param_grid=param_dist, cv=5)
 
         # instantiate ada..
-        tree = DecisionTreeClassifier(max_depth=2, max_features="auto", min_samples_leaf=10, random_state=1)
-        ada = AdaBoostClassifier(base_estimator=tree, n_estimators=5, random_state=1)
+        tree = DecisionTreeClassifier(max_depth=10,
+                                      max_features="auto",
+                                      min_samples_leaf=10,
+                                      random_state=1)
+        ada = AdaBoostClassifier(base_estimator=tree,
+                                 n_estimators=10,
+                                 random_state=1)
         ada.fit(X_train, y_train)
         y_pp = ada.predict_proba(X_test)
         y_pp = pd.DataFrame(y_pp, columns=ada.classes_)
@@ -68,7 +74,7 @@ def est_hist_prob_rf(arcon, start_date=None, est_dates):
 
         # add back id info
         # res_0 = pd.concat([arcon_spec, y_pp], axis=1)
-        res_0 = pd.concat([meta.loc[:, ['date', 'div', 'season', 'team', 'result']], y_pp], axis=1)
+        res_0 = pd.concat([id_test, y_pp], axis=1)
         res_f = pd.concat([res_f, res_0])
 
         print(t)

@@ -24,8 +24,6 @@ match_odds = pd.read_pickle('pro_data/match_odds.pkl')
 game_day = pd.read_pickle('pro_data/game_day.pkl')
 
 # construct test objects
-# model estimation dates
-mest_dates = con_est_dates(data=game_day, k =5)
 # win-lose-draw
 res_wd = con_res(data=source_core, obj='wdl', field='FTR')
 # goals

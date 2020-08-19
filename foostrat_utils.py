@@ -1379,10 +1379,10 @@ def con_mod_datset_1(data, per_ind, t):
 
     Returns:
     --------
-        X_train, X_test, y_train, meta
+        X_train, X_test, y_train, id_test
     """
     # last 3y of obervations
-    per_ind_t = per_ind.query("date <= @t").set_index('date').last('156W').reset_index()
+    per_ind_t = per_ind.query("date <= @t").set_index('date').last('312W').reset_index()
     data_ed = pd.merge(data, per_ind_t['date'], how="inner", on="date")
     # one-hot encoding
     data_ed = pd.get_dummies(data_ed, columns=['home'])
@@ -1397,15 +1397,15 @@ def con_mod_datset_1(data, per_ind, t):
 
     # explanatory and target variables declarations
     # -- train
-    y_train = as_train_0['result'].values.reshape(-1, 1)
+    y_train = as_train_0['result'].values
     X_train = as_train_0.drop('result', axis=1).values
     # -- test
     X_test = as_test_0.drop('result', axis=1).values
 
     # meta data with keys
-    meta = as_test.loc[:, ['date', 'div', 'season', 'team', 'result']]
+    id_test = as_test.loc[:, ['date', 'div', 'season', 'team', 'result']]
 
-    return X_train, X_test, y_train, meta
+    return X_train, X_test, y_train, id_test
 
 
 
