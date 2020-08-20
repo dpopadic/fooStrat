@@ -1369,20 +1369,30 @@ def con_mod_datset_0(scores, results):
 
 def con_mod_datset_1(data, per_ind, t, per):
     """Construct the modelling dataset for a single model fit at time t. The default lookback
-    period is 3 years.
+    period is 3 years. The model is only fitted at dates specified in per_ind.
 
     Parameters:
     -----------
         data:       pd dataframe
+                    a table with factor data and key columns date, div, season, team, result, factor_1, .., factor_n
         per_ind:    pd dataframe
+                    a table with columns div, date representing the dates on which games took place
         t:          datetime64
+                    a date of interest for which to fit the model
         per:        str
+                    a string indicating the lookback period to use for the model data set (eg. '52W')
+
+    Details:
+    --------
+        For every point in time t, the last n observations are in X_train up to t-1 and X_test
+        includes all observations for t that need to be predicted. The id_test output object
+        provides all meta-data/keys for this prediction set.
 
     Returns:
     --------
         X_train, X_test, y_train, id_test
     """
-    # last 3y of obervations
+    # consider only last n obervations
     per_ind_t = per_ind.query("date <= @t").set_index('date').last(per).reset_index()
     data_ed = pd.merge(data, per_ind_t['date'], how="inner", on="date")
     # one-hot encoding

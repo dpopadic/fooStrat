@@ -17,9 +17,9 @@ match_odds = pd.read_pickle('pro_data/match_odds.pkl')
 game_day = pd.read_pickle('pro_data/game_day.pkl')
 
 # datasets for evaluation
+results = con_res_wd(data=source_core, field=['FTR'], encoding=False)
 arcon = con_mod_datset_0(scores=factor_library, results=results)
 res_wd = con_res(data=source_core, obj='wdl', field='FTR')
-results = con_res_wd(data=source_core, field=['FTR'], encoding=False)
 mest_dates = con_est_dates(data=game_day, k=5)
 
 start_date = "2010-01-01"
