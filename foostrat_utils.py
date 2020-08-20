@@ -1367,7 +1367,7 @@ def con_mod_datset_0(scores, results):
 
 
 
-def con_mod_datset_1(data, per_ind, t):
+def con_mod_datset_1(data, per_ind, t, per):
     """Construct the modelling dataset for a single model fit at time t. The default lookback
     period is 3 years.
 
@@ -1376,13 +1376,14 @@ def con_mod_datset_1(data, per_ind, t):
         data:       pd dataframe
         per_ind:    pd dataframe
         t:          datetime64
+        per:        str
 
     Returns:
     --------
         X_train, X_test, y_train, id_test
     """
     # last 3y of obervations
-    per_ind_t = per_ind.query("date <= @t").set_index('date').last('312W').reset_index()
+    per_ind_t = per_ind.query("date <= @t").set_index('date').last(per).reset_index()
     data_ed = pd.merge(data, per_ind_t['date'], how="inner", on="date")
     # one-hot encoding
     data_ed = pd.get_dummies(data_ed, columns=['home'])

@@ -22,7 +22,7 @@ res_wd = con_res(data=source_core, obj='wdl', field='FTR')
 results = con_res_wd(data=source_core, field=['FTR'], encoding=False)
 mest_dates = con_est_dates(data=game_day, k=5)
 
-start_date = "2015-01-01"
+start_date = "2010-01-01"
 est_dates = mest_dates
 
 
@@ -48,7 +48,10 @@ def est_hist_prob_rf(arcon, start_date=None, est_dates):
     res_f = pd.DataFrame()
     for t in per_iter:
         # t = per_iter.iloc[0]
-        X_train, X_test, y_train, id_test = con_mod_datset_1(data=arcon, per_ind=per_ind, t=t)
+        X_train, X_test, y_train, id_test = con_mod_datset_1(data=arcon,
+                                                             per_ind=per_ind,
+                                                             t=t,
+                                                             per='312W')
         # instantiate a Decision Tree classifier
         # tree = DecisionTreeClassifier()
         # instantiate the RandomizedSearchCV object
@@ -82,7 +85,7 @@ def est_hist_prob_rf(arcon, start_date=None, est_dates):
     res_f.reset_index(drop=True, inplace=True)
 
 
-event = "draw"
+event = "win"
 event_of =  "odds_" + event
 a = res_f.loc[:, ['date', 'div', 'season', 'team', event]]
 a.rename(columns={event: 'val'}, inplace=True)
@@ -90,6 +93,7 @@ a.rename(columns={event: 'val'}, inplace=True)
 odds_event = match_odds.query('field == @event_of')
 gsf_pos = comp_mispriced(prob=a, odds=odds_event, prob_threshold=0.5, res_threshold=0.10)
 gsf_pnl = comp_pnl(positions=gsf_pos, odds=odds_event, results=res_wd, event=event, stake=10)
+
 
 
 
