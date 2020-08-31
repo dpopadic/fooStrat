@@ -1456,6 +1456,7 @@ def con_est_dates(data, k):
     res = res.reset_index().loc[:, ['div', 'season', 'date']]
     return res
 
+
 def comp_mispriced(prob, odds, prob_threshold, res_threshold):
     """
     Parameters
@@ -1482,6 +1483,62 @@ def comp_mispriced(prob, odds, prob_threshold, res_threshold):
     pos = resi.query("resid>@res_threshold & implied>@prob_threshold").loc[:, ['season', 'div', 'date', 'team']]
     pos.reset_index(inplace=True, drop=True)
     return pos
+
+
+def est_hist_prob_rf(arcon, est_dates, start_date=None):
+    """Estimate probability using a random forest classification model."""
+
+    # global ml parameter settings
+    # setup the parameters and distributions to sample from
+    param_dist = {"max_depth": [10, None],
+                  "max_features": ['log2', 'auto', 'sqrt'],
+                  "min_samples_leaf": [2, 10, 20],
+                  "criterion": ["gini", "entropy"]}
+
+    # construct date universe
+    per_ind = est_dates[(est_dates['div'] == arcon['div'].iloc[0])]
+    if start_date is not None:
+        per_iter = per_ind[(est_dates['date'] >= start_date)]['date']
+    else:
+        per_iter = per_ind['date']
+
+    res = pd.DataFrame()
+    for t in per_iter:
+        # t = per_iter.iloc[0]
+        X_train, X_test, y_train, id_test = con_mod_datset_1(data=arcon,
+                                                             per_ind=per_ind,
+                                                             t=t,
+                                                             per='312W')
+        # instantiate a Decision Tree classifier
+        # tree = DecisionTreeClassifier()
+        # instantiate the RandomizedSearchCV object
+        # tree_cv = GridSearchCV(estimator=tree, param_grid=param_dist, cv=5)
+
+        # instantiate ada..
+        tree = DecisionTreeClassifier(max_depth=10,
+                                      max_features="auto",
+                                      min_samples_leaf=10,
+                                      random_state=1)
+        ada = AdaBoostClassifier(base_estimator=tree,
+                                 n_estimators=10,
+                                 random_state=1)
+        ada.fit(X_train, y_train)
+        pred = ada.predict_proba(X_test)
+        pred = pd.DataFrame(pred, columns=ada.classes_)
+
+        # fit it to the data
+        #tree_cv.fit(X_train, y_train)
+        #y_pp = tree_cv.predict_proba(X_test)
+        #y_pp = pd.DataFrame(y_pp, columns=tree_cv.classes_)
+        # stats.describe(y_pp)
+
+        # add back id info
+        # res_0 = pd.concat([arcon_spec, y_pp], axis=1)
+        tmp = pd.concat([id_test, pred], axis=1)
+        res = pd.concat([res, tmp])
+
+    res.reset_index(drop=True, inplace=True)
+    return res
 
 
 
