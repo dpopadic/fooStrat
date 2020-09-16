@@ -545,6 +545,13 @@ def neutralise_field(data, field, field_name=None, field_numeric=True, column_fi
         field_numeric (boolean): whether the field to transpose is numeric (True) or not (False)
         column_field (boolean):  whether to have the fields in columns or in wide-format
 
+    Details:
+    --------
+        Note that a field can be symmetric, meaning that the field needs to be taken into account for both,
+        the home- & away team. An example of a symmetric field is FTHG, where the goals need to be reflected in both
+        the home field as well as away field. If the field is asymmetric, the field is only applicable to either
+        home- or away team. An example of an asymmetric field could be the field shots.
+
     Returns:
     --------
         A dataframe with team-neutralised data.

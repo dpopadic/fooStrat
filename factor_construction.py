@@ -48,6 +48,41 @@ fgb = norm_factor(data=fgb)
 frb = feat_resbased(data=source_core)
 frb = norm_factor(data=frb)
 
+# attack strength factors ---------------------------------------------------------------------------------------------
+
+source_core.query("div=='E0' & season==2020 & field in ('HS', 'AS', 'HST', 'AST', 'HHW', 'AHW')")
+# HS, AS: shots
+# HST, AST: shots on target
+# HHW, AHW: wood hit
+# HC, AC: corners
+
+
+data = source_core
+f0 = {'shots': ['shots_attempted', 'shots_conceded'],
+      'target': ['shots_attempted_tgt', 'shots_conceded_tgt'],
+      'wood': ['wood_hit', 'wood_conceded'],
+      'corners': ['corners_hit', 'corners_conceded']}
+
+# neutralise relevant fields
+x0 = neutralise_field(data, field=['HS', 'AS'], field_name=f0['shots'], field_numeric=True, column_field=True)
+x1 = neutralise_field(data, field=['HST', 'AST'], field_name=f0['target'], field_numeric=True, column_field=True)
+x2 = neutralise_field(data, field=['HHW', 'AHW'], field_name=f0['wood'], field_numeric=True, column_field=True)
+x3 = neutralise_field(data, field=['HC', 'AC'], field_name=f0['corners'], field_numeric=True, column_field=True)
+
+# bring all features together
+xm1 = pd.merge(x0, x1, on=['div', 'season', 'date', 'team'], how='outer')
+xm1 = pd.merge(xm1, x2, on=['div', 'season', 'date', 'team'], how='outer')
+xm1 = pd.merge(xm1, x3, on=['div', 'season', 'date', 'team'], how='outer')
+
+xm1 = xm1.set_index('date')
+xm1.sort_values('date').groupby(['team'])[['g_scored', 'g_received']]. \
+        rolling(k, min_periods=1).sum().reset_index()
+
+at = xm1.query("div=='E0' & season==2020 & date=='2020-09-12'")
+xm1.query("div=='E0'")
+
+
+
 # standings based factors ---------------------------------------------------------------------------------------------
 fsb = feat_stanbased(data=source_core)
 fsb = norm_factor(data=fsb, neutralise=False)
