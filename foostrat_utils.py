@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 from scipy.stats import zscore
 import os
+from itertools import chain
 from sklearn.metrics import confusion_matrix
 from sklearn.linear_model import LogisticRegression
 
@@ -988,6 +989,89 @@ def feat_stanbased(data):
     res = res.sort_values(['team', 'date']).reset_index(drop=True)
     res['val'] = res.groupby(['team', 'field'])['val'].shift(1)
 
+    return res
+
+
+def feat_strength(data, k):
+    """Compute team strength features:
+        - shots attempted / conceded
+        - shots on target attempted / conceded
+        - hit / conceded wood
+        - corners hit / conceded
+        - attack strength
+        - defense strength
+        - attack + defense strength
+
+    These features are calculated using the last 5 games.
+
+    """
+
+    fm = {'shots': ['shots_attempted', 'shots_conceded'],
+          'target': ['shots_attempted_tgt', 'shots_conceded_tgt'],
+          'wood': ['wood_hit', 'wood_conceded'],
+          'corners': ['corners_hit', 'corners_conceded']}
+
+    # neutralise relevant fields
+    x0 = neutralise_field(data, field=['HS', 'AS'], field_name=fm['shots'], field_numeric=True, column_field=True)
+    x1 = neutralise_field(data, field=['HST', 'AST'], field_name=fm['target'], field_numeric=True, column_field=True)
+    x2 = neutralise_field(data, field=['HHW', 'AHW'], field_name=fm['wood'], field_numeric=True, column_field=True)
+    x3 = neutralise_field(data, field=['HC', 'AC'], field_name=fm['corners'], field_numeric=True, column_field=True)
+
+    # bring all features together
+    xm1 = pd.merge(x0, x1, on=['div', 'season', 'date', 'team'], how='outer')
+    xm1 = pd.merge(xm1, x2, on=['div', 'season', 'date', 'team'], how='outer')
+    xm1 = pd.merge(xm1, x3, on=['div', 'season', 'date', 'team'], how='outer')
+
+    # rolling average over n periods
+    xm1 = xm1.sort_values('date').reset_index(drop=True)
+    xm2 = xm1.groupby(['team'])[list(chain(*f0.values()))].rolling(3, min_periods=1).mean().reset_index(drop=True)
+    xm2 = pd.concat([xm1[['div', 'season', 'team', 'date']], xm2], axis=1)
+
+    # calculate cross-sectional z-score for attack & defense strength
+    # - attack strength
+    xm1_as = xm2.loc[:,
+             ['div', 'season', 'team', 'date', fm['shots'][0], fm['target'][0], fm['wood'][0], fm['corners'][0]]]
+    xm1_as = pd.melt(xm1_as,
+                     id_vars=['div', 'season', 'team', 'date'],
+                     var_name='field',
+                     value_name='val').dropna()
+
+    xm1_as_ed = norm_factor(data=xm1_as, neutralise=True)
+    xm1_as_cf = xm1_as_ed.groupby(['div', 'season', 'team', 'date'])['val'].mean().reset_index()
+    xm1_as_cf['field'] = "attack_strength"
+    xm1_as_ed = pd.concat([xm1_as_ed, xm1_as_cf], axis=0, sort=True)
+
+    # - defence strength
+    xm1_ds = xm2.loc[:,
+             ['div', 'season', 'team', 'date', fm['shots'][1], fm['target'][1], fm['wood'][1], fm['corners'][1]]]
+    xm1_ds = pd.melt(xm1_ds,
+                     id_vars=['div', 'season', 'team', 'date'],
+                     var_name='field',
+                     value_name='val').dropna()
+
+    xm1_ds_ed = norm_factor(data=xm1_ds, neutralise=True)
+    xm1_ds_cf = xm1_ds_ed.groupby(['div', 'season', 'team', 'date'])['val'].mean().reset_index()
+    xm1_ds_cf['field'] = "defense_strength"
+    xm1_ds_ed = pd.concat([xm1_ds_ed, xm1_ds_cf], axis=0, sort=True)
+    xm1_ds_ed['val'] = -1 * xm1_ds_ed['val']
+
+    # - attack - defense composite: sum-up all features & compute z-score
+    xm2_ed = pd.concat([xm1_as_ed, xm1_ds_ed], axis=0)
+    xm2_edc = xm2_ed.query("field in ['attack_strength', 'defense_strength']"). \
+        groupby(['div', 'season', 'date', 'team'])['val'].sum().reset_index()
+    xm2_edc['val'] = xm2_edc.groupby(['div', 'season', 'date'])['val'].transform(lambda x: zscore(x))
+    xm2_edc['field'] = "atadef_composite"
+
+    # get all together
+    tmp = pd.concat([xm2_ed, xm2_edc], axis=0)
+
+    # lag factor
+    tmp_lag = tmp.sort_values(['team', 'date']).reset_index(drop=True)
+    tmp_lag['val'] = tmp_lag.groupby(['team', 'field'])['val'].shift(1)
+
+    # neutralise for new entrants
+    team_chng = newcomers(data=tmp_lag)
+    res = neutralise_scores(data=tmp_lag, teams=team_chng, n=k - 1)
     return res
 
 

@@ -1,10 +1,9 @@
 # FACTOR CALCULATION --------------------------------------------------------------------------------------------------
 import pandas as pd
 import numpy as np
-from itertools import chain
 from foostrat_utils import fhome, odds_fields, fodds, expand_field, \
     comp_score, update_flib, norm_factor, feat_goalbased, feat_resbased, \
-    comp_league_standing, feat_stanbased, delete_flib, con_gameday
+    comp_league_standing, feat_stanbased, delete_flib, con_gameday, feat_strength
 
 # load source data..
 source_core = pd.read_pickle('pro_data/source_core.pkl')
@@ -50,70 +49,16 @@ frb = feat_resbased(data=source_core)
 frb = norm_factor(data=frb)
 
 # attack strength factors ---------------------------------------------------------------------------------------------
-
-source_core.query("div=='E0' & season==2020 & field in ('HS', 'AS', 'HST', 'AST', 'HHW', 'AHW')")
-# HS, AS: shots
-# HST, AST: shots on target
-# HHW, AHW: wood hit
-# HC, AC: corners
+# note: normalisation performed internally
+fsb = feat_strength(data = source_core, k=5)
 
 
-data = source_core
-f0 = {'shots': ['shots_attempted', 'shots_conceded'],
-      'target': ['shots_attempted_tgt', 'shots_conceded_tgt'],
-      'wood': ['wood_hit', 'wood_conceded'],
-      'corners': ['corners_hit', 'corners_conceded']}
 
-# neutralise relevant fields
-x0 = neutralise_field(data, field=['HS', 'AS'], field_name=f0['shots'], field_numeric=True, column_field=True)
-x1 = neutralise_field(data, field=['HST', 'AST'], field_name=f0['target'], field_numeric=True, column_field=True)
-x2 = neutralise_field(data, field=['HHW', 'AHW'], field_name=f0['wood'], field_numeric=True, column_field=True)
-x3 = neutralise_field(data, field=['HC', 'AC'], field_name=f0['corners'], field_numeric=True, column_field=True)
-
-# bring all features together
-xm1 = pd.merge(x0, x1, on=['div', 'season', 'date', 'team'], how='outer')
-xm1 = pd.merge(xm1, x2, on=['div', 'season', 'date', 'team'], how='outer')
-xm1 = pd.merge(xm1, x3, on=['div', 'season', 'date', 'team'], how='outer')
-
-# rolling average over n periods
-xm1 = xm1.sort_values('date').reset_index(drop=True)
-xm2 = xm1.groupby(['team'])[list(chain(*f0.values()))].rolling(3, min_periods=1).mean().reset_index(drop=True)
-xm2 = pd.concat([xm1[['div', 'season', 'team', 'date']], xm2], axis=1)
-
-# calculate cross-sectional z-score for attack & defense strength
-# - attack strength
-xm1_as = xm1.loc[:, ['div', 'season', 'team', 'date', f0['shots'][0], f0['target'][0], f0['wood'][0], f0['corners'][0]]]
-xm1_as = pd.melt(xm1_as,
-                 id_vars=['div', 'season', 'team', 'date'],
-                 var_name='field',
-                 value_name='val').dropna()
-
-xm1_as_ed = norm_factor(data=xm1_as, neutralise=True)
-xm1_as_cf = xm1_as_ed.groupby(['div', 'season', 'team', 'date'])['val'].mean().reset_index()
-xm1_as_cf['field'] = "attack_strength"
-xm1_as_ed = pd.concat([xm1_as_ed, xm1_as_cf], axis=0, sort=True)
-
-# - defence strength
-xm1_ds = xm1.loc[:, ['div', 'season', 'team', 'date', f0['shots'][1], f0['target'][1], f0['wood'][1], f0['corners'][1]]]
-xm1_ds = pd.melt(xm1_ds,
-                 id_vars=['div', 'season', 'team', 'date'],
-                 var_name='field',
-                 value_name='val').dropna()
-
-xm1_ds_ed = norm_factor(data=xm1_ds, neutralise=True)
-xm1_ds_cf = xm1_ds_ed.groupby(['div', 'season', 'team', 'date'])['val'].mean().reset_index()
-xm1_ds_cf['field'] = "defense_strength"
-xm1_ds_ed = pd.concat([xm1_ds_ed, xm1_ds_cf], axis=0, sort=True)
+fsb.query("div=='E0' & season==2019 & date=='2020-07-26' & team=='chelsea'")
+fsb.query("div=='E0' & season==2020 & date=='2020-09-14' & team=='chelsea'")
+fsb.query("div=='E0' & season==2020 & date=='2020-09-12' & team=='liverpool'")
 
 
-xm1_as_ed.query("div=='E0' & season==2020 & date=='2020-09-12' & field == 'attack_strength'")
-
-xm1 = xm1.set_index('date')
-xm1.sort_values('date').groupby(['team'])[['g_scored', 'g_received']]. \
-        rolling(k, min_periods=1).sum().reset_index()
-
-at = xm1.query("div=='E0' & season==2020 & date=='2020-09-12'")
-xm1.query("div=='E0'")
 
 
 
