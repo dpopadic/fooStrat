@@ -1424,7 +1424,7 @@ def con_res_wd(data, field, encoding=True):
 
 
 
-def con_res(data, obj, field):
+def con_res(data, obj):
     """Constructs results objects that are required for testing.
 
     Parameters:
@@ -1451,6 +1451,44 @@ def con_res(data, obj, field):
     res = {'wdl': wdl, 'gd': gd}
 
     return res
+
+
+def eval_feature(data, results, feature):
+    """Evaluate the efficacy of a feature.
+
+    Parameters:
+    -----------
+        data:       pd dataframe
+                    signals for each team with columns season, div, date, team, field, val
+        feature:    str
+                    feature to evaluate:
+                        goal_superiority
+
+    """
+
+    # calculate buckets
+    df = comp_bucket(data=data.query('field==@feature'), bucket_method='first', bucket=5)
+
+    # retrieve relevant results to test against
+    rc = results['wdl'].query('field=="win"').drop('field', axis=1)
+
+    # compute the hit ratio by bucket for the factor
+    edge_1 = comp_edge(factor_data=df, results=rc, byf=['overall', 'div'])
+    edge_2 = comp_edge(factor_data=df, results=rc, byf=['season'])
+
+    # compute IC's
+    ic = info_coef(data=df, results=results['gd'], byf=['div', 'season'])
+
+    # summary
+    edge_res = np.abs(edge_1.query("field == 'overall' & bucket in [1, 5]")['val'].diff().values[1])
+    ic_avg = ic['val'].mean()
+    smry = {'edge_residual': edge_res, 'ic': ic_avg}
+
+    # evaluation objects
+    res = {'edge_div': edge_1, 'edge_season': edge_2, 'ic': ic, 'summary': smry}
+
+    return res
+
 
 
 def con_mod_datset_0(scores, results):

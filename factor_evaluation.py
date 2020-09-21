@@ -1,7 +1,7 @@
 # STRATEGY TESTING ----------------------------------------------------------------------------------------------------
 import pandas as pd
 import numpy as np
-from foostrat_utils import con_res, comp_pnl, comp_edge, comp_bucket, info_coef, est_prob
+from foostrat_utils import con_res, comp_pnl, est_prob, eval_feature
 import charut as cu
 # next: transform this score to a probability, 1st via constructing a z-score
 # does the factor work as hypothesized?
@@ -25,38 +25,8 @@ res_obj = con_res(data=source_core, obj=['wdl', 'gd'])
 
 # 1) goal superiority signal -----
 # Q: Is the hit ratio higher for teams that have a higher gsf score?
-# get factor scores
-fm = flib['field'].unique()[0]
 
-# calculate buckets
-data_gsf = comp_bucket(data=flib.query('field==@fm'), bucket_method='first', bucket=5)
-
-# retrieve relevant results to test against
-res_custom = res_obj['wd'].query('field=="win"').drop('field', axis=1)
-
-# compute the hit ratio by bucket for the factor
-gsf_edge = comp_edge(factor_data=data_gsf, results=res_custom, byf=['overall', 'div'])
-gsf_edge2 = comp_edge(factor_data=data_gsf, results=res_custom, byf=['season'])
-# compute IC's
-gsf_ic = info_coef(data=data_gsf, results=res_obj['gd'], byf=['div', 'season'])
-
-# desired output: edge_div, edge_year, ic, summary
-
-def eval_feature(data, feature):
-    """Evaluate the efficacy of a feature.
-
-    Parameters:
-    -----------
-        data:       pd dataframe
-                    signals for each team with columns season, div, date, team, field, val
-        feature:    str
-                    feature to evaluate:
-                        goal_superiority
-
-    """
-
-
-
+fe = eval_feature(data=flib, results=res_obj, feature="goal_superiority")
 
 
 
