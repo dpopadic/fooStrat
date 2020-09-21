@@ -1,8 +1,7 @@
 # STRATEGY TESTING ----------------------------------------------------------------------------------------------------
 import pandas as pd
 import numpy as np
-from foostrat_utils import con_res, comp_pnl, comp_edge, comp_bucket, info_coef, est_prob, \
-    comp_mispriced, con_res_wd, con_mod_datset,con_est_dates
+from foostrat_utils import con_res, comp_pnl, comp_edge, comp_bucket, info_coef, est_prob
 import charut as cu
 # next: transform this score to a probability, 1st via constructing a z-score
 # does the factor work as hypothesized?
@@ -19,7 +18,7 @@ import charut as cu
 # DATA PREPARATIONS ---------------------------------------------------------------------------------------------------
 # load all required data
 source_core = pd.read_pickle('pro_data/source_core.pkl')
-factor_library = pd.read_pickle('pro_data/flib_e0.pkl')
+flib = pd.read_pickle('pro_data/flib_e0.pkl')
 match_odds = pd.read_pickle('pro_data/match_odds.pkl')
 game_day = pd.read_pickle('pro_data/game_day.pkl')
 
@@ -28,18 +27,22 @@ game_day = pd.read_pickle('pro_data/game_day.pkl')
 res_wd = con_res(data=source_core, obj='wdl', field='FTR')
 # goals
 res_gd = con_res(data=source_core, obj='gd', field=['FTHG', 'FTAG'])
-
+res_gd.query("div=='E0' & season==2020")
+source_core.query("div=='E0' & season==2020 & field in ['FTHG', 'FTAG']")
+data_gsf.query("div=='E0' & season==2020")
 
 # SIGNAL EFFICACY -----------------------------------------------------------------------------------------------------
 
 # 1) goal superiority signal -----
 # Q: Is the hit ratio higher for teams that have a higher gsf score?
 # get factor scores
-fm = factor_library['field'].unique()[9]
+fm = flib['field'].unique()[2]
 
-data_gsf = factor_library.query('field==@fm')
+
+
+
 # calculate buckets
-data_gsf = comp_bucket(data_gsf, bucket_method='first', bucket=5)
+data_gsf = comp_bucket(data=flib.query('field==@fm'), bucket_method='first', bucket=5)
 # retrieve relevant results to test against
 res_custom = res_wd.query('field=="win"').drop('field', axis=1)
 
@@ -48,6 +51,8 @@ gsf_edge = comp_edge(factor_data=data_gsf, results=res_custom, byf=['overall', '
 gsf_edge2 = comp_edge(factor_data=data_gsf, results=res_custom, byf=['season'])
 # compute IC's
 gsf_ic = info_coef(data=data_gsf, results=res_gd, byf=['div', 'season'])
+
+
 # compute probability & evaluate
 gsf_proba, gsf_evaly = est_prob(scores=data_gsf, result=res_custom, field = fm)
 
@@ -70,7 +75,7 @@ cu.plt_tsline(data=gsf_pnl.loc[:,['date', 'payoff_cum']],
 
 # 2) home advantage signal -----
 # Q: Do teams that play at home win more often than when they play away?
-data_ha = factor_library.query('field=="home"')
+data_ha = flib.query('field=="home"')
 data_ha.rename(columns={'val': 'bucket'}, inplace=True)
 res_custom = res_wd.query('field=="win"').drop('field', axis=1)
 # compute the hit ratio for home-away
@@ -105,7 +110,7 @@ O = match_odds.query('field == "odds_win"')
 gsf_pnl = comp_pnl(positions=P, odds=O, results=results, event='win', stake=10)
 
 # factor: max factor for every day played..
-positions = factor_library.loc[factor_library.groupby(['div', 'season', 'date', 'field'])['val'].idxmax()].reset_index(drop=True)
+positions = flib.loc[flib.groupby(['div', 'season', 'date', 'field'])['val'].idxmax()].reset_index(drop=True)
 positions = positions.loc[:,['div', 'season', 'date', 'team']]
 # retrieve the right odds..
 odds = match_odds.query('field == "odds_win"')

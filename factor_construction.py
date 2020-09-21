@@ -50,13 +50,13 @@ frb = norm_factor(data=frb)
 
 # attack strength factors ---------------------------------------------------------------------------------------------
 # note: normalisation performed internally
-fsb = feat_strength(data = source_core, k=5)
+fstre = feat_strength(data = source_core, k=5)
 
 
 
-fsb.query("div=='E0' & season==2019 & date=='2020-07-26' & team=='chelsea'")
-fsb.query("div=='E0' & season==2020 & date=='2020-09-14' & team=='chelsea'")
-fsb.query("div=='E0' & season==2020 & date=='2020-09-12' & team=='liverpool'")
+fstre.query("div=='E0' & season==2019 & date=='2020-07-26' & team=='chelsea'")
+fstre.query("div=='E0' & season==2020 & date=='2020-09-14' & team=='chelsea'")
+fstre.query("div=='E0' & season==2020 & date=='2020-09-12' & team=='liverpool'")
 
 
 
@@ -74,6 +74,7 @@ hf = fhome(data=source_core)
 fsb.field.unique()
 delete_flib(field=["points_advantage", "rank_position"])
 
+update_flib(data=[fsb], update=True)
 update_flib(data=[fgb, frb, fsb, hf], update=False)
 
 # verify..

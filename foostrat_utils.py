@@ -1024,8 +1024,8 @@ def feat_strength(data, k):
 
     # rolling average over n periods
     xm1 = xm1.sort_values('date').reset_index(drop=True)
-    xm2 = xm1.groupby(['team'])[list(chain(*f0.values()))].rolling(3, min_periods=1).mean().reset_index(drop=True)
-    xm2 = pd.concat([xm1[['div', 'season', 'team', 'date']], xm2], axis=1)
+    xm2 = xm1.groupby(['team'])[list(chain(*fm.values()))].rolling(3, min_periods=1).mean().reset_index(drop=True)
+    xm2 = pd.concat([xm1[['div', 'season', 'team', 'date']], xm2], axis=1, sort=True)
 
     # calculate cross-sectional z-score for attack & defense strength
     # - attack strength
@@ -1063,7 +1063,7 @@ def feat_strength(data, k):
     xm2_edc['field'] = "atadef_composite"
 
     # get all together
-    tmp = pd.concat([xm2_ed, xm2_edc], axis=0)
+    tmp = pd.concat([xm2_ed, xm2_edc], axis=0, sort=True)
 
     # lag factor
     tmp_lag = tmp.sort_values(['team', 'date']).reset_index(drop=True)
@@ -1783,6 +1783,11 @@ def comp_edge(factor_data, results, byf=['overall']):
                 3.0   0.353865  Argentina Superliga
                 4.0   0.392473  Argentina Superliga
                 5.0   0.440255  Argentina Superliga
+
+    Details:
+    --------
+        Note that factor_data is assumed to be lagged so that there is no lookahead bias.
+
     """
 
     # rename
@@ -1844,6 +1849,10 @@ def info_coef(data, results, byf=None):
     """
     R = results.rename(columns={'val': 'gd'}).copy()
     A = pd.merge(R, data, on=['div', 'season', 'team', 'date'], how='left')
+    # R.query("div=='E0' & season==2020")
+    # aa=data.query("div=='E0' & season==2020")
+    # R.dtypes
+    # data.dtypes
     # overall
     # r0 = A["gd"].corr(A["val"], method='spearman')
     # r0 = pd.DataFrame({'field': 'overall', 'val': [r0]})
