@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 from scipy.stats import zscore
 import os
+import glob
 from itertools import chain
 from sklearn.metrics import confusion_matrix
 from sklearn.linear_model import LogisticRegression
@@ -528,6 +529,30 @@ def delete_flib(field, path='pro_data/'):
         res.to_pickle(files[i])
 
     print("Factor library is updated.")
+
+
+def consol_flib():
+    """Consolidate all feature libraries.
+
+    Details:
+    --------
+        Note that factor libraries are assumed to be stored as flib_-prefix.
+
+    """
+    # read relevant files
+    l = []
+    for p in glob.glob('pro_data/flib_*'):
+        if p != 'pro_data/flib.pkl':
+            l.append(p)
+
+    res = pd.concat([pd.read_pickle(i) for i in l], axis=0, sort=False)
+    res.reset_index(drop=True, inplace=True)
+    res.to_pickle("pro_data/flib.pkl")
+
+    print("Factor library is consolidated.")
+
+
+
 
 
 # FACTOR CONSTRUCTION ------------------------------------------------------------------
@@ -1405,9 +1430,9 @@ def con_res(data, obj, field):
     Parameters:
     -----------
         data (dataframe):       a dataframe with columns season, date, div, home_team, away_team, field, val
-        obj (string):           the object to construct:
+        obj (string/list):      the object(s) to construct:
                                     gd:     goals difference by game
-                                    wdl:     win or draw by game
+                                    wdl:     win or draw by game (binary 0/1 if won, drew or lost for each team)
         field (list or string): a string that defines the event for the object (eg. 'FTR' when wd or
                                 ['FTHG', 'FTAG'] when gd)
 
@@ -1416,13 +1441,14 @@ def con_res(data, obj, field):
         A dataframe with the results in optimal shape.
 
     """
+    wdl = gd = None
+    if "wdl" in obj:
+        wdl = con_res_wd(data=data, field='FTR')
 
-    if obj == "wdl":
-        if type(field) is list:
-            field = field[0]
-        res = con_res_wd(data=data, field=field)
-    elif obj == "gd":
-        res = con_res_gd(data=data, field=field)
+    if "gd" in obj:
+        gd = con_res_gd(data=data, field=['FTHG', 'FTAG'])
+
+    res = {'wdl': wdl, 'gd': gd}
 
     return res
 
@@ -1847,21 +1873,19 @@ def info_coef(data, results, byf=None):
         4    Argentina Superliga    2016  0.136653
 
     """
-    R = results.rename(columns={'val': 'gd'}).copy()
-    A = pd.merge(R, data, on=['div', 'season', 'team', 'date'], how='left')
-    # R.query("div=='E0' & season==2020")
-    # aa=data.query("div=='E0' & season==2020")
-    # R.dtypes
-    # data.dtypes
+    rd = results.rename(columns={'val': 'gd'}).copy()
+    ad = pd.merge(rd, data, on=['div', 'season', 'team', 'date'], how='left')
+    ad = ad.dropna().reset_index(drop=True)
+
     # overall
     # r0 = A["gd"].corr(A["val"], method='spearman')
     # r0 = pd.DataFrame({'field': 'overall', 'val': [r0]})
     # res = pd.concat([r0, r1], axis=0, ignore_index=True)
 
     # by group
-    r1 = A.groupby(byf)["gd"].corr(A["val"], method='spearman').reset_index()
-    r1.rename(columns={'gd': 'val'}, inplace=True)
-    return r1
+    ic = ad.groupby(byf)["gd"].corr(ad["val"], method='spearman').reset_index()
+    ic.rename(columns={'gd': 'val'}, inplace=True)
+    return ic
 
 
 

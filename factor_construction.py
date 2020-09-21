@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 from foostrat_utils import fhome, odds_fields, fodds, expand_field, \
     comp_score, update_flib, norm_factor, feat_goalbased, feat_resbased, \
-    comp_league_standing, feat_stanbased, delete_flib, con_gameday, feat_strength
+    comp_league_standing, feat_stanbased, delete_flib, con_gameday, feat_strength, consol_flib
 
 # load source data..
 source_core = pd.read_pickle('pro_data/source_core.pkl')
@@ -52,8 +52,6 @@ frb = norm_factor(data=frb)
 # note: normalisation performed internally
 fstre = feat_strength(data = source_core, k=5)
 
-
-
 fstre.query("div=='E0' & season==2019 & date=='2020-07-26' & team=='chelsea'")
 fstre.query("div=='E0' & season==2020 & date=='2020-09-14' & team=='chelsea'")
 fstre.query("div=='E0' & season==2020 & date=='2020-09-12' & team=='liverpool'")
@@ -75,12 +73,16 @@ fsb.field.unique()
 delete_flib(field=["points_advantage", "rank_position"])
 
 update_flib(data=[fsb], update=True)
-update_flib(data=[fgb, frb, fsb, hf], update=False)
+update_flib(data=[fgb, frb, fstre, fsb, hf], update=False)
+
+# consolidate for feature evaluation
+consol_flib()
+
 
 # verify..
-flib_x = pd.read_pickle('pro_data/flib_d1.pkl')
+flib_x = pd.read_pickle('pro_data/flib_e0.pkl')
 flib_x.field.unique()
-
+flib_x.query("div=='E0' & season==2020 & team=='liverpool' & date=='2020-09-12'")
 
 
 

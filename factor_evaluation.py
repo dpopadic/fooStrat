@@ -6,11 +6,6 @@ import charut as cu
 # next: transform this score to a probability, 1st via constructing a z-score
 # does the factor work as hypothesized?
 # what are fair odds?
-# next steps:
-# update process function
-# calculate IC
-# derive probabilities
-# calculate ic's (correlation between factor & goal difference in next game)
 # other approaches: find what kind of bets are the most mispriced
 # factors: 3y h2h, last 10 matches in all competitions, average goals, moment of goals
 # compute information coefficient (..lagged + odds/payoff required
@@ -18,39 +13,52 @@ import charut as cu
 # DATA PREPARATIONS ---------------------------------------------------------------------------------------------------
 # load all required data
 source_core = pd.read_pickle('pro_data/source_core.pkl')
-flib = pd.read_pickle('pro_data/flib_e0.pkl')
+flib = pd.read_pickle('pro_data/flib.pkl')
 match_odds = pd.read_pickle('pro_data/match_odds.pkl')
 game_day = pd.read_pickle('pro_data/game_day.pkl')
 
 # construct test objects
-# win-lose-draw
-res_wd = con_res(data=source_core, obj='wdl', field='FTR')
-# goals
-res_gd = con_res(data=source_core, obj='gd', field=['FTHG', 'FTAG'])
-res_gd.query("div=='E0' & season==2020")
-source_core.query("div=='E0' & season==2020 & field in ['FTHG', 'FTAG']")
-data_gsf.query("div=='E0' & season==2020")
+res_obj = con_res(data=source_core, obj=['wdl', 'gd'])
+
 
 # SIGNAL EFFICACY -----------------------------------------------------------------------------------------------------
 
 # 1) goal superiority signal -----
 # Q: Is the hit ratio higher for teams that have a higher gsf score?
 # get factor scores
-fm = flib['field'].unique()[2]
-
-
-
+fm = flib['field'].unique()[0]
 
 # calculate buckets
 data_gsf = comp_bucket(data=flib.query('field==@fm'), bucket_method='first', bucket=5)
+
 # retrieve relevant results to test against
-res_custom = res_wd.query('field=="win"').drop('field', axis=1)
+res_custom = res_obj['wd'].query('field=="win"').drop('field', axis=1)
 
 # compute the hit ratio by bucket for the factor
 gsf_edge = comp_edge(factor_data=data_gsf, results=res_custom, byf=['overall', 'div'])
 gsf_edge2 = comp_edge(factor_data=data_gsf, results=res_custom, byf=['season'])
 # compute IC's
-gsf_ic = info_coef(data=data_gsf, results=res_gd, byf=['div', 'season'])
+gsf_ic = info_coef(data=data_gsf, results=res_obj['gd'], byf=['div', 'season'])
+
+# desired output: edge_div, edge_year, ic, summary
+
+def eval_feature(data, feature):
+    """Evaluate the efficacy of a feature.
+
+    Parameters:
+    -----------
+        data:       pd dataframe
+                    signals for each team with columns season, div, date, team, field, val
+        feature:    str
+                    feature to evaluate:
+                        goal_superiority
+
+    """
+
+
+
+
+
 
 
 # compute probability & evaluate
@@ -67,17 +75,11 @@ gsf_proba, gsf_evaly = est_prob(scores=data_gsf, result=res_custom, field = fm)
 # create a scatterplot of resid vs implied & coloured pnl
 
 
-cu.plt_tsline(data=gsf_pnl.loc[:,['date', 'payoff_cum']],
-              title="P&L of Goal Superiority Factor",
-              subtitle="initial investment of 10$",
-              var_names={'payoff_cum':'val'})
-
-
 # 2) home advantage signal -----
 # Q: Do teams that play at home win more often than when they play away?
 data_ha = flib.query('field=="home"')
 data_ha.rename(columns={'val': 'bucket'}, inplace=True)
-res_custom = res_wd.query('field=="win"').drop('field', axis=1)
+res_custom = res_obj['wd'].query('field=="win"').drop('field', axis=1)
 # compute the hit ratio for home-away
 ha_edge = comp_edge(factor_data=data_ha, results=res_custom, byf=['overall', 'div'])
 f0 = ['E0', 'D1']
@@ -118,7 +120,10 @@ odds = match_odds.query('field == "odds_win"')
 pnl_strats = comp_pnl(positions=positions, odds=odds, results=results, event='win', stake=10)
 
 
-
+cu.plt_tsline(data=gsf_pnl.loc[:,['date', 'payoff_cum']],
+              title="P&L of Goal Superiority Factor",
+              subtitle="initial investment of 10$",
+              var_names={'payoff_cum':'val'})
 
 
 
