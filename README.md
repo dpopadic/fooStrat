@@ -2,7 +2,7 @@
 Statistical analysis and strategy development for football data
 
 <p align="center">
-  <img width="500" height="400" src="img/architecture.png">
+  <img width="500" height="400" src="meta/img/architecture.png">
 </p>
 
 
