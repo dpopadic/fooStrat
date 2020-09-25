@@ -1,4 +1,4 @@
-# FACTOR CALCULATION --------------------------------------------------------------------------------------------------
+# FACTOR COMPUTATION --------------------------------------------------------------------------------------------------
 import pandas as pd
 import numpy as np
 from foostrat_utils import fhome, odds_fields, fodds, expand_field, \
@@ -7,25 +7,6 @@ from foostrat_utils import fhome, odds_fields, fodds, expand_field, \
 
 # load source data..
 source_core = pd.read_pickle('pro_data/source_core.pkl')
-
-# FACTOR LIBRARY ------------------------------------------------------------------------------------------------------
-# note: all factors should be z-scores so it's easy to construct a composite signal if needed
-# next factors: points difference, last 3 games points, autocorrelation of outcomes by team,
-# head to head, chances (shots, wood hits, corner), volatility of odds (the bigger the better),
-# cheap (value, this might be implement at a later stage), game importance (top, bottom), clean sheets (no goal),
-# home-away strength, home-away, minutes per
-# goal scored, corners, possesion, shots, avg goals per match (scoring rate), league position, failed to score %,
-# points per game, scored both halves, conceded/won both halves, lost to nil, losing half-time & winning/draw full-time,
-# form (last 5), league
-
-# modelling:
-# - explanatory variables:  factor library for a given competition
-# - target variable:        win-draw-lose, >/< 2.5 goals, btts
-# .. this means there're 3 models for each competition
-# .. walk-forward model validation with 3 year initial window
-
-# it's important to do it by league 1st because of data issues that can be present (see Japan J1 League & kobe team)
-# see project factor library build-out fore more info on github
 
 # odds retrieval ------------------------------------------------------------------------------------------------------
 # store relevant odds
@@ -52,6 +33,7 @@ frb = norm_factor(data=frb)
 # note: normalisation performed internally
 fstre = feat_strength(data = source_core, k=5)
 
+# exploration
 fstre.query("div=='E0' & season==2019 & date=='2020-07-26' & team=='chelsea'")
 fstre.query("div=='E0' & season==2020 & date=='2020-09-14' & team=='chelsea'")
 fstre.query("div=='E0' & season==2020 & date=='2020-09-12' & team=='liverpool'")

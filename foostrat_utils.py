@@ -1454,7 +1454,13 @@ def con_res(data, obj):
 
 
 def eval_feature(data, results, feature):
-    """Evaluate the efficacy of a feature.
+    """Evaluate the efficacy of a feature. Returns a dictionary with:
+        edge by division
+        edge by season
+        information coefficients
+        summary statistics
+            edge residual:  top bucket edge - bottom bucket edge
+            ic:             average ic
 
     Parameters:
     -----------
@@ -1473,15 +1479,15 @@ def eval_feature(data, results, feature):
     rc = results['wdl'].query('field=="win"').drop('field', axis=1)
 
     # compute the hit ratio by bucket for the factor
-    edge_1 = comp_edge(factor_data=df, results=rc, byf=['overall', 'div'])
-    edge_2 = comp_edge(factor_data=df, results=rc, byf=['season'])
+    edge_1 = np.round(comp_edge(factor_data=df, results=rc, byf=['overall', 'div']), 3)
+    edge_2 = np.round(comp_edge(factor_data=df, results=rc, byf=['season']))
 
     # compute IC's
-    ic = info_coef(data=df, results=results['gd'], byf=['div', 'season'])
+    ic = np.round(info_coef(data=df, results=results['gd'], byf=['div', 'season']), 3)
 
     # summary
-    edge_res = np.abs(edge_1.query("field == 'overall' & bucket in [1, 5]")['val'].diff().values[1])
-    ic_avg = ic['val'].mean()
+    edge_res = np.round(np.abs(edge_1.query("field == 'overall' & bucket in [1, 5]")['val'].diff().values[1]), 3)
+    ic_avg = np.round(ic['val'].mean(), 3)
     smry = {'edge_residual': edge_res, 'ic': ic_avg}
 
     # evaluation objects
