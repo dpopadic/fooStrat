@@ -1,4 +1,4 @@
 # ignore folder named data..
 venv/
-pro_data/
-src_data/
+data/pro_data/
+data/src_data/

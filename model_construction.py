@@ -12,10 +12,10 @@ from sklearn.metrics import roc_auc_score
 from foostrat_utils import con_res, con_res_wd, con_est_dates, con_mod_datset_0, \
     con_mod_datset_1, comp_mispriced, comp_pnl, est_hist_prob_rf
 
-factor_library = pd.read_pickle('pro_data/flib_e0.pkl')
-source_core = pd.read_pickle('pro_data/source_core.pkl')
-match_odds = pd.read_pickle('pro_data/match_odds.pkl')
-game_day = pd.read_pickle('pro_data/game_day.pkl')
+factor_library = pd.read_pickle('data/pro_data/flib_e0.pkl')
+source_core = pd.read_pickle('data/pro_data/source_core.pkl')
+match_odds = pd.read_pickle('data/pro_data/match_odds.pkl')
+game_day = pd.read_pickle('data/pro_data/game_day.pkl')
 
 # datasets for evaluation
 results = con_res_wd(data=source_core, field=['FTR'], encoding=False)

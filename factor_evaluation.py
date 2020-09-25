@@ -6,10 +6,10 @@ from foostrat_utils import con_res, comp_pnl, est_prob, eval_feature
 
 # DATA PREPARATIONS ---------------------------------------------------------------------------------------------------
 # load all required data
-source_core = pd.read_pickle('pro_data/source_core.pkl')
-flib = pd.read_pickle('pro_data/flib.pkl')
-match_odds = pd.read_pickle('pro_data/match_odds.pkl')
-game_day = pd.read_pickle('pro_data/game_day.pkl')
+source_core = pd.read_pickle('data/pro_data/source_core.pkl')
+flib = pd.read_pickle('data/pro_data/flib.pkl')
+match_odds = pd.read_pickle('data/pro_data/match_odds.pkl')
+game_day = pd.read_pickle('data/pro_data/game_day.pkl')
 res_obj = con_res(data=source_core, obj=['wdl', 'gd'])
 
 

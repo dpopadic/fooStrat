@@ -6,7 +6,7 @@ from foostrat_utils import fhome, odds_fields, fodds, expand_field, \
     comp_league_standing, feat_stanbased, delete_flib, con_gameday, feat_strength, consol_flib
 
 # load source data..
-source_core = pd.read_pickle('pro_data/source_core.pkl')
+source_core = pd.read_pickle('data/pro_data/source_core.pkl')
 
 # odds retrieval ------------------------------------------------------------------------------------------------------
 # store relevant odds
@@ -14,11 +14,11 @@ match_odds = fodds(data=source_core,
                    field_home=list(odds_fields.get('odds_home_win')),
                    field_away=list(odds_fields.get('odds_away_win')),
                    field_draw=list(odds_fields.get('odds_draw_win')))
-match_odds.to_pickle('./pro_data/match_odds.pkl')
+match_odds.to_pickle('./data/pro_data/match_odds.pkl')
 
 # game day dataset
 game_day = con_gameday(data=source_core)
-game_day.to_pickle('./pro_data/game_day.pkl')
+game_day.to_pickle('./data/pro_data/game_day.pkl')
 
 
 # goal based factors --------------------------------------------------------------------------------------------------
@@ -62,7 +62,7 @@ consol_flib()
 
 
 # verify..
-flib_x = pd.read_pickle('pro_data/flib_e0.pkl')
+flib_x = pd.read_pickle('data/pro_data/flib_e0.pkl')
 flib_x.field.unique()
 flib_x.query("div=='E0' & season==2020 & team=='liverpool' & date=='2020-09-12'")
 

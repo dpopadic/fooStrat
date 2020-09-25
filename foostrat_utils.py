@@ -161,12 +161,12 @@ def process_data_major(fi_nm, extra_key, key_cols, key_cols_map):
 
     Example:
     --------
-    fi_nm = ['src_data/all-euro-data-2017-2018.xlsx', 'src_data/all-euro-data-1999-2000.xls']
+    fi_nm = ['data/src_data/all-euro-data-2017-2018.xlsx', 'data/src_data/all-euro-data-1999-2000.xls']
     extra_key = pd.DataFrame({'fi_nm':fi_nm, 'season':[i[23:32] for i in fi_nm]})
     print(extra_key)
-                                       fi_nm     season
-    0  src_data/all-euro-data-2017-2018.xlsx  2017-2018
-    1   src_data/all-euro-data-1999-2000.xls  1999-2000
+                                       fi_nm        season
+    0  data/src_data/all-euro-data-2017-2018.xlsx  2017-2018
+    1  data/src_data/all-euro-data-1999-2000.xls   1999-2000
 
     df = process_data_major(fi_nm, extra_key,
                                     key_cols = {'Div': 'div',
@@ -397,7 +397,7 @@ def update_data_latest(ex, new_1, new_2, season, path):
                     on=['div', 'season', 'date', 'home_team', 'away_team', 'field', 'val'],
                     how='outer')
     # store
-    data.to_pickle('./pro_data/source_core.pkl')
+    data.to_pickle('./data/pro_data/source_core.pkl')
     print("Source Data has been updated.")
 
 
@@ -412,7 +412,7 @@ def update_data_historic(path, file_desc, file_key, file_key_name, file_desc_2, 
                             for files that have the same structure:
                             'all-euro-data-2002-2003.xls', 'all-euro-data-2017-2018.xlsx')
         file_key (list): the range of the file name that will be used as key to describe from which file the
-                         data came from. For example, in  'src_data/all-euro-data-1993-1994.xls' 1993-1994 will
+                         data came from. For example, in  'data/src_data/all-euro-data-1993-1994.xls' 1993-1994 will
                          be used as key and file_key = [23, 32]
         file_key_name (string): a string with the column name of file_key in the resulting dataframe (eg. 'season')
         file_desc_2 (string): a string for an additional file that has the same structure as the files in file_desc
@@ -455,19 +455,19 @@ def update_data_historic(path, file_desc, file_key, file_key_name, file_desc_2, 
     # data synchronisation: renaming fields so that they have the same names to make it easier
     # to process the data later in a concise way..
     data_prc = synchronise_data(data=data_prc)
-    data_prc.to_pickle('./pro_data/source_core.pkl')
+    data_prc.to_pickle('./data/pro_data/source_core.pkl')
     print("Source Data History has been updated.")
 
 
 
-def update_flib(data, dir='./pro_data/', update = True):
+def update_flib(data, dir='./data/pro_data/', update = True):
     """Builds or updates the factor library.
 
     Parameters:
     -----------
         data:   list
                 a list of pandas dataframe's with factors across leagues
-        dir:    str, default pro_data
+        dir:    str, default data/pro_data
                 a directory where to store the factor library
         update: boolean, default True
                 Whether to update or create new factor library
@@ -508,14 +508,14 @@ def update_flib(data, dir='./pro_data/', update = True):
 
 
 
-def delete_flib(field, path='pro_data/'):
+def delete_flib(field, path='data/pro_data/'):
     """Delete fields from the factor library.
 
     Parameters:
     -----------
         field:  str
                 the field(s) to be deleted from the factor library
-        dir:    str, default pro_data
+        dir:    str, default data/pro_data
                 a directory where to store the factor library
 
     """
@@ -542,12 +542,12 @@ def consol_flib():
     # read relevant files
     l = []
     for p in glob.glob('pro_data/flib_*'):
-        if p != 'pro_data/flib.pkl':
+        if p != 'data/pro_data/flib.pkl':
             l.append(p)
 
     res = pd.concat([pd.read_pickle(i) for i in l], axis=0, sort=False)
     res.reset_index(drop=True, inplace=True)
-    res.to_pickle("pro_data/flib.pkl")
+    res.to_pickle("data/pro_data/flib.pkl")
 
     print("Factor library is consolidated.")
 

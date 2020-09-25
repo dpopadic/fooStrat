@@ -9,7 +9,7 @@ import os
 from foostrat_utils import update_data_latest, update_data_historic
 
 # history update ------------------------------------------------------
-update_data_historic(path='src_data/',
+update_data_historic(path='data/src_data/',
                      file_desc='all-euro-data',
                      file_key=[23, 32],
                      file_key_name='season',
@@ -19,17 +19,17 @@ update_data_historic(path='src_data/',
 
 # latest update ------------------------------------------------------
 # read existing
-source_core = pd.read_pickle('pro_data/source_core.pkl')
+source_core = pd.read_pickle('data/pro_data/source_core.pkl')
 # update data
 update_data_latest(ex=source_core,
                    new_1='latest_results_major.xlsx',
                    new_2='latest_results_minor.xlsx',
                    season='2020-2021',
-                   path='src_data/')
+                   path='data/src_data/')
 
 # meta data ----------------------------------------------------------
 leagues_map = pd.DataFrame(source_core.loc[:, 'div'].unique(), columns={'div'})
-leagues_map.to_pickle('src_data/leagues_map.pkl')
+leagues_map.to_pickle('data/src_data/leagues_map.pkl')
 
 
 
