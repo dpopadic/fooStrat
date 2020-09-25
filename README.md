@@ -1,4 +1,4 @@
-# fooStrat <img src="img/logo.png" align="right" height=140/>
+# fooStrat <img src="meta/img/logo.png" align="right" height=140/>
 Statistical analysis and strategy development for football data
 
 <p align="center">
