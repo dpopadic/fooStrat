@@ -2025,7 +2025,7 @@ competition = {'E0':'England Premier League',
                'Switzerland Super League':'Switzerland Super League',
                'USA MLS':'USA MLS'}
 # ml_map = pd.DataFrame(list(competition.items()), columns=['Div', 'Competition'])
-ml_map = pd.read_csv('mapping/leagues.csv', encoding = "ISO-8859-1", delimiter=";")
+ml_map = pd.read_csv('./data/mapping/leagues.csv', encoding = "ISO-8859-1", delimiter=";")
 
 
 # odds mapping
