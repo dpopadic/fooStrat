@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 import os
 import glob
+from fooStrat.helpers import anti_join
 
 def ret_xl_cols(file_names, id_col):
     """Returns all available columns across all tabs and multiple excel files.

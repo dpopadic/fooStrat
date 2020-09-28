@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-
+import fooStrat.servicers as fose
 
 def eval_feature(data, results, feature):
     """Evaluate the efficacy of a feature. Returns a dictionary with:
@@ -22,7 +22,7 @@ def eval_feature(data, results, feature):
     """
 
     # calculate buckets
-    df = comp_bucket(data=data.query('field==@feature'), bucket_method='first', bucket=5)
+    df = fose.comp_bucket(data=data.query('field==@feature'), bucket_method='first', bucket=5)
 
     # retrieve relevant results to test against
     rc = results['wdl'].query('field=="win"').drop('field', axis=1)
@@ -71,7 +71,7 @@ def con_res_gd(data, field):
     """
     # neutralise field for teams
     field_name = ['g_scored', 'g_received']
-    nf0 = neutralise_field(data=data, field=field, field_name=field_name, field_numeric=True, column_field=True)
+    nf0 = fose.neutralise_field(data=data, field=field, field_name=field_name, field_numeric=True, column_field=True)
     nf0['val'] = nf0[field_name[0]] - nf0[field_name[1]]
     del nf0[field_name[0]]
     del nf0[field_name[1]]

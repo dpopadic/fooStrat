@@ -2,6 +2,8 @@ import pandas as pd
 import numpy as np
 from sklearn.metrics import confusion_matrix
 from sklearn.linear_model import LogisticRegression
+from fooStrat.helpers import class_accuracy_stats
+import fooStrat.servicers as fose
 
 
 def est_prob(scores, result, field):
@@ -72,11 +74,11 @@ def fodds(data, field_home, field_away, field_draw):
 
     # get the highest odds for each event type
     # -- win odds
-    moh = max_event_odds_asym(data, field = field_home, team = 'home_team', new_field = 'odds_win')
-    moa = max_event_odds_asym(data, field = field_away, team = 'away_team', new_field = 'odds_win')
+    moh = fose.max_event_odds_asym(data, field = field_home, team = 'home_team', new_field = 'odds_win')
+    moa = fose.max_event_odds_asym(data, field = field_away, team = 'away_team', new_field = 'odds_win')
 
     # -- draw odds
-    mod = max_event_odds_sym(data, field = field_draw, new_field = 'odds_draw')
+    mod = fose.max_event_odds_sym(data, field = field_draw, new_field = 'odds_draw')
 
     # bind all together
     moc = pd.concat([moh, moa, mod], axis=0, sort=False, ignore_index=True)
