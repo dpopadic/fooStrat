@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 from scipy.stats import zscore
-
+from fooStrat.helpers import jitter
 
 def comp_league_standing(data,
                          season=None,

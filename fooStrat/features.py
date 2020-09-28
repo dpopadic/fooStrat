@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 from scipy.stats import zscore
 from itertools import chain
-
+import fooStrat.servicers as fose
 
 def fhome(data):
     """
@@ -66,11 +66,11 @@ def feat_goalbased(data, k):
 
     """
     # neutralise data..
-    data_goals_co = neutralise_field(data,
-                                     field=['FTHG', 'FTAG'],
-                                     field_name=['g_scored', 'g_received'],
-                                     field_numeric=True,
-                                     column_field=True)
+    data_goals_co = fose.neutralise_field(data,
+                                          field=['FTHG', 'FTAG'],
+                                          field_name=['g_scored', 'g_received'],
+                                          field_numeric=True,
+                                          column_field=True)
 
     # compute stat..
     data_goals_co_i = data_goals_co.set_index('date')
@@ -114,8 +114,8 @@ def feat_goalbased(data, k):
     data_fct['val'] = data_fct.groupby(['team', 'field'])['val'].shift(1)
 
     # identify promoted/demoted teams & neutralise score for them..
-    team_chng = newcomers(data=data_fct)
-    res = neutralise_scores(data=data_fct, teams=team_chng, n=k - 1)
+    team_chng = fose.newcomers(data=data_fct)
+    res = fose.neutralise_scores(data=data_fct, teams=team_chng, n=k - 1)
     # check: a = res.query("div=='E0' & season=='2019' & team=='sheffield_united'").sort_values(['date'])
     # res['val'] = res.groupby(['div', 'season', 'team', 'field'])['val'].shift(1)
     # res.dropna(inplace=True)
@@ -149,11 +149,11 @@ def fgoalsup(data, field, field_name, k):
 
     """
     # neutralise data..
-    data_goals_co = neutralise_field(data,
-                                     field=field,
-                                     field_name=field_name,
-                                     field_numeric=True,
-                                     column_field=True)
+    data_goals_co = fose.neutralise_field(data,
+                                          field=field,
+                                          field_name=field_name,
+                                          field_numeric=True,
+                                          column_field=True)
 
     # compute stat..
     data_goals_co_i = data_goals_co.set_index('date')
@@ -171,8 +171,8 @@ def fgoalsup(data, field, field_name, k):
     data_fct['val'] = data_fct.groupby(['team', 'field'])['val'].shift(1)
 
     # identify promoted/demoted teams & neutralise score for them..
-    team_chng = newcomers(data=data_fct)
-    res = neutralise_scores(data=data_fct, teams=team_chng, n=k-1)
+    team_chng = fose.newcomers(data=data_fct)
+    res = fose.neutralise_scores(data=data_fct, teams=team_chng, n=k-1)
     # check: res.query("div=='E0' & season=='2019' & team=='sheffield_united'").sort_values(['date'])
     # res['val'] = res.groupby(['div', 'season', 'team', 'field'])['val'].shift(1)
     # res.dropna(inplace=True)
@@ -236,8 +236,8 @@ def fform(data, field, type, k=5):
     ha_fin = ha_fin.sort_values(['team', 'date']).reset_index(drop=True)
     ha_fin['val'] = ha_fin.groupby(['team', 'field'])['val'].shift(1)
     # neutralise for new entrants
-    team_chng = newcomers(data=ha_fin)
-    res = neutralise_scores(data=ha_fin, teams=team_chng, n=k-1)
+    team_chng = fose.newcomers(data=ha_fin)
+    res = fose.neutralise_scores(data=ha_fin, teams=team_chng, n=k-1)
     return res
 
 
@@ -273,7 +273,7 @@ def feat_stanbased(data):
 
     df_0 = data[(data.field == 'FTR') | (data.field == 'FTHG') | (data.field == 'FTAG')]
     # compute rolling league standings
-    df_1 = comp_league_standing(data=df_0, home_goals='FTHG', away_goals='FTAG', result='FTR')
+    df_1 = fose.comp_league_standing(data=df_0, home_goals='FTHG', away_goals='FTAG', result='FTR')
     df_1.dtypes
 
     # points advantage
@@ -318,10 +318,10 @@ def feat_strength(data, k):
           'corners': ['corners_hit', 'corners_conceded']}
 
     # neutralise relevant fields
-    x0 = neutralise_field(data, field=['HS', 'AS'], field_name=fm['shots'], field_numeric=True, column_field=True)
-    x1 = neutralise_field(data, field=['HST', 'AST'], field_name=fm['target'], field_numeric=True, column_field=True)
-    x2 = neutralise_field(data, field=['HHW', 'AHW'], field_name=fm['wood'], field_numeric=True, column_field=True)
-    x3 = neutralise_field(data, field=['HC', 'AC'], field_name=fm['corners'], field_numeric=True, column_field=True)
+    x0 = fose.neutralise_field(data, field=['HS', 'AS'], field_name=fm['shots'], field_numeric=True, column_field=True)
+    x1 = fose.neutralise_field(data, field=['HST', 'AST'], field_name=fm['target'], field_numeric=True, column_field=True)
+    x2 = fose.neutralise_field(data, field=['HHW', 'AHW'], field_name=fm['wood'], field_numeric=True, column_field=True)
+    x3 = fose.neutralise_field(data, field=['HC', 'AC'], field_name=fm['corners'], field_numeric=True, column_field=True)
 
     # bring all features together
     xm1 = pd.merge(x0, x1, on=['div', 'season', 'date', 'team'], how='outer')
@@ -342,7 +342,7 @@ def feat_strength(data, k):
                      var_name='field',
                      value_name='val').dropna()
 
-    xm1_as_ed = norm_factor(data=xm1_as, neutralise=True)
+    xm1_as_ed = fose.norm_factor(data=xm1_as, neutralise=True)
     xm1_as_cf = xm1_as_ed.groupby(['div', 'season', 'team', 'date'])['val'].mean().reset_index()
     xm1_as_cf['field'] = "attack_strength"
     xm1_as_ed = pd.concat([xm1_as_ed, xm1_as_cf], axis=0, sort=True)
@@ -355,7 +355,7 @@ def feat_strength(data, k):
                      var_name='field',
                      value_name='val').dropna()
 
-    xm1_ds_ed = norm_factor(data=xm1_ds, neutralise=True)
+    xm1_ds_ed = fose.norm_factor(data=xm1_ds, neutralise=True)
     xm1_ds_cf = xm1_ds_ed.groupby(['div', 'season', 'team', 'date'])['val'].mean().reset_index()
     xm1_ds_cf['field'] = "defense_strength"
     xm1_ds_ed = pd.concat([xm1_ds_ed, xm1_ds_cf], axis=0, sort=True)
@@ -376,8 +376,8 @@ def feat_strength(data, k):
     tmp_lag['val'] = tmp_lag.groupby(['team', 'field'])['val'].shift(1)
 
     # neutralise for new entrants
-    team_chng = newcomers(data=tmp_lag)
-    res = neutralise_scores(data=tmp_lag, teams=team_chng, n=k - 1)
+    team_chng = fose.newcomers(data=tmp_lag)
+    res = fose.neutralise_scores(data=tmp_lag, teams=team_chng, n=k - 1)
     return res
 
 

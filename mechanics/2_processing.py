@@ -4,9 +4,8 @@
 # This script reads the necessary data files and processes them into the right shape. As of now,
 # two different data source formats are handled: major leagues, minor leagues
 import pandas as pd
-import numpy as np
-import os
-from foostrat_utils import update_data_latest, update_data_historic
+from fooStrat.processing import update_data_latest, update_data_historic
+
 
 # history update ------------------------------------------------------
 update_data_historic(path='data/src_data/',
