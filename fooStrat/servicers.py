@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 from scipy.stats import zscore
-from fooStrat.helpers import jitter
+from fooStrat.helpers import jitter, anti_join
 
 def comp_league_standing(data,
                          season=None,
@@ -394,6 +394,51 @@ def max_event_odds_sym(data, field, new_field):
     max_odds_da['field'] = new_field
     max_odds_draw = pd.concat([max_odds_dh, max_odds_da], axis=0, sort=False, ignore_index=True)
     return max_odds_draw
+
+
+
+
+def fodds(data, field_home, field_away, field_draw):
+    """Retrieves the maximum odds for every game and event in an easy to handle
+    and scalable long format.
+
+    Parameters:
+    -----------
+        data (dataframe): a dataframe with columns div, season, date, home_team, away_team, field, val
+        field_home (list): list of all odds-fields for home win
+        field_away (list): list of all odds-fields for away win
+        field_draw (list): list of all odds-fields for draw win
+
+    Returns:
+    --------
+        A dataframe with all processed data is returned with the following columns:
+        season | div | date | team | field | val
+
+    """
+
+    # get the highest odds for each event type
+    # -- win odds
+    moh = max_event_odds_asym(data, field = field_home, team = 'home_team', new_field = 'odds_win')
+    moa = max_event_odds_asym(data, field = field_away, team = 'away_team', new_field = 'odds_win')
+
+    # -- draw odds
+    mod = max_event_odds_sym(data, field = field_draw, new_field = 'odds_draw')
+
+    # bind all together
+    moc = pd.concat([moh, moa, mod], axis=0, sort=False, ignore_index=True)
+    moc = moc.sort_values(['date', 'div', 'season']).reset_index(level=0, drop=True)
+
+    # -- implied losing odds
+    moc_ed = moc.pivot_table(index=['season', 'div', 'date', 'team'],
+                             columns='field',
+                             values='val').reset_index()
+    moc_ed["odds_lose"] = 1 / (1 - (1 / moc_ed["odds_draw"] + 1 / moc_ed["odds_win"]))
+
+    res = pd.melt(moc_ed,
+                  id_vars=['div', 'season', 'date', 'team'],
+                  value_name="val")
+
+    return res
 
 
 
