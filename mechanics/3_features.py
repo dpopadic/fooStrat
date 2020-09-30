@@ -41,7 +41,15 @@ df_0 = data[(data.field == 'FTR') | (data.field == 'FTHG') | (data.field == 'FTA
 df_1 = ss.comp_league_standing(data=df_0, home_goals='FTHG', away_goals='FTAG', result='FTR')
 
 # approach: divide teams into 3 buckets based on previous season rank
+df_2 = df_1.groupby(['div', 'season']).apply(lambda x: x[x['date'] == x['date'].max()]).reset_index(drop=True)
+df_2['val'] = df_2.groupby(['div', 'season'])['rank'].transform(lambda x: pd.qcut(x, q=3, labels=range(1, 3 + 1), duplicates='drop'))
+df_2 = df_2[['div', 'season', 'date', 'team', 'val']]
+df_2['field'] = 'team_quality'
 
+a = df_2.query("div=='E0' & season=='2019'")
+
+
+df_2.query("div=='D1'")
 
 
 
