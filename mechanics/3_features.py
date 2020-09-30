@@ -34,6 +34,14 @@ fstre.query("div=='E0' & season==2020 & date=='2020-09-14' & team=='chelsea'")
 fstre.query("div=='E0' & season==2020 & date=='2020-09-12' & team=='liverpool'")
 
 
+# team clusters -------------------------------------------------------------------------------------------------------
+
+df_0 = data[(data.field == 'FTR') | (data.field == 'FTHG') | (data.field == 'FTAG')]
+# compute rolling league standings
+df_1 = ss.comp_league_standing(data=df_0, home_goals='FTHG', away_goals='FTAG', result='FTR')
+
+# approach: divide teams into 3 buckets based on previous season rank
+
 
 
 
