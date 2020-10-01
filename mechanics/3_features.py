@@ -42,11 +42,29 @@ df_1 = ss.comp_league_standing(data=df_0, home_goals='FTHG', away_goals='FTAG', 
 
 # approach: divide teams into 3 buckets based on previous season rank
 df_2 = df_1.groupby(['div', 'season']).apply(lambda x: x[x['date'] == x['date'].max()]).reset_index(drop=True)
-df_2['val'] = df_2.groupby(['div', 'season'])['rank'].transform(lambda x: pd.qcut(x, q=3, labels=range(1, 3 + 1), duplicates='drop'))
-df_2 = df_2[['div', 'season', 'date', 'team', 'val']]
-df_2['field'] = 'team_quality'
+df_3 = df_2.copy()
+df_3['val'] = df_3.groupby(['div', 'season'])['rank'].transform(lambda x: pd.qcut(x, q=3, labels=range(1, 3 + 1), duplicates='drop'))
+df_3 = df_3[['div', 'season', 'date', 'team', 'val']]
+df_3['field'] = 'team_quality'
 
-a = df_2.query("div=='E0' & season=='2019'")
+a = df_3.query("div=='E0' & season=='2019'")
+
+# autocorrelation last 5y
+df_2.groupby(['team'])['rank'].rolling(k=5, min_periods=1).apply(pd.Series.autocorr, lag=1)
+
+df_2['auto_correl'] = df_2.groupby(['team'])['rank'].rolling(5, min_periods=1).apply(lambda x: pd.Series(x).autocorr(lag=1))
+
+df_2['auto_correl'] = df_2.loc[df_2.groupby(['team'])['rank'].rolling(5, min_periods=1).apply(lambda x: pd.Series(x).autocorr(lag=1))]
+
+a = df_2.query("div=='E0'").reset_index(drop=True)
+a.groupby('team')['rank'].rolling(3, min_periods=1).apply(lambda x: pd.Series(x).autocorr(lag=1))
+
+
+
+
+
+
+
 
 
 df_2.query("div=='D1'")
