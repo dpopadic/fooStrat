@@ -57,10 +57,11 @@ df_2['auto_correl'] = df_2.groupby(['team'])['rank'].rolling(5, min_periods=1).a
 df_2['auto_correl'] = df_2.loc[df_2.groupby(['team'])['rank'].rolling(5, min_periods=1).apply(lambda x: pd.Series(x).autocorr(lag=1))]
 
 a = df_2.query("div=='E0'").reset_index(drop=True)
-a.groupby('team')['rank'].rolling(3, min_periods=1).apply(lambda x: pd.Series(x).autocorr(lag=1))
+b = a.groupby('team', as_index=False)['points'].rolling(window=5, min_periods=1).apply(lambda x: pd.Series(x).autocorr(lag=1))
+a['acf'] = b.reset_index(level=0, drop=True)
 
 
-
+a.query("team=='liverpool'").rolling(5)['points'].apply(lambda x: pd.Series(x).autocorr(lag=1))
 
 
 
