@@ -306,7 +306,7 @@ def feat_stanbased(data):
 
     # normalise
     date_univ = fose.con_date_univ(data=data)
-    res = expand_field(data=res, date_univ=date_univ)
+    res = fose.expand_field(data=res, date_univ=date_univ)
 
     return res
 
