@@ -276,7 +276,6 @@ def feat_stanbased(data):
     Details:
     --------
 
-
     """
 
     df_0 = data[(data.field == 'FTR') | (data.field == 'FTHG') | (data.field == 'FTAG')]
@@ -294,8 +293,9 @@ def feat_stanbased(data):
     tmp_2.rename(columns={'rank': 'val'}, inplace=True)
 
     # --- team quality cluster
+    tmp_3 = team_quality_cluster(data=df_1)
 
-    res = pd.concat([tmp_1, tmp_2],
+    res = pd.concat([tmp_1, tmp_2, tmp_3],
                     axis=0,
                     sort=False,
                     ignore_index=True)
@@ -304,7 +304,51 @@ def feat_stanbased(data):
     res = res.sort_values(['team', 'date']).reset_index(drop=True)
     res['val'] = res.groupby(['team', 'field'])['val'].shift(1)
 
+    # normalise
+    date_univ = fose.con_date_univ(data=data)
+    res = expand_field(data=res, date_univ=date_univ)
+
     return res
+
+
+def team_quality_cluster(data):
+    """Calculates the team quality cluster features.
+
+    Parameters:
+    -----------
+        data:   pandas dataframe
+                an object retrieved from comp_league_standing
+
+    Details:
+    --------
+        Note that these features are unusual in a sense that there is only a single
+        value for each team and season.
+
+    """
+
+    # last game of season
+    data_ed = data.groupby(['div', 'season']).apply(lambda x: x[x['date'] == x['date'].max()]).reset_index(drop=True)
+
+    # -- team quality cluster
+    tqual = data_ed.copy()
+    tqual['val'] = tqual.groupby(['div', 'season'])['rank']. \
+        transform(lambda x: pd.qcut(x, q=3, labels=range(1, 3 + 1), duplicates='drop'))
+    tqual = tqual[['div', 'season', 'date', 'team', 'val']]
+    tqual['field'] = 'team_quality_cluster'
+
+    # -- autocorrelation last 5y
+    acf = data_ed.copy()
+    tmp = acf.groupby('team', as_index=False)['points'].rolling(window=5, min_periods=1). \
+        apply(lambda x: pd.Series(x).autocorr(lag=1), raw=True)
+    acf['val'] = tmp.reset_index(level=0, drop=True)
+    acf = acf[['div', 'season', 'date', 'team', 'val']]
+    acf['field'] = 'team_quality_consistency'
+    acf = acf[acf['val'].notna()].reset_index(level=0, drop=True)
+
+    # combine
+    res = pd.concat([tqual, acf], axis=0, sort=False, ignore_index=True)
+    return res
+
 
 
 def feat_strength(data, k):
@@ -318,6 +362,10 @@ def feat_strength(data, k):
         - attack + defense strength
 
     These features are calculated using the last 5 games.
+
+    Details:
+    --------
+        Note that normalisation is performed internally inside this function.
 
     """
 
