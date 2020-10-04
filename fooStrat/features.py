@@ -266,24 +266,34 @@ def feat_stanbased(data):
     """Calculates standings based factors. These are:
         - position residual
         - points residual
+        - team quality cluster (cluster, consistency)
 
-        Note that the normalisation takes place within the function here so that the
-        standings based factors can be calculated.
+    Parameters:
+    -----------
+        data:   pandas dataframe
+                a dataframe with columns div, date, season, home_team, away_team, field, val
+
+    Details:
+    --------
+
+
     """
 
     df_0 = data[(data.field == 'FTR') | (data.field == 'FTHG') | (data.field == 'FTAG')]
     # compute rolling league standings
     df_1 = fose.comp_league_standing(data=df_0, home_goals='FTHG', away_goals='FTAG', result='FTR')
 
-    # points advantage
+    # --- points advantage
     tmp_1 = df_1.loc[:, ['div', 'season', 'date', 'team', 'points']]
     tmp_1['field'] = "points_advantage"
     tmp_1.rename(columns={'points': 'val'}, inplace=True)
 
-    # rank position
+    # --- rank position
     tmp_2 = df_1.loc[:, ['div', 'season', 'date', 'team', 'rank']]
     tmp_2['field'] = "rank_position"
     tmp_2.rename(columns={'rank': 'val'}, inplace=True)
+
+    # --- team quality cluster
 
     res = pd.concat([tmp_1, tmp_2],
                     axis=0,

@@ -272,18 +272,21 @@ def norm_factor(data, neutralise=True):
 
 
 
-def expand_field(data, impute=False):
+def expand_field(data, impute=False, date_univ=None):
     """Expands factors across the entire date spectrum so that cross-sectional analysis
     on the factor can be performed. This means that for every competition (eg. Premier League),
     on each play-day there is a factor for all teams.
 
     Parameters:
     -----------
-        data:   pandas dataframe
-                A dataframe of historical factor scores (eg. goal superiority) with
-                columns div, season, team, date, field, val
-        impute: boolean, default False
-                Whether to impute values for each date for missing data
+        data:       pandas dataframe
+                    A dataframe of historical factor scores (eg. goal superiority) with
+                    columns div, season, team, date, field, val
+        impute:     boolean, default False
+                    Whether to impute values for each date for missing data
+        date_univ:  pandas dataframe
+                    Optional, a dataframe with date universe by div & season. Used when
+                    the date universe in data does not contain all actual game dates
 
     Details:
     --------
@@ -299,16 +302,22 @@ def expand_field(data, impute=False):
         data_ed = data_f.pivot_table(index=['div', 'date', 'season', 'field'],
                                      columns='team',
                                      values='val').reset_index()
-        # date universe
-        date_univ = pd.DataFrame(data.loc[:, 'date'].unique(), columns={'date'}).sort_values(by='date')
-        # copy forward all factors
-        data_ed = pd.merge(date_univ,
-                           data_ed,
-                           on='date',
-                           how='outer').sort_values(by='date')
-        data_ed = data_ed.fillna(method='ffill') # note that all teams ever played are included
 
-        aa=data_ed.dropna()
+        if (date_univ is None):
+            # date universe
+            date_univ = pd.DataFrame(data.loc[:, 'date'].unique(), columns={'date'}).sort_values(by='date')
+            # copy forward all factors
+            data_ed = pd.merge(date_univ,
+                               data_ed,
+                               on='date',
+                               how='outer').sort_values(by='date')
+        else:
+            data_ed = pd.merge(date_univ,
+                               data_ed,
+                               on=['season', 'div', 'date'],
+                               how='outer').sort_values(by='date')
+
+        data_ed = data_ed.fillna(method='ffill') # note that all teams ever played are included
 
         # need to filter only teams playing in the season otherwise duplicates issue
         data_ed = pd.melt(data_ed,
@@ -479,6 +488,14 @@ def con_gameday(data):
     return data_ed
 
 
+def con_date_univ(data):
+    """Constructs the date universe (dates at which games are played) for every league and season.
+    """
+    x = data.groupby(['div', 'season'])['date'].unique().reset_index()
+    y = x.apply(lambda x: pd.Series(x['date']), axis=1).stack().reset_index(level=1, drop=True)
+    y.name = 'date'
+    y = x.drop('date', axis=1).join(y)
+    return y
 
 
 def comp_score(data, metric):

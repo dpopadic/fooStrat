@@ -36,39 +36,49 @@ fstre.query("div=='E0' & season==2020 & date=='2020-09-12' & team=='liverpool'")
 
 # team clusters -------------------------------------------------------------------------------------------------------
 
+data = source_core
+
 df_0 = data[(data.field == 'FTR') | (data.field == 'FTHG') | (data.field == 'FTAG')]
 # compute rolling league standings
 df_1 = ss.comp_league_standing(data=df_0, home_goals='FTHG', away_goals='FTAG', result='FTR')
 
 # approach: divide teams into 3 buckets based on previous season rank
-df_2 = df_1.groupby(['div', 'season']).apply(lambda x: x[x['date'] == x['date'].max()]).reset_index(drop=True)
-df_3 = df_2.copy()
-df_3['val'] = df_3.groupby(['div', 'season'])['rank'].transform(lambda x: pd.qcut(x, q=3, labels=range(1, 3 + 1), duplicates='drop'))
-df_3 = df_3[['div', 'season', 'date', 'team', 'val']]
-df_3['field'] = 'team_quality'
 
-a = df_3.query("div=='E0' & season=='2019'")
+def team_quality_cluster(data):
+    "Calculates the team quality cluster features.
+    "
 
-# autocorrelation last 5y
-df_2.groupby(['team'])['rank'].rolling(k=5, min_periods=1).apply(pd.Series.autocorr, lag=1)
+    # last game of season
+    df_2 = df_1.groupby(['div', 'season']).apply(lambda x: x[x['date'] == x['date'].max()]).reset_index(drop=True)
 
-df_2['auto_correl'] = df_2.groupby(['team'])['rank'].rolling(5, min_periods=1).apply(lambda x: pd.Series(x).autocorr(lag=1))
+    # -- team quality cluster
+    tqual = df_2.copy()
+    tqual['val'] = tqual.groupby(['div', 'season'])['rank'].transform(
+        lambda x: pd.qcut(x, q=3, labels=range(1, 3 + 1), duplicates='drop'))
+    tqual = tqual[['div', 'season', 'date', 'team', 'val']]
+    tqual['field'] = 'team_quality_cluster'
 
-df_2['auto_correl'] = df_2.loc[df_2.groupby(['team'])['rank'].rolling(5, min_periods=1).apply(lambda x: pd.Series(x).autocorr(lag=1))]
+    # -- autocorrelation last 5y
+    acf = df_2.copy()
+    tmp = acf.groupby('team', as_index=False)['points'].rolling(window=5, min_periods=1).apply(
+        lambda x: pd.Series(x).autocorr(lag=1))
+    acf['val'] = tmp.reset_index(level=0, drop=True)
+    acf = acf[['div', 'season', 'date', 'team', 'val']]
+    acf['field'] = 'team_quality_consistency'
+    acf = acf[acf['val'].notna()].reset_index(level=0, drop=True)
 
-a = df_2.query("div=='E0'").reset_index(drop=True)
-b = a.groupby('team', as_index=False)['points'].rolling(window=5, min_periods=1).apply(lambda x: pd.Series(x).autocorr(lag=1))
-a['acf'] = b.reset_index(level=0, drop=True)
+    # combine
+    res = pd.concat([tqual, acf], axis=0, sort=False, ignore_index=True)
+    return res
 
 
-a.query("team=='liverpool'").rolling(5)['points'].apply(lambda x: pd.Series(x).autocorr(lag=1))
+tqual.query("div=='E0' & season=='2019'")
+tqual.query("team=='arsenal'")
+acf.query("team=='liverpool'")
 
+# issue with expand_field: only considers dates available in data provided
+# needs a a parameter with data div, season, date -> date_univ = con_date_univ(data=source_core)
 
-
-
-
-
-df_2.query("div=='D1'")
 
 
 
