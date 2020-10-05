@@ -292,21 +292,27 @@ def feat_stanbased(data):
     tmp_2['field'] = "rank_position"
     tmp_2.rename(columns={'rank': 'val'}, inplace=True)
 
+    rppa = pd.concat([tmp_1, tmp_2],
+                     axis=0,
+                     sort=False,
+                     ignore_index=True)
+    # lag factor (only for first two)
+    rppa = rppa.sort_values(['team', 'date']).reset_index(drop=True)
+    rppa = fose.expand_field(data=rppa, date_univ=None)
+    # res['val'] = res.groupby(['team', 'field'])['val'].shift(1)
+
     # --- team quality cluster
     tmp_3 = team_quality_cluster(data=df_1)
+    # normalise
+    date_univ = fose.con_date_univ(data=data)
+    # a = res.query("div=='E0' & field=='team_quality_consistency' & season=='2018'")
+    tmp_3 = fose.expand_field(data=tmp_3, date_univ=date_univ)
 
-    res = pd.concat([tmp_1, tmp_2, tmp_3],
+    # consolidate
+    res = pd.concat([rppa, tmp_3],
                     axis=0,
                     sort=False,
                     ignore_index=True)
-
-    # lag factor
-    res = res.sort_values(['team', 'date']).reset_index(drop=True)
-    res['val'] = res.groupby(['team', 'field'])['val'].shift(1)
-
-    # normalise
-    date_univ = fose.con_date_univ(data=data)
-    res = fose.expand_field(data=res, date_univ=date_univ)
 
     return res
 

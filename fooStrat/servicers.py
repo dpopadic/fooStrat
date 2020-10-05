@@ -303,7 +303,7 @@ def expand_field(data, impute=False, date_univ=None):
                                      columns='team',
                                      values='val').reset_index()
 
-        if (date_univ is None):
+        if date_univ is None:
             # date universe
             date_univ = pd.DataFrame(data.loc[:, 'date'].unique(), columns={'date'}).sort_values(by='date')
             # copy forward all factors
@@ -314,10 +314,13 @@ def expand_field(data, impute=False, date_univ=None):
         else:
             data_ed = pd.merge(date_univ,
                                data_ed,
-                               on=['season', 'div', 'date'],
+                               on=['div', 'season', 'date'],
                                how='outer').sort_values(by='date')
 
         data_ed = data_ed.fillna(method='ffill') # note that all teams ever played are included
+
+        # data_ed.query("div=='E0' & season=='2019' & team=='liverpool' & field=='team_quality_consistency'")
+        # data_ed.query("div=='E0' & season=='2019'")
 
         # need to filter only teams playing in the season otherwise duplicates issue
         data_ed = pd.melt(data_ed,
@@ -495,6 +498,7 @@ def con_date_univ(data):
     y = x.apply(lambda x: pd.Series(x['date']), axis=1).stack().reset_index(level=1, drop=True)
     y.name = 'date'
     y = x.drop('date', axis=1).join(y)
+    y = y.reset_index(level=0, drop=True)
     return y
 
 
