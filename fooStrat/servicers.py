@@ -305,22 +305,29 @@ def expand_field(data, impute=False, date_univ=None):
 
         if date_univ is None:
             # date universe
-            date_univ = pd.DataFrame(data.loc[:, 'date'].unique(), columns={'date'}).sort_values(by='date')
+            date_univ_rel = pd.DataFrame(data.loc[:, 'date'].unique(), columns={'date'}).sort_values(by='date')
             # copy forward all factors
-            data_ed = pd.merge(date_univ,
+            data_ed = pd.merge(date_univ_rel,
                                data_ed,
                                on='date',
                                how='outer').sort_values(by='date')
         else:
-            data_ed = pd.merge(date_univ,
+            date_univ_rel = pd.DataFrame(date_univ['date'].unique(),
+                                         columns={'date'}).sort_values(by='date').reset_index(drop=True)
+            data_ed = pd.merge(date_univ_rel,
                                data_ed,
-                               on=['div', 'season', 'date'],
+                               on='date',
                                how='outer').sort_values(by='date')
 
+        data_ed.reset_index(drop=True, inplace=True)
+        data_ed = data_ed.sort_values('date').groupby(['field'])
+        # data_ed = data_ed.sort_values('date').query("field=='team_quality_consistency'").reset_index(drop=True)
         data_ed = data_ed.fillna(method='ffill') # note that all teams ever played are included
 
         # data_ed.query("div=='E0' & season=='2019' & team=='liverpool' & field=='team_quality_consistency'")
-        # data_ed.query("div=='E0' & season=='2019'")
+        # data_ed.query("div=='E0' & season=='2018' & team=='liverpool' & field=='team_quality_consistency'")
+        # fexp.query("div=='E0' & season=='2019' & team=='liverpool' & field=='team_quality_consistency'")
+        data_ed.query("div=='E0' & season=='2019' & field=='team_quality_consistency'")
 
         # need to filter only teams playing in the season otherwise duplicates issue
         data_ed = pd.melt(data_ed,
