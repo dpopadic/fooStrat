@@ -270,10 +270,9 @@ def norm_factor(data, neutralise=True):
     return res
 
 
-
-
 def expand_field(data, impute=False, date_univ=None):
-    """Expands factors across the entire date spectrum so that cross-sectional analysis
+    """
+    Expands factors across the entire date spectrum so that cross-sectional analysis
     on the factor can be performed. This means that for every competition (eg. Premier League),
     on each play-day there is a factor for all teams.
 
@@ -295,6 +294,18 @@ def expand_field(data, impute=False, date_univ=None):
     - Note that imputation is performed by competition
 
     """
+    res = pd.DataFrame()
+    fields = data['field'].unique()
+    for k in fields:
+        df = data.query("field==@k").reset_index(drop=True)
+        dfe = expand_field_single(data=df, impute=impute, date_univ=date_univ)
+        res = res.append(dfe, ignore_index=True, sort=False)
+    return res
+
+
+
+def expand_field_single(data, impute=False, date_univ=None):
+    """Same as for `expand_field`"""
     gf = data['div'].unique()
     res = pd.DataFrame()
     for i in gf:
@@ -307,35 +318,28 @@ def expand_field(data, impute=False, date_univ=None):
             # date universe
             date_univ_rel = pd.DataFrame(data.loc[:, 'date'].unique(), columns={'date'}).sort_values(by='date')
             # copy forward all factors
-            data_ed = pd.merge(date_univ_rel,
-                               data_ed,
-                               on='date',
-                               how='outer').sort_values(by='date')
+            data_edm = pd.merge(date_univ_rel,
+                                data_ed,
+                                on='date',
+                                how='outer').sort_values(by='date')
         else:
-            date_univ_rel = pd.DataFrame(date_univ['date'].unique(),
-                                         columns={'date'}).sort_values(by='date').reset_index(drop=True)
-            data_ed = pd.merge(date_univ_rel,
-                               data_ed,
-                               on='date',
-                               how='outer').sort_values(by='date')
+            data_edm = pd.merge(date_univ,
+                                data_ed,
+                                on=['date', 'season', 'div'],
+                                how='outer').sort_values(by='date')
 
-        data_ed.reset_index(drop=True, inplace=True)
-        data_ed = data_ed.sort_values('date').groupby(['field'])
-        # data_ed = data_ed.sort_values('date').query("field=='team_quality_consistency'").reset_index(drop=True)
-        data_ed = data_ed.fillna(method='ffill') # note that all teams ever played are included
-
-        # data_ed.query("div=='E0' & season=='2019' & team=='liverpool' & field=='team_quality_consistency'")
-        # data_ed.query("div=='E0' & season=='2018' & team=='liverpool' & field=='team_quality_consistency'")
-        # fexp.query("div=='E0' & season=='2019' & team=='liverpool' & field=='team_quality_consistency'")
-        data_ed.query("div=='E0' & season=='2019' & field=='team_quality_consistency'")
+        # data_ed.reset_index(drop=True, inplace=True)
+        data_edm = data_edm.sort_values('date')
+        data_edm = data_edm.fillna(method='ffill') # note that all teams ever played are included
+        # data_edm.query("div=='E0' & season=='2019' & field=='team_quality_consistency'")
 
         # need to filter only teams playing in the season otherwise duplicates issue
-        data_ed = pd.melt(data_ed,
-                          id_vars=['div', 'season', 'date', 'field'],
-                          var_name='team',
-                          value_name='val')
+        data_edm = pd.melt(data_edm,
+                           id_vars=['div', 'season', 'date', 'field'],
+                           var_name='team',
+                           value_name='val')
         # drop na in fields
-        data_ed = data_ed[data_ed['field'].notna()]
+        data_edm = data_edm[data_edm['field'].notna()]
 
         # all teams played in each  season
         tmp = data_f.groupby(['div', 'season'])['team'].unique().reset_index()
@@ -343,7 +347,7 @@ def expand_field(data, impute=False, date_univ=None):
         team_seas.name = 'team'
         team_seas = tmp.drop('team', axis=1).join(team_seas)
         # expanded factors
-        fexp = pd.merge(team_seas, data_ed,
+        fexp = pd.merge(team_seas, data_edm,
                         on=['div', 'season', 'team'],
                         how='inner').sort_values(by='date').reset_index(drop=True)
         res = res.append(fexp, ignore_index=True, sort=False)

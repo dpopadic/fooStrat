@@ -33,7 +33,7 @@ tqual.query("div=='E0' & season=='2019'")
 tqual.query("team=='arsenal'")
 acf.query("team=='liverpool'")
 fsb['field'].unique()
-a = fsb.query("div=='E0' & season=='2018' & field=='team_quality_consistency'")
+a = fsb.query("div=='E0' & season=='2019' & team=='liverpool' & field=='team_quality_consistency'")
 
 # issue with expand_field: only considers dates available in data provided
 # needs a a parameter with data div, season, date -> date_univ = con_date_univ(data=source_core)
