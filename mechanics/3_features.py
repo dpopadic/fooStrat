@@ -17,14 +17,11 @@ game_day.to_pickle('./data/pro_data/game_day.pkl')
 
 # goal based factors --------------------------------------------------------------------------------------------------
 fgb = sf.feat_goalbased(data=source_core, k=5)
-fgb = ss.norm_factor(data=fgb)
 
 # result based factors ------------------------------------------------------------------------------------------------
 frb = sf.feat_resbased(data=source_core)
-frb = ss.norm_factor(data=frb)
 
 # attack strength factors ---------------------------------------------------------------------------------------------
-# note: normalisation performed internally
 fstre = sf.feat_strength(data = source_core, k=5)
 
 # team clusters -------------------------------------------------------------------------------------------------------

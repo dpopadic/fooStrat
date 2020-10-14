@@ -119,6 +119,9 @@ def feat_goalbased(data, k):
     # check: a = res.query("div=='E0' & season=='2019' & team=='sheffield_united'").sort_values(['date'])
     # res['val'] = res.groupby(['div', 'season', 'team', 'field'])['val'].shift(1)
     # res.dropna(inplace=True)
+    # expand factors
+    res = fose.norm_factor(data=res)
+
     return res
 
 
@@ -259,6 +262,9 @@ def feat_resbased(data):
     fa = fform(data=data, field="FTR", type="away")
     ftot = fform(data=data, field="FTR", type="all")
     feat_all = pd.concat([fh, fa, ftot], axis=0, sort=True)
+    # expand factors
+    feat_all = fose.norm_factor(data=feat_all)
+
     return feat_all
 
 
