@@ -47,6 +47,7 @@ def fhome(data):
     return res
 
 
+
 def feat_goalbased(data, k):
     """Compute goal based factors. Goal based factors are:
 
@@ -63,6 +64,15 @@ def feat_goalbased(data, k):
                 a dataframe with columns div, date, season, home_team, away_team, field, val
     k:          integer
                 the lookback window to be used
+
+    Details:
+    --------
+    Goal difference provides one measure of the dominance of one football side over another in a match. The
+    assumption for a goals superiority rating system, then, is that teams who score more goals and concede fewer over
+    the course of a number of matches are more likely to win their next game. Typically, recent form means the last 4,
+    5 or 6 matches. For example, In their last 6 games, Tottenham have scored 6 goals and conceded 9. Meanwhile, Leeds
+    have scored 8 times and conceded 11 goals. Tottenham's goal superiority rating for the last 6 games is +3; for
+    Leeds it is -3.
 
     """
     # neutralise data..
@@ -88,11 +98,11 @@ def feat_goalbased(data, k):
     feat_agpg.rename(columns={'g_scored': 'val'}, inplace=True)
     feat_agpg['field'] = 'avg_goal_scored'
 
-    # ----- feature: failed to score (last 5)
+    # ----- feature: not failed to score (last 5)
     feat_fts = data_goals_co_i.copy()
-    feat_fts['val'] = feat_fts['g_scored'].apply(lambda x: 1 if x == 0 else 0)
+    feat_fts['val'] = feat_fts['g_scored'].apply(lambda x: 1 if x > 0 else 0)
     feat_fts = feat_fts.sort_values('date').groupby(['team'])['val'].rolling(k, min_periods=1).sum().reset_index()
-    feat_fts['field'] = 'failed_scoring'
+    feat_fts['field'] = 'not_failed_scoring'
 
     # ----- feature: points per game (last 5)
     feat_ppg = data_goals_co_i.copy()
@@ -109,7 +119,7 @@ def feat_goalbased(data, k):
                         feat_all, on=['team', 'date'],
                         how='left')
 
-    # lag factor..
+    # lag factor
     data_fct.sort_values(['team', 'date', 'field'], inplace=True)
     data_fct['val'] = data_fct.groupby(['team', 'field'])['val'].shift(1)
 
@@ -117,68 +127,11 @@ def feat_goalbased(data, k):
     team_chng = fose.newcomers(data=data_fct)
     res = fose.neutralise_scores(data=data_fct, teams=team_chng, n=k - 1)
     # check: a = res.query("div=='E0' & season=='2019' & team=='sheffield_united'").sort_values(['date'])
-    # res['val'] = res.groupby(['div', 'season', 'team', 'field'])['val'].shift(1)
-    # res.dropna(inplace=True)
     # expand factors
     res = fose.norm_factor(data=res)
+    # z-score (1 degree of freedom to reflect sample stdev)
+    res['val'] = res.groupby(['div', 'season', 'date', 'field'])['val'].transform(lambda x: zscore(x, ddof=1))
 
-    return res
-
-
-
-def fgoalsup(data, field, field_name, k):
-    """Calculates the goal superiority factor across divisions and seasons for each team on a
-    rolling basis. Note that the factor is adjusted for lookahead bias.
-
-    Parameters:
-    -----------
-        data (dataframe): a dataframe with columns div, date, season, home_team, away_team, field, val
-        field (list): a list specifying the field name for home- & away-goals (eg. ['FTHG', 'FTAG']) in this order
-        field_name (list): a list with new field name for fields (eg. ['g_scored', 'g_received'])
-        k (integer): the lookback window to be used
-
-    Returns:
-    --------
-        A dataframe with calculated goal-superiority factor and columns div, season, date, team, field, val
-
-    Details:
-    --------
-    Goal difference provides one measure of the dominance of one football side over another in a match. The
-    assumption for a goals superiority rating system, then, is that teams who score more goals and concede fewer over
-    the course of a number of matches are more likely to win their next game. Typically, recent form means the last 4,
-    5 or 6 matches. For example, In their last 6 games, Tottenham have scored 6 goals and conceded 9. Meanwhile, Leeds
-    have scored 8 times and conceded 11 goals. Tottenham's goal superiority rating for the last 6 games is +3; for
-    Leeds it is -3.
-
-    """
-    # neutralise data..
-    data_goals_co = fose.neutralise_field(data,
-                                          field=field,
-                                          field_name=field_name,
-                                          field_numeric=True,
-                                          column_field=True)
-
-    # compute stat..
-    data_goals_co_i = data_goals_co.set_index('date')
-    data_goals_co1 = data_goals_co_i.sort_values('date').groupby(['team'])[field_name]. \
-                    rolling(k, min_periods=1).sum().reset_index()
-
-    data_goals_co1['val'] = data_goals_co1[field_name[0]] - data_goals_co1[field_name[1]]
-    data_goals_co1.drop(field_name, axis=1, inplace=True)
-    data_fct = pd.merge(data_goals_co[['div', 'date', 'season', 'team']],
-                        data_goals_co1, on=['team', 'date'],
-                        how='left')
-    data_fct['field'] = 'goal_superiority'
-    # lag factor..
-    data_fct.sort_values(['team', 'date'], inplace=True)
-    data_fct['val'] = data_fct.groupby(['team', 'field'])['val'].shift(1)
-
-    # identify promoted/demoted teams & neutralise score for them..
-    team_chng = fose.newcomers(data=data_fct)
-    res = fose.neutralise_scores(data=data_fct, teams=team_chng, n=k-1)
-    # check: res.query("div=='E0' & season=='2019' & team=='sheffield_united'").sort_values(['date'])
-    # res['val'] = res.groupby(['div', 'season', 'team', 'field'])['val'].shift(1)
-    # res.dropna(inplace=True)
     return res
 
 

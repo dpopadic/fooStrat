@@ -24,20 +24,7 @@ frb = sf.feat_resbased(data=source_core)
 # attack strength factors ---------------------------------------------------------------------------------------------
 fstre = sf.feat_strength(data = source_core, k=5)
 
-# team clusters -------------------------------------------------------------------------------------------------------
-
-tqual.query("div=='E0' & season=='2019'")
-tqual.query("team=='arsenal'")
-acf.query("team=='liverpool'")
-fsb['field'].unique()
-a = fsb.query("div=='E0' & season=='2019' & team=='liverpool' & field=='team_quality_consistency'")
-
-# issue with expand_field: only considers dates available in data provided
-# needs a a parameter with data div, season, date -> date_univ = con_date_univ(data=source_core)
-
-
 # standings based factors ---------------------------------------------------------------------------------------------
-# note: these factors should also be normalised internally
 fsb = sf.feat_stanbased(data=source_core)
 
 
