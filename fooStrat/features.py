@@ -124,6 +124,7 @@ def feat_goalbased(data, k):
     # lag factor
     data_fct.sort_values(['team', 'date', 'field'], inplace=True)
     data_fct['val'] = data_fct.groupby(['team', 'field'])['val'].shift(1)
+    data_fct.reset_index(level=0, drop=True, inplace=True)
 
     # identify promoted/demoted teams & neutralise score for them..
     team_chng = fose.newcomers(data=data_fct)

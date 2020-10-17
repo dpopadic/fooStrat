@@ -270,6 +270,35 @@ def norm_factor(data, neutralise=True):
     return res
 
 
+def expand_event_sphere(data):
+    """Expands the data universe to build a cross-sectional event dataset for each league so that
+    each relevant team has a presence on each match day.
+
+    Parameters:
+    -----------
+        data:   pandas dataframe
+                a dataframe with columns div, date, season, team, field, val
+
+    """
+    # all game days by season and league
+    agdg = data.groupby(['div', 'season'])['date'].unique().reset_index()
+    # teams by season for each league
+    team_univ = pd.DataFrame(data.loc[:, 'team'].unique(), columns={'team'})
+    team_univ = data.groupby(['div', 'season'])['team'].unique().reset_index()
+    team_univ_tmp = team_univ.apply(lambda x: pd.Series(x['team']), axis=1).stack().reset_index(level=1, drop=True)
+    team_univ_tmp.name = 'team'
+    team_univ = team_univ.drop('team', axis=1).join(team_univ_tmp)
+    team_univ.reset_index(drop=True, inplace=True)
+    # cross-sectional expansion
+    res = pd.merge(agdg, team_univ, on=['div', 'season'], how='inner')
+    tmp = tmp.apply(lambda x: pd.Series(x['date']), axis=1).stack().reset_index(level=1, drop=True)
+    tmp.name = 'date'
+    res = res.drop('date', axis=1).join(tmp)
+
+    return res
+
+
+
 def expand_field(data, impute=False, date_univ=None):
     """
     Expands factors across the entire date spectrum so that cross-sectional analysis
