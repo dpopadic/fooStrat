@@ -291,7 +291,7 @@ def expand_event_sphere(data):
     team_univ.reset_index(drop=True, inplace=True)
     # cross-sectional expansion
     res = pd.merge(agdg, team_univ, on=['div', 'season'], how='inner')
-    tmp = tmp.apply(lambda x: pd.Series(x['date']), axis=1).stack().reset_index(level=1, drop=True)
+    tmp = res.apply(lambda x: pd.Series(x['date']), axis=1).stack().reset_index(level=1, drop=True)
     tmp.name = 'date'
     res = res.drop('date', axis=1).join(tmp)
 

@@ -50,23 +50,14 @@ for i in gf:
     res_tmp = res_tmp.append(fexp, ignore_index=True, sort=False)
 
 
+tmp4 = ss.expand_event_sphere(data=df0)
+tmp4['field'] = df0.field[0]
+# tmp4['field'], tmp4['val'] = [df0.field[0], np.nan]
 
-data_f = df0.query('div==@i')
-tmp = data_f.groupby(['div', 'season'])['date'].unique().reset_index()
-tmp['key'] = 1
-team_univ = pd.DataFrame(data_f.loc[:, 'team'].unique(), columns={'team'})
-team_univ['key'] = 1
-tmp2 = pd.merge(tmp, team_univ, on = 'key', how='inner').drop('key', axis=1)
-tmp3 = tmp2.apply(lambda x: pd.Series(x['date']), axis=1).stack().reset_index(level=1, drop=True)
-tmp3.name = 'date'
-tmp4 = tmp2.drop('date', axis=1).join(tmp3)
+tmp5 = pd.merge(df0, tmp4, on=['div', 'season', 'date', 'team', 'field'], how='outer').sort_values(by='date')
 
 
-
-
-
-
-tmp4.query("div=='E0' & season=='2019' & team=='liverpool'")
+tmp5.query("div=='E0' & season=='2019' & team=='liverpool'")
 
 
 
