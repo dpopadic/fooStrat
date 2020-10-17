@@ -2,66 +2,48 @@
 
 
 df0 = res.query("field=='goal_superiority'").reset_index(drop=True)
-
-gf = df0['div'].unique()
-res_tmp = pd.DataFrame()
-for i in gf:
-    data_f = df0.query('div==@i')
-    data_ed = data_f.pivot_table(index=['div', 'date', 'season', 'field'],
-                                 columns='team',
-                                 values='val').reset_index()
-
-    if date_univ is None:
-        # date universe
-        date_univ_rel = pd.DataFrame(df0.loc[:, 'date'].unique(), columns={'date'}).sort_values(by='date')
-        # copy forward all factors
-        data_edm = pd.merge(date_univ_rel,
-                            data_ed,
-                            on='date',
-                            how='outer').sort_values(by='date')
-    else:
-        data_edm = pd.merge(date_univ,
-                            data_ed,
-                            on=['date', 'season', 'div'],
-                            how='outer').sort_values(by='date')
-
-    # data_ed.reset_index(drop=True, inplace=True)
-    data_edm = data_edm.sort_values('date')
-    data_edm = data_edm.fillna(method='ffill')  # note that all teams ever played are included
-    # data_edm.query("div=='E0' & season=='2019' & field=='team_quality_consistency'")
-
-    # need to filter only teams playing in the season otherwise duplicates issue
-    data_edm = pd.melt(data_edm,
-                       id_vars=['div', 'season', 'date', 'field'],
-                       var_name='team',
-                       value_name='val')
-    # drop na in fields
-    data_edm = data_edm[data_edm['field'].notna()]
-
-    # all teams played in each  season
-    tmp = data_f.groupby(['div', 'season'])['team'].unique().reset_index()
-    team_seas = tmp.apply(lambda x: pd.Series(x['team']), axis=1).stack().reset_index(level=1, drop=True)
-    team_seas.name = 'team'
-    team_seas = tmp.drop('team', axis=1).join(team_seas)
-    # expanded factors
-    fexp = pd.merge(team_seas, data_edm,
-                    on=['div', 'season', 'team'],
-                    how='inner').sort_values(by='date').reset_index(drop=True)
-    res_tmp = res_tmp.append(fexp, ignore_index=True, sort=False)
+df1 = expand_field_single(data=df0)
 
 
-tmp4 = ss.expand_event_sphere(data=df0)
-tmp4['field'] = df0.field[0]
-# tmp4['field'], tmp4['val'] = [df0.field[0], np.nan]
+def expand_field(data):
+    """
+    Expands factors across the entire date spectrum so that cross-sectional analysis
+    on the factor can be performed. This means that for every competition (eg. Premier League),
+    on each play-day there is a factor for all teams.
 
-tmp5 = pd.merge(df0, tmp4, on=['div', 'season', 'date', 'team', 'field'], how='outer').sort_values(by='date')
+    Parameters:
+    -----------
+        data:       pandas dataframe
+                    A dataframe of historical factor scores (eg. goal superiority) with
+                    columns div, season, team, date, field, val
+        date_univ:  pandas dataframe
+                    Optional, a dataframe with date universe by div & season. Used when
+                    the date universe in data does not contain all actual game dates
 
+    Details:
+    --------
+    - Note that the date expansion happens for each available date in data enabling cross-sectional factor
+    building by competition
 
-tmp5.query("div=='E0' & season=='2019' & team=='liverpool'")
+    """
+    data_ed = ss.expand_event_sphere(data=data)
+    res = pd.DataFrame()
+    for k in data['field'].unique():
+        tmp = data_ed.copy()
+        tmp['field'] = k
+        tmp = pd.merge(data, tmp,
+                       on=['div', 'season', 'date', 'team', 'field'],
+                       how='outer').sort_values(by='date')
+        tmp = tmp.sort_values(['div', 'season', 'team', 'field', 'date']).reset_index(drop=True)
+        tmp = tmp.fillna(method='ffill')
+        res = res.append(tmp, ignore_index=True, sort=False)
+
+    return res
 
 
 
 
-
+tmp6_1 = df1.query("div=='E0' & season=='2005'")
+tmp6_1.team.unique()
 
 
