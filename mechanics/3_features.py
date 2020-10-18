@@ -27,6 +27,9 @@ fstre = sf.feat_strength(data = source_core, k=5)
 # standings based factors ---------------------------------------------------------------------------------------------
 fsb = sf.feat_stanbased(data=source_core)
 
+# turnaround ability factors ------------------------------------------------------------------------------------------
+ftf = feat_turnaround(data=source_core)
+
 # home factor ---------------------------------------------------------------------------------------------------------
 # no need for expansion for boolean factors!
 hf = sf.fhome(data=source_core)

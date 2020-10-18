@@ -166,15 +166,62 @@ def feat_resbased(data):
 
 
 def feat_turnaround(data):
-    """Compute turnaround factors.
+    """Compute turnaround factors:
+        - turnaround ability last
+        - turnaround ability trend (past 3)
 
     Parameters:
     -----------
+        data:   pandas dataframe
+                a dataframe with columns div, date, season, home_team, away_team, field, val
 
+    Details
+    -------
+        - for turnaround-ability, when there is no half-time data, full-time results are considered only
 
     """
+    data_ed = data.query("field in ['HTAG', 'HTHG', 'FTAG', 'FTHG']")
 
-    return data
+    # half-time goals
+    htg = fose.neutralise_field(data_ed,
+                                field=['HTHG', 'HTAG'],
+                                field_name=['g_scored_ht', 'g_received_ht'],
+                                field_numeric=True,
+                                column_field=True)
+    # full-time goals
+    ftg = fose.neutralise_field(data_ed,
+                                field=['FTHG', 'FTAG'],
+                                field_name=['g_scored_ft', 'g_received_ft'],
+                                field_numeric=True,
+                                column_field=True)
+    cog = pd.merge(ftg, htg, on=['div', 'season', 'date', 'team'], how='left')
+
+    # --- turnaround ability (last)
+    # compute the score
+    cog['val'] = (cog['g_scored_ft'] - cog['g_received_ft']) - (cog['g_scored_ht'] - cog['g_received_ht'])
+    # handle missing data by simply taking into account the end-result
+    cog['val_nan'] = (cog['g_scored_ft'] - cog['g_received_ft'])
+    cog['val'] = cog[['val', 'val_nan']].apply(lambda x: x[1] if np.isnan(x[0]) else x[0], axis=1)
+    cog['field'] = 'turnaround_ability_last'
+    cog = cog[['div', 'season', 'date', 'team', 'field', 'val']]
+
+    # --- turnaround ability (past 3)
+    cog_past = cog.copy()
+    tmp = cog_past.groupby('team', as_index=False)['val'].rolling(window=3, min_periods=1).sum()
+    cog_past['val'] = tmp.reset_index(level=0, drop=True)
+    cog_past['field'] = 'turnaround_ability_trend'
+
+    # combine
+    cog = pd.concat([cog, cog_past], axis=0, sort=False, ignore_index=True)
+
+    # lag values
+    cog = cog.sort_values(['team', 'date']).reset_index(drop=True)
+    cog['val'] = cog.groupby(['team', 'field'])['val'].shift(1)
+    cog = fose.expand_field(data=cog)
+    # z-score
+    cog['val'] = cog.groupby(['div', 'season', 'date', 'field'])['val'].transform(lambda x: zscore(x, ddof=1))
+
+    return cog
 
 
 
@@ -316,7 +363,7 @@ def feat_strength(data, k):
     # get all together
     tmp = pd.concat([xm2_ed, xm2_edc], axis=0, sort=True)
 
-    # lag factorfeat_strength
+    # lag factor feat_strength
     tmp_lag = tmp.sort_values(['team', 'date']).reset_index(drop=True)
     tmp_lag['val'] = tmp_lag.groupby(['team', 'field'])['val'].shift(1)
 
