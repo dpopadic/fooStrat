@@ -179,7 +179,7 @@ def feat_turnaround(data):
 
 
 def feat_stanbased(data):
-    """Calculates standings based factors. These are:
+    """Calculates standings based factors:
         - position residual
         - points residual
         - team quality cluster (cluster, consistency)
@@ -215,14 +215,14 @@ def feat_stanbased(data):
     # lag factor
     rppa = rppa.sort_values(['team', 'date']).reset_index(drop=True)
     rppa['val'] = rppa.groupby(['team', 'field'])['val'].shift(1)
-    rppa = fose.expand_field(data=rppa, date_univ=None)
+    rppa = fose.expand_field(data=rppa, dates=None)
 
     # --- team quality cluster (no lag required here)
     tqc = sfs.team_quality_cluster(data=df_1)
     # normalise
     date_univ = fose.con_date_univ(data=data)
     # a = tqc.query("div=='E0' & field=='team_quality_consistency' & season=='2018'")
-    tqc = fose.expand_field(data=tqc, date_univ=date_univ)
+    tqc = fose.expand_field(data=tqc, dates=date_univ)
 
     # consolidate
     res = pd.concat([rppa, tqc],
@@ -285,7 +285,8 @@ def feat_strength(data, k):
                      var_name='field',
                      value_name='val').dropna()
 
-    xm1_as_ed = fose.norm_factor(data=xm1_as, neutralise=True)
+    xm1_as_ed = fose.expand_field(data=xm1_as)
+    xm1_as_ed['val'] = xm1_as_ed.groupby(['div', 'season', 'date', 'field'])['val'].transform(lambda x: zscore(x, ddof=1))
     xm1_as_cf = xm1_as_ed.groupby(['div', 'season', 'team', 'date'])['val'].mean().reset_index()
     xm1_as_cf['field'] = "attack_strength"
     xm1_as_ed = pd.concat([xm1_as_ed, xm1_as_cf], axis=0, sort=True)
@@ -298,7 +299,8 @@ def feat_strength(data, k):
                      var_name='field',
                      value_name='val').dropna()
 
-    xm1_ds_ed = fose.norm_factor(data=xm1_ds, neutralise=True)
+    xm1_ds_ed = fose.expand_field(data=xm1_ds)
+    xm1_ds_ed['val'] = xm1_ds_ed.groupby(['div', 'season', 'date', 'field'])['val'].transform(lambda x: zscore(x, ddof=1))
     xm1_ds_cf = xm1_ds_ed.groupby(['div', 'season', 'team', 'date'])['val'].mean().reset_index()
     xm1_ds_cf['field'] = "defense_strength"
     xm1_ds_ed = pd.concat([xm1_ds_ed, xm1_ds_cf], axis=0, sort=True)
