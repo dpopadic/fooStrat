@@ -332,7 +332,7 @@ def expand_field(data, dates=None):
       cross-sectional factor building by competition
 
     """
-    data_ed = ss.expand_event_sphere(data=data, dates=dates)
+    data_ed = expand_event_sphere(data=data, dates=dates)
     res = pd.DataFrame()
     for k in data['field'].unique():
         tmp = data_ed.copy()

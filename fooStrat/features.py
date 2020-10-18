@@ -316,7 +316,7 @@ def feat_strength(data, k):
     # get all together
     tmp = pd.concat([xm2_ed, xm2_edc], axis=0, sort=True)
 
-    # lag factor
+    # lag factorfeat_strength
     tmp_lag = tmp.sort_values(['team', 'date']).reset_index(drop=True)
     tmp_lag['val'] = tmp_lag.groupby(['team', 'field'])['val'].shift(1)
 
