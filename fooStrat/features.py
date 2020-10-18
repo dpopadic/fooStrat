@@ -212,14 +212,14 @@ def feat_turnaround(data):
     cog_past['field'] = 'turnaround_ability_trend'
 
     # combine
-    cog = pd.concat([cog, cog_past], axis=0, sort=False, ignore_index=True)
+    cog_co = pd.concat([cog, cog_past], axis=0, sort=False, ignore_index=True)
 
     # lag values
-    cog = cog.sort_values(['team', 'date']).reset_index(drop=True)
-    cog['val'] = cog.groupby(['team', 'field'])['val'].shift(1)
-    cog = fose.expand_field(data=cog)
+    cog_co = cog_co.sort_values(['team', 'date']).reset_index(drop=True)
+    cog_co['val'] = cog_co.groupby(['team', 'field'])['val'].shift(1)
+    res = fose.expand_field(data=cog_co)
     # z-score
-    cog['val'] = cog.groupby(['div', 'season', 'date', 'field'])['val'].transform(lambda x: zscore(x, ddof=1))
+    res['val'] = res.groupby(['div', 'season', 'date', 'field'])['val'].transform(lambda x: zscore(x, ddof=1))
 
     return cog
 

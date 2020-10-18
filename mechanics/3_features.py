@@ -28,7 +28,7 @@ fstre = sf.feat_strength(data = source_core, k=5)
 fsb = sf.feat_stanbased(data=source_core)
 
 # turnaround ability factors ------------------------------------------------------------------------------------------
-ftf = feat_turnaround(data=source_core)
+ftf = sf.feat_turnaround(data=source_core)
 
 # home factor ---------------------------------------------------------------------------------------------------------
 # no need for expansion for boolean factors!
@@ -38,7 +38,7 @@ hf = sf.fhome(data=source_core)
 fsb.field.unique()
 su.delete_flib(field=["points_advantage", "rank_position"])
 
-su.update_flib(data=[fsb], update=True)
+su.update_flib(data=[ftf], update=True)
 su.update_flib(data=[fgb, frb, fstre, fsb, hf], update=False)
 
 # consolidate for feature evaluation
