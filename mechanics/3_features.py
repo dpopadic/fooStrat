@@ -41,7 +41,7 @@ hf = sf.fhome(data=source_core)
 fsb.field.unique()
 su.delete_flib(field=["points_advantage", "rank_position"])
 
-su.update_flib(data=[ftf], update=True)
+su.update_flib(data=[fh2h], update=True)
 su.update_flib(data=[fgb, frb, fstre, fsb, ftf, fh2h, hf], update=False)
 
 # consolidate for feature evaluation

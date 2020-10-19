@@ -200,9 +200,6 @@ def con_h2h_set(data, field, field_name=None):
 
     """
     data_ed = data[data['field'].isin(field)]
-    # temporarily for testing:
-    data_ed = data_ed[data_ed['div'] == 'E0']
-
     data_ed['val'] = data_ed['val'].apply(lambda x: pd.to_numeric(x, errors='coerce'))
     tmp = pd.pivot_table(data_ed,
                          index=['div', 'season', 'date', 'home_team', 'away_team'],

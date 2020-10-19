@@ -304,7 +304,7 @@ def feat_h2h(data):
                       dfc_ed[['date', 'team', 'opponent', 'val']],
                       on=['date', 'team', 'opponent'],
                       how='left')
-    dfc_fil['field'] = 'h2h_next_opponent_advantage'
+    dfc_fi['field'] = 'h2h_next_opponent_advantage'
 
     # --- h2h next opponent attempts advantage
     dfa = fose.con_h2h_set(data=data, field=['HST', 'AST'], field_name=['shots_attempted_tgt', 'shots_conceded_tgt'])
@@ -317,9 +317,9 @@ def feat_h2h(data):
                       dfa_ed[['date', 'team', 'opponent', 'val']],
                       on=['date', 'team', 'opponent'],
                       how='left')
-    dfa_fil['field'] = 'h2h_next_opponent_chance'
+    dfa_fi['field'] = 'h2h_next_opponent_chance'
 
-    dfac_fil = pd.concat([dfc_fil, dfa_fil], axis=0, sort=False)
+    dfac_fil = pd.concat([dfc_fi, dfa_fi], axis=0, sort=False)
 
     # lag values by team & opponent
     dfac_fil = dfac_fil.sort_values(['field', 'team', 'opponent', 'date']).reset_index(drop=True)
@@ -329,7 +329,7 @@ def feat_h2h(data):
     # z-score
     dfac_fil['val'] = dfac_fil.groupby(['div', 'season', 'date', 'field'])['val'].transform(lambda x: zscore(x, ddof=1))
 
-    return data
+    return dfac_fil
 
 
 
