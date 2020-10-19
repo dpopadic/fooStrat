@@ -237,9 +237,6 @@ def feat_stanbased(data):
         data:   pandas dataframe
                 a dataframe with columns div, date, season, home_team, away_team, field, val
 
-    Details:
-    --------
-
     """
 
     df_0 = data[(data.field == 'FTR') | (data.field == 'FTHG') | (data.field == 'FTAG')]
@@ -282,6 +279,57 @@ def feat_stanbased(data):
     res['val'] = res.groupby(['div', 'season', 'date', 'field'])['val'].transform(lambda x: zscore(x, ddof=1))
 
     return res
+
+
+
+def feat_h2h(data):
+    """Computes head-to-head factors:
+        - h2h next opponent advantage
+        - h2h next opponent chance
+    Details:
+    --------
+        At each point in time, one could also calculate h2h against all teams. However, this would be the
+        same as goal superiority factor for example. Therefore, it's of little use and only opponent-specific
+        factors are calcualted here. In general, all factors not specific to the 2 opponents are already
+        reflected in other factors, so only include opponent specific here.
+
+    """
+    # --- h2h next opponent goal advantage
+    dfc = fose.con_h2h_set(data=data, field=['FTHG', 'FTAG'], field_name=['g_scored', 'g_received'])
+    dfc_ed = dfc.set_index('date').sort_values('date').groupby(['team', 'opponent'])[['g_scored', 'g_received']]. \
+                 rolling(window=5, min_periods=1).sum().reset_index()
+    dfc_ed['val'] = dfc_ed['g_scored'] - dfc_ed['g_received']
+    # add back other information
+    dfc_fi = pd.merge(dfc[['div', 'season', 'date', 'team', 'opponent']],
+                      dfc_ed[['date', 'team', 'opponent', 'val']],
+                      on=['date', 'team', 'opponent'],
+                      how='left')
+    dfc_fil['field'] = 'h2h_next_opponent_advantage'
+
+    # --- h2h next opponent attempts advantage
+    dfa = fose.con_h2h_set(data=data, field=['HST', 'AST'], field_name=['shots_attempted_tgt', 'shots_conceded_tgt'])
+    dfa_ed = dfa.set_index('date').sort_values('date').groupby(['team', 'opponent'])[
+        ['shots_attempted_tgt', 'shots_conceded_tgt']]. \
+        rolling(window=5, min_periods=1).sum().reset_index()
+    dfa_ed['val'] = dfa_ed['shots_attempted_tgt'] - dfa_ed['shots_conceded_tgt']
+    # add back other information
+    dfa_fi = pd.merge(dfa[['div', 'season', 'date', 'team', 'opponent']],
+                      dfa_ed[['date', 'team', 'opponent', 'val']],
+                      on=['date', 'team', 'opponent'],
+                      how='left')
+    dfa_fil['field'] = 'h2h_next_opponent_chance'
+
+    dfac_fil = pd.concat([dfc_fil, dfa_fil], axis=0, sort=False)
+
+    # lag values by team & opponent
+    dfac_fil = dfac_fil.sort_values(['field', 'team', 'opponent', 'date']).reset_index(drop=True)
+    dfac_fil['val'] = dfac_fil.groupby(['field', 'team', 'opponent'])['val'].shift(1)
+    dfac_fil.drop('opponent', axis=1, inplace=True)
+    dfac_fil = fose.expand_field(data=dfac_fil)
+    # z-score
+    dfac_fil['val'] = dfac_fil.groupby(['div', 'season', 'date', 'field'])['val'].transform(lambda x: zscore(x, ddof=1))
+
+    return data
 
 
 

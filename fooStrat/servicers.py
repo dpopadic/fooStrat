@@ -186,6 +186,51 @@ def neutralise_field(data, field, field_name=None, field_numeric=True, column_fi
     return data_ed_co
 
 
+def con_h2h_set(data, field, field_name=None):
+    """Constructs a head-to-head dataset.
+
+    Parameters:
+    -----------
+        data:       pandas dataframe
+                    a dataframe with columns div, season, date, home_team, away_team, field, val
+        field:      list
+                    a list with 2 relevant fields for each side (home_team, away_team) in `data` (eg. ['FTHG', 'FTAG'])
+        field_name: list
+                    optional, a list with names for the home_team field and away_team field (in this order)
+
+    """
+    data_ed = data[data['field'].isin(field)]
+    # temporarily for testing:
+    data_ed = data_ed[data_ed['div'] == 'E0']
+
+    data_ed['val'] = data_ed['val'].apply(lambda x: pd.to_numeric(x, errors='coerce'))
+    tmp = pd.pivot_table(data_ed,
+                         index=['div', 'season', 'date', 'home_team', 'away_team'],
+                         columns='field',
+                         values='val').reset_index()
+
+    if field_name is None:
+        field_name = field
+
+    # home team..
+    tmp1 = tmp.copy()
+    tmp1.rename(columns={'home_team': 'team',
+                         'away_team': 'opponent',
+                         field[1]: field_name[1],
+                         field[0]: field_name[0]}, inplace=True)
+
+    # away team..
+    tmp2 = tmp.copy()
+    tmp2.rename(columns={'home_team': 'opponent',
+                         'away_team': 'team',
+                         field[1]: field_name[0],
+                         field[0]: field_name[1]}, inplace=True)
+
+    dfc = pd.concat([tmp1, tmp2], axis=0, sort=False)
+
+    return dfc
+
+
 
 def newcomers(data):
     """Identify newcomers (promoted/demoted teams) in each season. This is used to neutralise scores for these
