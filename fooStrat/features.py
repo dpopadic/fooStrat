@@ -4,7 +4,7 @@ from scipy.stats import zscore
 from itertools import chain
 import fooStrat.servicers as fose
 import fooStrat.features_standalone as sfs
-
+from fooStrat.mapping import odds_fields, odds_fields_neutral
 
 def fhome(data):
     """

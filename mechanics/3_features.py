@@ -25,7 +25,7 @@ game_day.to_pickle('./data/pro_data/game_day.pkl')
 # - home factor
 fgb = sf.feat_goalbased(data=source_core, k=5)
 frb = sf.feat_resbased(data=source_core)
-fstre = sf.feat_strength(data = source_core, k=5)
+fstre = sf.feat_strength(data=source_core, k=5)
 fsb = sf.feat_stanbased(data=source_core)
 ftf = sf.feat_turnaround(data=source_core)
 fh2h = sf.feat_h2h(data=source_core)

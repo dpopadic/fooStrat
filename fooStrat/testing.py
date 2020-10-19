@@ -18,17 +18,18 @@ aot = ['home_odds' for x in range(len(foma.oh))] + \
 oma = pd.DataFrame({'field': ao,
                     'odds_type': aot})
 
-data_ed = data[data['field'].isin(ao)].reset_index(drop=True)
+
 
 data_ed = pd.merge(data_ed, oma, on='field', how='left')
 data_ed.groupby(['div', 'season', 'date', ''])
 
+ao = odds_fields.get('odds_home_win') + odds_fields.get('odds_away_win') + odds_fields.get('odds_draw_win')
 
-data_neu = neutralise_field_multi(data=data_ed,
-                                  field=foma.odds_fields,
-                                  field_map = foma.odds_fields_neutral,
-                                  field_numeric=True,
-                                  column_field=True)
+data_neu = fose.neutralise_field_multi(data=data,
+                                       field=odds_fields,
+                                       field_map = odds_fields_neutral,
+                                       field_numeric=True,
+                                       column_field=True)
 
 
 
