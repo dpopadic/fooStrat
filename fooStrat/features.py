@@ -222,7 +222,7 @@ def feat_turnaround(data):
     # z-score
     res['val'] = res.groupby(['div', 'season', 'date', 'field'])['val'].transform(lambda x: zscore(x, ddof=1))
 
-    return cog
+    return res
 
 
 

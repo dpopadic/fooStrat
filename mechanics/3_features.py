@@ -39,7 +39,7 @@ fsb.field.unique()
 su.delete_flib(field=["points_advantage", "rank_position"])
 
 su.update_flib(data=[ftf], update=True)
-su.update_flib(data=[fgb, frb, fstre, fsb, hf], update=False)
+su.update_flib(data=[fgb, frb, fstre, fsb, ftf, hf], update=False)
 
 # consolidate for feature evaluation
 su.consol_flib()
