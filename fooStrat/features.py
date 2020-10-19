@@ -131,7 +131,8 @@ def feat_goalbased(data, k):
     res = fose.neutralise_scores(data=data_fct, teams=team_chng, n=k - 1)
     # check: a = res.query("div=='E0' & season=='2019' & team=='sheffield_united'").sort_values(['date'])
     # expand factors
-    res = fose.expand_field(data=res)
+    res2 = fose.expand_field(data=res)
+
     # z-score (1 degree of freedom to reflect sample stdev)
     res['val'] = res.groupby(['div', 'season', 'date', 'field'])['val'].transform(lambda x: zscore(x, ddof=1))
 

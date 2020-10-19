@@ -337,7 +337,7 @@ def expand_field(data, dates=None):
     for k in data['field'].unique():
         tmp = data_ed.copy()
         tmp['field'] = k
-        tmp = pd.merge(data, tmp,
+        tmp = pd.merge(tmp, data[data['field'] == k],
                        on=['div', 'season', 'date', 'team', 'field'],
                        how='outer').sort_values(by='date')
         tmp = tmp.sort_values(['div', 'season', 'team', 'field', 'date']).reset_index(drop=True)
