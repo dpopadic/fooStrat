@@ -186,6 +186,57 @@ def neutralise_field(data, field, field_name=None, field_numeric=True, column_fi
     return data_ed_co
 
 
+
+def neutralise_field_multi(data, field, field_map, field_numeric=True, column_field=True):
+    """
+    Same as `neutralise_field` but with multiple field funcionality.
+    """
+
+    # filter relevant fields
+    arf = field.get('odds_home_win') + field.get('odds_home_win') + field.get('odds_draw_win')
+    data_ed = data[data['field'].isin(arf)]
+
+    if field_numeric == True:
+        data_ed['val'] = pd.to_numeric(data_ed.loc[:, 'val'], errors='coerce')
+
+    # home team..
+    rfh = field.get('odds_home_win') + field.get('odds_draw_win')
+    tmp1 = pd.pivot_table(data_ed[data_ed['field'].isin(rfh)],
+                          index=['div', 'season', 'date', 'home_team', 'away_team'],
+                          columns='field',
+                          values='val').reset_index()
+    tmp1 = tmp1.drop('away_team', axis=1)
+    tmp1.rename(columns={'home_team': 'team'}, inplace=True)
+    rfh_m = field_map[field_map['field'].isin(rfh)]
+    tmp1.rename(columns=dict(zip(tmp1.loc[:, rfh_m['field']], rfh_m['field_neutral'])), inplace=True)
+
+
+    # away team (note that fields are reversed here!)..
+    rfa = field.get('odds_away_win') + field.get('odds_draw_win')
+    tmp2 = pd.pivot_table(data_ed[data_ed['field'].isin(rfa)],
+                          index=['div', 'season', 'date', 'home_team', 'away_team'],
+                          columns='field',
+                          values='val').reset_index()
+    tmp2 = tmp2.drop('home_team', axis=1)
+    tmp2.rename(columns={'away_team': 'team'}, inplace=True)
+    rfa_m = field_map[field_map['field'].isin(rfa)]
+    tmp2.rename(columns=dict(zip(tmp2.loc[:, rfa_m['field']], rfa_m['field_neutral'])), inplace=True)
+
+    # put together..
+    data_ed_co = pd.concat([tmp1, tmp2], axis=0, sort=False, ignore_index=True)
+
+    if column_field == False:
+        data_ed_co = pd.melt(data_ed_co,
+                             id_vars=['div', 'season', 'date', 'team'],
+                             var_name='field',
+                             value_name='val')
+        data_ed_co = data_ed_co[data_ed_co['val'].isnull() == False]
+
+    return data_ed_co
+
+
+
+
 def con_h2h_set(data, field, field_name=None):
     """Constructs a head-to-head dataset.
 
@@ -388,98 +439,6 @@ def expand_field(data, dates=None):
 
     return res
 
-
-
-#
-# def expand_field(data, impute=False, date_univ=None):
-#     """
-#     Expands factors across the entire date spectrum so that cross-sectional analysis
-#     on the factor can be performed. This means that for every competition (eg. Premier League),
-#     on each play-day there is a factor for all teams.
-#
-#     Parameters:
-#     -----------
-#         data:       pandas dataframe
-#                     A dataframe of historical factor scores (eg. goal superiority) with
-#                     columns div, season, team, date, field, val
-#         impute:     boolean, default False
-#                     Whether to impute values for each date for missing data
-#         date_univ:  pandas dataframe
-#                     Optional, a dataframe with date universe by div & season. Used when
-#                     the date universe in data does not contain all actual game dates
-#
-#     Details:
-#     --------
-#     - Note that the date expansion happens for each available date in data enabling cross-sectional factor
-#     building by competition
-#     - Note that imputation is performed by competition
-#
-#     """
-#     res = pd.DataFrame()
-#     fields = data['field'].unique()
-#     for k in fields:
-#         df = data.query("field==@k").reset_index(drop=True)
-#         dfe = expand_field_single(data=df, impute=impute, date_univ=date_univ)
-#         res = res.append(dfe, ignore_index=True, sort=False)
-#     return res
-#
-#
-#
-# def expand_field_single(data, impute=False, date_univ=None):
-#     """Same as for `expand_field`"""
-#     gf = data['div'].unique()
-#     res = pd.DataFrame()
-#     for i in gf:
-#         data_f = data.query('div==@i')
-#         data_ed = data_f.pivot_table(index=['div', 'date', 'season', 'field'],
-#                                      columns='team',
-#                                      values='val').reset_index()
-#
-#         if date_univ is None:
-#             # date universe
-#             date_univ_rel = pd.DataFrame(data.loc[:, 'date'].unique(), columns={'date'}).sort_values(by='date')
-#             # copy forward all factors
-#             data_edm = pd.merge(date_univ_rel,
-#                                 data_ed,
-#                                 on='date',
-#                                 how='outer').sort_values(by='date')
-#         else:
-#             data_edm = pd.merge(date_univ,
-#                                 data_ed,
-#                                 on=['date', 'season', 'div'],
-#                                 how='outer').sort_values(by='date')
-#
-#         # data_ed.reset_index(drop=True, inplace=True)
-#         data_edm = data_edm.sort_values('date')
-#         data_edm = data_edm.fillna(method='ffill') # note that all teams ever played are included
-#         # data_edm.query("div=='E0' & season=='2019' & field=='team_quality_consistency'")
-#
-#         # need to filter only teams playing in the season otherwise duplicates issue
-#         data_edm = pd.melt(data_edm,
-#                            id_vars=['div', 'season', 'date', 'field'],
-#                            var_name='team',
-#                            value_name='val')
-#         # drop na in fields
-#         data_edm = data_edm[data_edm['field'].notna()]
-#
-#         # all teams played in each  season
-#         tmp = data_f.groupby(['div', 'season'])['team'].unique().reset_index()
-#         team_seas = tmp.apply(lambda x: pd.Series(x['team']), axis=1).stack().reset_index(level=1, drop=True)
-#         team_seas.name = 'team'
-#         team_seas = tmp.drop('team', axis=1).join(team_seas)
-#         # expanded factors
-#         fexp = pd.merge(team_seas, data_edm,
-#                         on=['div', 'season', 'team'],
-#                         how='inner').sort_values(by='date').reset_index(drop=True)
-#         res = res.append(fexp, ignore_index=True, sort=False)
-#
-#     if impute is True:
-#         res['val'] = res.groupby(['date', 'div'])['val'].transform(lambda x: x.fillna(x.mean()))
-#
-#     # remove na where no data at all
-#     res = res[res['val'].notna()].sort_values('date').reset_index(drop=True)
-#
-#     return res
 
 
 

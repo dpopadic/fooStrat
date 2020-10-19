@@ -64,5 +64,18 @@ odds_fields = {'odds_home_win':oh,
                'odds_under_25_goal':btp5,
                'odds_above_25_goal': atp5}
 
+# symmetric odds map
+owsy = ['B365_win', 'BS_win', 'BW_win', 'GB_win', 'IW_win', 'LB_win',
+        'PS_win', 'P_win', 'SO_win', 'SB_win', 'SJ_win', 'SY_win',
+        'VC_win', 'WH_win', 'BbMx_win', 'BbAv_win', 'Max_win', 'Avg_win']
+odsy = ['B365_draw', 'BS_draw', 'BW_draw', 'GB_draw', 'IW_draw', 'LB_draw',
+        'PS_draw', 'P_draw', 'SO_draw', 'SB_draw', 'SJ_draw', 'SY_draw',
+        'VC_draw', 'WH_draw', 'BbMx_draw', 'BbAv_draw', 'Max_draw', 'Avg_draw']
+
+home_boo = [1 for x in range(len(oh))] + [-1 for x in range(len(oa))] + [0 for x in range(len(od))]
+odds_fields_neutral = pd.DataFrame({'field': oh + oa + od,
+                                    'home': home_boo,
+                                    'field_neutral': owsy + owsy + odsy})
+
 
 
