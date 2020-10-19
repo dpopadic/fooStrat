@@ -1,4 +1,4 @@
-# FACTOR COMPUTATION --------------------------------------------------------------------------------------------------
+# FACTOR COMPUTATIONS -------------------------------------------------------------------------------------------------
 import pandas as pd
 import numpy as np
 import fooStrat.features as sf
@@ -15,27 +15,22 @@ game_day = ss.con_gameday(data=source_core)
 game_day.to_pickle('./data/pro_data/game_day.pkl')
 
 
-# goal based factors --------------------------------------------------------------------------------------------------
+# features ------------------------------------------------------------------------------------------------------------
+# - goal based factors
+# - result based factors
+# - attack strength factors
+# - standings based factors
+# - turnaround ability factors
+# - head-to-head factors
+# - home factor
 fgb = sf.feat_goalbased(data=source_core, k=5)
-
-# result based factors ------------------------------------------------------------------------------------------------
 frb = sf.feat_resbased(data=source_core)
-
-# attack strength factors ---------------------------------------------------------------------------------------------
 fstre = sf.feat_strength(data = source_core, k=5)
-
-# standings based factors ---------------------------------------------------------------------------------------------
 fsb = sf.feat_stanbased(data=source_core)
-
-# turnaround ability factors ------------------------------------------------------------------------------------------
 ftf = sf.feat_turnaround(data=source_core)
-
-# head-to-head factors ------------------------------------------------------------------------------------------------
 fh2h = sf.feat_h2h(data=source_core)
-
-# home factor ---------------------------------------------------------------------------------------------------------
-# no need for expansion for boolean factors!
 hf = sf.fhome(data=source_core)
+
 
 # factor library ------------------------------------------------------------------------------------------------------
 fsb.field.unique()
