@@ -154,7 +154,7 @@ def neutralise_field(data, field, field_name=None, field_numeric=True, column_fi
     # filter relevant fields..
     data_ed = data[(data['field'].isin(field))].copy()
     if field_numeric == True:
-        data_ed['val'] = pd.to_numeric(data_ed.loc[:, 'val'], errors='coerce')
+        data_ed['val'] = data_ed['val'].apply(lambda x: pd.to_numeric(x, errors='coerce'))
 
     # put the fields in wide format
     tmp = pd.pivot_table(data_ed,
@@ -194,10 +194,10 @@ def neutralise_field_multi(data, field, field_map, field_numeric=True, column_fi
 
     # filter relevant fields
     arf = field.get('odds_home_win') + field.get('odds_home_win') + field.get('odds_draw_win')
-    data_ed = data[data['field'].isin(arf)]
+    data_ed = data[data['field'].isin(arf)].reset_index(drop=True)
 
     if field_numeric == True:
-        data_ed['val'] = pd.to_numeric(data_ed.loc[:, 'val'], errors='coerce')
+        data_ed['val'] = data_ed['val'].apply(lambda x: pd.to_numeric(x, errors='coerce'))
 
     # home team..
     rfh = field.get('odds_home_win') + field.get('odds_draw_win')

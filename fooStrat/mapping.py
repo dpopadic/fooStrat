@@ -73,9 +73,11 @@ odsy = ['B365_draw', 'BS_draw', 'BW_draw', 'GB_draw', 'IW_draw', 'LB_draw',
         'VC_draw', 'WH_draw', 'BbMx_draw', 'BbAv_draw', 'Max_draw', 'Avg_draw']
 
 home_boo = [1 for x in range(len(oh))] + [-1 for x in range(len(oa))] + [0 for x in range(len(od))]
+event_boo = ['win' for x in range(len(oh))] + ['win' for x in range(len(oa))] + ['draw' for x in range(len(od))]
 odds_fields_neutral = pd.DataFrame({'field': oh + oa + od,
                                     'home': home_boo,
-                                    'field_neutral': owsy + owsy + odsy})
+                                    'field_neutral': owsy + owsy + odsy,
+                                    'event': event_boo})
 
 
 
