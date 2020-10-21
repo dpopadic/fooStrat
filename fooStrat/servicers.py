@@ -193,7 +193,7 @@ def neutralise_field_multi(data, field, field_map, field_numeric=True, column_fi
     """
 
     # filter relevant fields
-    arf = field.get('odds_home_win') + field.get('odds_home_win') + field.get('odds_draw_win')
+    arf = field.get('odds_home_win') + field.get('odds_away_win') + field.get('odds_draw_win')
     data_ed = data[data['field'].isin(arf)].reset_index(drop=True)
 
     if field_numeric == True:

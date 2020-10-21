@@ -2,43 +2,33 @@
 fstre.field.unique()
 game_day.query("div=='E0' & season=='2019' & team=='liverpool'")
 # fields: HTAG, HTHG, FTAG, FTHG
-data_neu.query("div=='E0' & season=='2019' & team=='liverpool' & date=='2020-07-22'")
-fh2h.query("div=='E0' & team=='liverpool'")
+data_neu.query("div=='E0' & season=='2019' & team=='liverpool' & date=='2020-07-22' & event=='draw'")
+data_neu.query("div=='E0' & season=='2019' & team=='chelsea' & date=='2020-07-22' & event=='draw'")
+
+df1.query("div=='E0' & season=='2019' & team=='liverpool'")
 
 
-# prediction uncertainty
-import fooStrat.mapping as foma
+i = odds_fields_neutral['field']
+ik = data.query("div=='E0' & season=='2019' & date=='2020-07-22' & home_team=='liverpool' & field in @i")
 
-
-
-
-
-# all odds across bookies
-ao = foma.oh + foma.oa + foma.od
-aot = ['home_odds' for x in range(len(foma.oh))] + \
-      ['away_odds' for x in range(len(foma.oa))] + \
-      ['draw_odds' for x in range(len(foma.od))]
-oma = pd.DataFrame({'field': ao,
-                    'odds_type': aot})
-data_ed = pd.merge(data_ed, oma, on='field', how='left')
-data_ed.groupby(['div', 'season', 'date', ''])
-
-ao = odds_fields.get('odds_home_win') + odds_fields.get('odds_away_win') + odds_fields.get('odds_draw_win')
 
 data_neu = fose.neutralise_field_multi(data=data,
                                        field=odds_fields,
                                        field_map = odds_fields_neutral,
                                        field_numeric=True,
                                        column_field=False)
-
+# unique fields
+ofn = odds_fields_neutral.groupby('event')['field_neutral'].unique().reset_index()
+ofn = ofn.explode('field_neutral').reset_index(drop=True).rename(columns={'field_neutral': 'field'})
+# add event
 data_neu = pd.merge(data_neu,
-                    odds_fields_neutral[['field_neutral', 'event']],
+                    ofn,
                     how = 'left',
-                    left_on = 'field',
-                    right_on='field_neutral')
-
-data_neu[data_neu['val'].isnull()==True]
-
+                    on = 'field')
+# calculate vol of draw/win and derive average
+df1 = data_neu.groupby(['season', 'div', 'date', 'team', 'event'])['val'].std().reset_index()
+df1 = df1.groupby(['season', 'div', 'date', 'team'])['val'].mean().reset_index()
+df1['field'] = 'odds_volatility'
 
 
 
