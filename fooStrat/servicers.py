@@ -532,16 +532,16 @@ def get_odds(data, field_home, field_away, field_draw):
     moc = moc.sort_values(['date', 'div', 'season']).reset_index(level=0, drop=True)
 
     # # -- implied losing odds
-    # moc_ed = moc.pivot_table(index=['season', 'div', 'date', 'team'],
-    #                          columns='field',
-    #                          values='val').reset_index()
-    # moc_ed["odds_lose"] = 1 / (1 - (1 / moc_ed["odds_draw"] + 1 / moc_ed["odds_win"]))
-    #
-    # res = pd.melt(moc,
-    #               id_vars=['div', 'season', 'date', 'team'],
-    #               value_name="val")
+    moc_ed = moc.pivot_table(index=['season', 'div', 'date', 'team'],
+                             columns='field',
+                             values='val').reset_index()
+    moc_ed["odds_lose"] = 1 / (1 - (1 / moc_ed["odds_draw"] + 1 / moc_ed["odds_win"]))
 
-    return moc
+    res = pd.melt(moc_ed,
+                  id_vars=['div', 'season', 'date', 'team'],
+                  value_name="val")
+
+    return res
 
 
 

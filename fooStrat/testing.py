@@ -2,8 +2,8 @@
 fstre.field.unique()
 game_day.query("div=='E0' & season=='2019' & team=='liverpool'")
 # fields: HTAG, HTHG, FTAG, FTHG
-data_neu.query("div=='E0' & season=='2019' & team=='liverpool' & date=='2020-07-22' & event=='win'")
-data_neu.query("div=='E0' & season=='2019' & team=='chelsea' & date=='2020-07-22' & event=='win'")
+data_neu.query("div=='E0' & season=='2019' & team=='liverpool' & date=='2020-07-22'")
+data_neu.query("div=='E0' & season=='2019' & team=='chelsea' & date=='2020-07-22'")
 data_neu.query("div=='D1' & season=='2019' & team=='dortmund' & date=='2020-06-20' & event=='draw'")
 data_neu.query("div=='G1' & team=='olympiakos' & event=='win' & date == '2005-08-28'").sort_values('date')
 
@@ -51,7 +51,11 @@ df1['field'] = 'odds_volatility'
 # which odds? take max's -> as input since it takes a long time to retrieve
 data_ed = data[data['field'] == 'FTR'].reset_index(drop=True)
 data_ed = reshape_wdl(data=data_ed, event='wdl')
+# merge results with odds
+mo = match_odds.pivot_table(index=['div', 'season', 'date', 'team'], columns='field', values='val').reset_index()
+rndo = pd.merge(data_ed, mo, on = ['div', 'season', 'date', 'team'], how='left')
 
 
+rndo.groupby(['div', 'season', 'team'])
 
 
