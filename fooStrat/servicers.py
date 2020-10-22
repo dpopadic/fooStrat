@@ -501,7 +501,7 @@ def max_event_odds_sym(data, field, new_field):
 
 
 
-def fodds(data, field_home, field_away, field_draw):
+def get_odds(data, field_home, field_away, field_draw):
     """Retrieves the maximum odds for every game and event in an easy to handle
     and scalable long format.
 
@@ -531,17 +531,17 @@ def fodds(data, field_home, field_away, field_draw):
     moc = pd.concat([moh, moa, mod], axis=0, sort=False, ignore_index=True)
     moc = moc.sort_values(['date', 'div', 'season']).reset_index(level=0, drop=True)
 
-    # -- implied losing odds
-    moc_ed = moc.pivot_table(index=['season', 'div', 'date', 'team'],
-                             columns='field',
-                             values='val').reset_index()
-    moc_ed["odds_lose"] = 1 / (1 - (1 / moc_ed["odds_draw"] + 1 / moc_ed["odds_win"]))
+    # # -- implied losing odds
+    # moc_ed = moc.pivot_table(index=['season', 'div', 'date', 'team'],
+    #                          columns='field',
+    #                          values='val').reset_index()
+    # moc_ed["odds_lose"] = 1 / (1 - (1 / moc_ed["odds_draw"] + 1 / moc_ed["odds_win"]))
+    #
+    # res = pd.melt(moc,
+    #               id_vars=['div', 'season', 'date', 'team'],
+    #               value_name="val")
 
-    res = pd.melt(moc_ed,
-                  id_vars=['div', 'season', 'date', 'team'],
-                  value_name="val")
-
-    return res
+    return moc
 
 
 

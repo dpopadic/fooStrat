@@ -6,7 +6,7 @@
 import pandas as pd
 from fooStrat.processing import update_data_latest, update_data_historic
 from fooStrat.mapping import odds_fields
-from fooStrat.servicers import fodds
+from fooStrat.servicers import get_odds
 
 # history update ------------------------------------------------------
 update_data_historic(path='data/src_data/',
@@ -29,10 +29,10 @@ update_data_latest(ex=source_core,
 
 
 # odds update --------------------------------------------------------
-match_odds = fodds(data=source_core,
-                   field_home=list(odds_fields.get('odds_home_win')),
-                   field_away=list(odds_fields.get('odds_away_win')),
-                   field_draw=list(odds_fields.get('odds_draw_win')))
+match_odds = get_odds(data=source_core,
+                      field_home=list(odds_fields.get('odds_home_win')),
+                      field_away=list(odds_fields.get('odds_away_win')),
+                      field_draw=list(odds_fields.get('odds_draw_win')))
 match_odds.to_pickle('./data/pro_data/match_odds.pkl')
 
 # meta data ----------------------------------------------------------
