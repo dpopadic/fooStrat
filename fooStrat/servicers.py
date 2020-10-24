@@ -503,7 +503,7 @@ def max_event_odds_sym(data, field, new_field):
 
 def get_odds(data, field_home, field_away, field_draw):
     """Retrieves the maximum odds for every game and event in an easy to handle
-    and scalable long format.
+    and scalable long format. Certain odds are implied (losing).
 
     Parameters:
     -----------

@@ -7,8 +7,10 @@ data_neu.query("div=='E0' & season=='2019' & team=='chelsea' & date=='2020-07-22
 data_neu.query("div=='D1' & season=='2019' & team=='dortmund' & date=='2020-06-20' & event=='draw'")
 data_neu.query("div=='G1' & team=='olympiakos' & event=='win' & date == '2005-08-28'").sort_values('date')
 
-a = rdf0.query("div=='E0' & season=='2019' & team=='liverpool'")
-
+a = rndo.query("div=='E0' & season=='2019' & team=='liverpool'").sort_values('date')
+a1 = data.query("div=='E0' & season=='2019' & home_team=='liverpool' & away_team=='man_city' & field in ['B365H', 'B365A', 'B365D']")
+1/5.4 + 1/7.99 + 1/1.45
+1/26
 
 i = odds_fields_neutral['field']
 ik = data.query("div=='E0' & season=='2019' & date=='2020-07-22' & home_team=='liverpool' & field in @i")
@@ -50,12 +52,26 @@ df1['field'] = 'odds_volatility'
 # 1st approach: determine the lowest odds which define the most likely outcome
 # which odds? take max's -> as input since it takes a long time to retrieve
 data_ed = data[data['field'] == 'FTR'].reset_index(drop=True)
-data_ed = reshape_wdl(data=data_ed, event='wdl')
+# data_ed = reshape_wdl(data=data_ed, event='wdl', as_numeric=True)
+event_win = reshape_wdl(data=data_ed, event='win')
+event_lose = reshape_wdl(data=data_ed, event='lose')
+event_draw = reshape_wdl(data=data_ed, event='draw')
+event_wdl = pd.concat([event_win, event_lose, event_draw],
+                      axis=0,
+                      sort=True,
+                      ignore_index=True).reset_index(drop=True)
+
 # merge results with odds
 mo = match_odds.pivot_table(index=['div', 'season', 'date', 'team'], columns='field', values='val').reset_index()
-rndo = pd.merge(data_ed, mo, on = ['div', 'season', 'date', 'team'], how='left')
+rndo = pd.merge(event_wdl, mo, on = ['div', 'season', 'date', 'team'], how='left')
+
+# fit logit model
+a = rndo.query("div=='E0' & season=='2019' & team=='liverpool'").sort_values('date')
 
 
-rndo.groupby(['div', 'season', 'team'])
+
+
+
+
 
 

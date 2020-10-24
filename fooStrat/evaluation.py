@@ -79,19 +79,21 @@ def con_res_gd(data, field):
 
 
 
-def reshape_wdl(data, event):
+def reshape_wdl(data, event, as_numeric=False):
     """Reshape win, draw, lose events for teams.
 
     Parameters:
     -----------
-        data:   pandas dataframe
-                A dataframe with columns season, date, div, home_team, away_team, field, val
-        event:  str
-                How to shape the result. Options are:
-                    win     highlight whether a team won with 0 / 1
-                    lose    highlight whether a team lost with 0 / 1
-                    draw    highlight whether a team drew with 0 / 1
-                    wdl     highlight what the team did: win, lose, draw
+        data:           pandas dataframe
+                        A dataframe with columns season, date, div, home_team, away_team, field, val
+        event:          str
+                        How to shape the result. Options are:
+                            win     highlight whether a team won with 0 / 1
+                            lose    highlight whether a team lost with 0 / 1
+                            draw    highlight whether a team drew with 0 / 1
+                            wdl     highlight what the team did: win, lose, draw
+        as_numeric:     boolean
+                        when event is wdl, return `val` as string or numeric
 
     """
 
@@ -148,6 +150,8 @@ def reshape_wdl(data, event):
         away.rename(columns={'away_team': 'team'}, inplace=True)
 
         res = pd.concat([home, away], axis=0, sort=True)
+        if as_numeric == True:
+            res['val'] = res['val'].apply(lambda x: 1 if x == 'win' else (0 if x == 'draw' else -1))
 
     res = res.reset_index(level=0, drop=True)
 
