@@ -66,10 +66,11 @@ a = rndo.query("div=='E0' & season=='2019' & team in ['chelsea', 'arsenal'] & fi
 a = rndo.query("div=='E0' & season=='2019'").reset_index(drop=True)
 
 b = a.groupby(['div', 'season', 'team', 'field']).apply(est_odds_accuracy).reset_index()
-b = a.groupby(['div', 'season', 'team', 'field']).agg(est_odds_accuracy)
+b = a.groupby(['div', 'season', 'team', 'field']).agg(np.mean)
 
 
-est_odds_accuracy(a)
+est_odds_accuracy(data=a.groupby(['div', 'season', 'team', 'field']))
+
 
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import confusion_matrix
