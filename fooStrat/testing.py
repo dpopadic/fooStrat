@@ -1,4 +1,3 @@
-from fooStrat.evaluation import reshape_wdl
 from fooStrat.evaluation import con_res_wd
 from fooStrat.features import feat_odds_volatility
 from fooStrat.mapping import odds_fields, odds_fields_neutral
@@ -30,38 +29,18 @@ rndo = pd.merge(event_wdl, mo, on = ['div', 'season', 'date', 'team'], how='left
 
 
 # fit logit model
-a = rndo.query("div=='E0' & season=='2019' & team=='arsenal' & field=='win'").sort_values('date')
+a = rndo.query("div=='E0' & season=='2019' & team=='chelsea' & field=='draw'").sort_values('date')
 a = rndo.query("div=='E0' & season=='2019' & team in ['chelsea', 'arsenal'] & field=='win'").sort_values('date').reset_index(drop=True)
 a = rndo.query("div=='E0' & season=='2019'").reset_index(drop=True)
 
 b = a.groupby(['div', 'season', 'team', 'field']).apply(est_odds_accuracy, y='val', x=['odds_win', 'odds_draw', 'odds_lose']).reset_index()
+b
 
 est_odds_accuracy(data=a, y='val', x=['odds_win', 'odds_draw', 'odds_lose'])
 
 
 
-from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import confusion_matrix
-from fooStrat.helpers import class_accuracy_stats
 
-
-def est_odds_accuracy(data, y, x):
-    """Estimates odds accuracy for each team and season. Accuracy is defined here
-    as F1 score to take into account unbalanced outcomes.
-
-    Parameters:
-    -----------
-        data:   pd dataframe
-                data with columns odds_win, odds_draw, odds_lose & val (the outcome decoded in 0/1)
-    """
-    Y = data[y].values
-    X = data[x].values
-    mod = LogisticRegression()
-    mod.fit(X, Y)
-    y_h = mod.predict(X)
-    cm = confusion_matrix(Y, y_h)
-    z = class_accuracy_stats(cm).iloc[3,]
-    return z
 
 
 

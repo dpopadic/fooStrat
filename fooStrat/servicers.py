@@ -1,5 +1,7 @@
 import pandas as pd
 import numpy as np
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import f1_score
 from scipy.stats import zscore
 from fooStrat.helpers import jitter, anti_join
 
@@ -656,3 +658,31 @@ def comp_bucket(data, bucket_method, bucket):
             transform(lambda x: pd.qcut(x, q=bucket, labels=range(1, bucket + 1), duplicates='drop'))
 
     return data
+
+
+
+def est_odds_accuracy(data, y, x):
+    """Estimates odds accuracy for each team and season. Accuracy is defined here
+    as F1 score to take into account unbalanced outcomes.
+
+    Parameters:
+    -----------
+        data:   pd dataframe
+                data with columns odds_win, odds_draw, odds_lose & val (the outcome decoded in 0/1)
+    """
+    Y = data[y].values
+    X = data[x].values
+    mod = LogisticRegression()
+    mod.fit(X, Y)
+    y_h = mod.predict(X)
+    z = f1_score(Y, y_h)
+    return z
+
+
+
+
+
+
+
+
+

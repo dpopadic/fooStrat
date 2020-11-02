@@ -99,10 +99,10 @@ def class_accuracy_stats(conf_mat):
             high recall:        predicted most spam emails correctly
 
     """
-    TP = conf_mat[0, 0]
-    FN = conf_mat[0, 1]
-    FP = conf_mat[1, 0]
-    TN = conf_mat[1, 1]
+    TN = conf_mat[0, 0]
+    FN = conf_mat[1, 0]
+    FP = conf_mat[0, 1]
+    TP = conf_mat[1, 1]
     pre = TP / (TP + FP)
     rec = TP / (TP + FN)
     x = {'accuracy': (TP + TN) / conf_mat.sum(),
