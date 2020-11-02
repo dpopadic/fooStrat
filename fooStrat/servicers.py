@@ -669,13 +669,19 @@ def est_odds_accuracy(data, y, x):
     -----------
         data:   pd dataframe
                 data with columns odds_win, odds_draw, odds_lose & val (the outcome decoded in 0/1)
+    Details:
+    --------
+        If there is not a single event for a class, 0.5 is returned (event 50% likely).
     """
     Y = data[y].values
     X = data[x].values
     mod = LogisticRegression()
-    mod.fit(X, Y)
-    y_h = mod.predict(X)
-    z = f1_score(Y, y_h)
+    try:
+        mod.fit(X, Y)
+        y_h = mod.predict(X)
+        z = f1_score(Y, y_h)
+    except ValueError:
+        z = 0.5
     return z
 
 
