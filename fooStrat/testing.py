@@ -30,44 +30,13 @@ rndo = pd.merge(event_wdl, mo, on = ['div', 'season', 'date', 'team'], how='left
 
 
 # fit logit model
-a = rndo.query("div=='E0' & season=='2019' & team=='chelsea' & field=='lose'").sort_values('date')
+a = rndo.query("div=='E0' & season=='2019' & team=='arsenal' & field=='win'").sort_values('date')
 a = rndo.query("div=='E0' & season=='2019' & team in ['chelsea', 'arsenal'] & field=='win'").sort_values('date').reset_index(drop=True)
 a = rndo.query("div=='E0' & season=='2019'").reset_index(drop=True)
 
-a1 = a.groupby(['div', 'season', 'team', 'field'])
-b = a1.apply(est_odds_accuracy, y='val', x=['odds_win', 'odds_draw', 'odds_lose']).reset_index()
-b = a1.apply(lambda q: est_odds_accuracy(q, y='val', x=['odds_win', 'odds_draw', 'odds_lose'])).reset_index()
-
-b = a.groupby(['div', 'season', 'team', 'field']).agg(est_odds_accuracy)
-
+b = a.groupby(['div', 'season', 'team', 'field']).apply(est_odds_accuracy, y='val', x=['odds_win', 'odds_draw', 'odds_lose']).reset_index()
 
 est_odds_accuracy(data=a, y='val', x=['odds_win', 'odds_draw', 'odds_lose'])
-
-
-# testing framework
-import statsmodels.api as sm
-
-df = pd.DataFrame({
-  'y': np.random.randn(20),
-  'x1': np.random.randn(20),
-  'x2': np.random.randn(20),
-  'grp': ['a', 'b'] * 10})
-
-
-def ols_res(df, xcols,  ycol):
-    return sm.OLS(df[ycol], df[xcols]).fit().predict()
-
-def ols_res(df, xcols,  ycol):
-    return sm.OLS(df[ycol], df[xcols]).fit().rsquared
-
-d = df.query("grp=='a'").reset_index(drop=True)
-sm.OLS(d['y'], d[['x1', 'x2']]).fit().predict()
-sm.OLS(d['y'], d[['x1', 'x2']]).fit().summary()
-sm.OLS(d['y'], d[['x1', 'x2']]).fit().rsquared
-
-
-df2 = df.groupby('grp').apply(ols_res, xcols=['x1', 'x2'], ycol='y')
-
 
 
 
@@ -85,17 +54,14 @@ def est_odds_accuracy(data, y, x):
         data:   pd dataframe
                 data with columns odds_win, odds_draw, odds_lose & val (the outcome decoded in 0/1)
     """
-    Y = a['val'].values
-    X = a[x].values
+    Y = data[y].values
+    X = data[x].values
     mod = LogisticRegression()
     mod.fit(X, Y)
     y_h = mod.predict(X)
     cm = confusion_matrix(Y, y_h)
     z = class_accuracy_stats(cm).iloc[3,]
     return z
-
-
-
 
 
 
