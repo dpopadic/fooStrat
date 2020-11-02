@@ -11,48 +11,44 @@ def feat_odds_uncertainty(data, odds):
         - odds prediction uncertainty (the less accurate, the better)
         - pricing spread (the higher, the better)
     """
+    # --- odds volatility
     df1 = feat_odds_volatility(data=data,
                                odds_fields=odds_fields,
                                odds_fields_neutral=odds_fields_neutral)
 
+    # --- historical odds prediction uncertainty (hit ratio)
+
+
+
     return data
 
 
+def feat_odds_accuracy(data, odds):
+    """Estimate odds accuracy using a logit model.
 
-# --- historical odds prediction uncertainty (hit ratio)
-# 1st approach: determine the lowest odds which define the most likely outcome
-# which odds? take max's -> as input since it takes a long time to retrieve
-event_wdl = con_res_wd(data=data, field='FTR', encoding=True)
-# merge results with odds
-mo = match_odds.pivot_table(index=['div', 'season', 'date', 'team'], columns='field', values='val').reset_index()
-rndo = pd.merge(event_wdl, mo, on = ['div', 'season', 'date', 'team'], how='left')
-# remove na's
-rndo = rndo.dropna().reset_index(drop=True)
+    # Parameters:
+    -------------
+        data:   pd dataframe
+                a dataframe with columns div, date, season, home_team, away_team, field, val
+        odds:   pd dataframe
+                a dataframe with columns div, date, season, field, val
 
-# remove observations where a team has never had a certain event
-nd = rndo.groupby(['div', 'season', 'team', 'field', 'val'])['date'].agg('count').reset_index()
-nd = nd[nd['date'] > 1]
-nd.drop('date', axis=1, inplace=True)
-rndo_ed = pd.merge(rndo, nd, on=['div', 'season', 'team', 'field', 'val'], how='inner')
-
-rndo_ed = rndo.query("div=='E0'").reset_index(drop=True)
-
-# estimate accuracy
-rndo_est = rndo.groupby(['div', 'season', 'team', 'field']).apply(ss.est_odds_accuracy, y='val', x=['odds_win', 'odds_draw', 'odds_lose']).reset_index()
-rndo_est
-rndo_est.query("team=='liverpool'")
+    """
+    event_wdl = con_res_wd(data=data, field='FTR', encoding=True)
+    # merge results with odds
+    mo = match_odds.pivot_table(index=['div', 'season', 'date', 'team'], columns='field', values='val').reset_index()
+    rndo = pd.merge(event_wdl, mo, on=['div', 'season', 'date', 'team'], how='left')
+    # remove na's
+    rndo = rndo.dropna().reset_index(drop=True)
+    # estimate accuracy
+    rndo_est = rndo.groupby(['div', 'season', 'team', 'field']).apply(ss.est_odds_accuracy,
+                                                                      y='val',
+                                                                      x=['odds_win', 'odds_draw',
+                                                                         'odds_lose']).reset_index()
+    return rndo_est
 
 
-# fit logit model
-a = rndo.query("div=='E0' & season=='2019' & team=='chelsea' & field=='draw'").sort_values('date')
-a = rndo.query("div=='E0' & season=='2019' & team in ['chelsea', 'arsenal'] & field=='win'").sort_values('date').reset_index(drop=True)
-a = rndo.query("div=='E0' & season in ['1995', '2000']").reset_index(drop=True)
 
-a = a.dropna().reset_index(drop=True)
-b = a.groupby(['div', 'season', 'team', 'field']).apply(ss.est_odds_accuracy, y='val', x=['odds_win', 'odds_draw', 'odds_lose']).reset_index()
-b
-
-est_odds_accuracy(data=a, y='val', x=['odds_win', 'odds_draw', 'odds_lose'])
 
 
 
