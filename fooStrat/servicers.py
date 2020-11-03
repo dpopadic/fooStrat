@@ -406,7 +406,7 @@ def expand_event_sphere(data, dates=None):
 
 
 
-def expand_field(data, dates=None):
+def expand_field(data, dates=None, keys=['div', 'season', 'date', 'team', 'field']):
     """
     Expands factors across the entire date spectrum so that cross-sectional analysis
     on the factor can be performed. This ensures that for every competition (eg. Premier League),
@@ -420,6 +420,9 @@ def expand_field(data, dates=None):
         dates:      pandas dataframe
                     optional, if not all dates are represented in `data`, provide
                     all relevant dates with columns div, season, date
+        keys:       list
+                    keys in data & dates on which dates will be expanded (defaults to
+                    ['div', 'season', 'date', 'team', 'field'])
 
     Details:
     --------
@@ -433,7 +436,7 @@ def expand_field(data, dates=None):
         tmp = data_ed.copy()
         tmp['field'] = k
         tmp = pd.merge(tmp, data[data['field'] == k],
-                       on=['div', 'season', 'date', 'team', 'field'],
+                       on=keys,
                        how='outer').sort_values(by='date')
         tmp = tmp.sort_values(['div', 'season', 'team', 'field', 'date']).reset_index(drop=True)
         tmp = tmp.fillna(method='ffill')

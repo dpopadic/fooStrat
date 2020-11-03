@@ -428,7 +428,7 @@ def feat_strength(data, k):
 
 
 def feat_odds_volatility(data, odds_fields=odds_fields, odds_fields_neutral=odds_fields_neutral):
-    """Calculates odds volatility features."""
+    """Calculates odds volatility of win/draw events across all bookies for each game."""
     data_neu = fose.neutralise_field_multi(data=data,
                                            field=odds_fields,
                                            field_map=odds_fields_neutral,
@@ -474,6 +474,7 @@ def feat_odds_accuracy(data, odds):
                                                                       y='val',
                                                                       x=['odds_win', 'odds_draw',
                                                                          'odds_lose']).reset_index()
+    rndo_est.rename(columns={0: 'val'}, inplace=True)
     return rndo_est
 
 
