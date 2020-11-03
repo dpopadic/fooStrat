@@ -4,6 +4,8 @@ from scipy.stats import zscore
 from itertools import chain
 import fooStrat.servicers as fose
 import fooStrat.features_standalone as sfs
+from fooStrat.mapping import odds_fields, odds_fields_neutral
+from fooStrat.evaluation import con_res_wd
 
 def fhome(data):
     """
@@ -425,7 +427,7 @@ def feat_strength(data, k):
     return res
 
 
-def feat_odds_volatility(data, odds_fields, odds_fields_neutral):
+def feat_odds_volatility(data, odds_fields=odds_fields, odds_fields_neutral=odds_fields_neutral):
     """Calculates odds volatility features."""
     data_neu = fose.neutralise_field_multi(data=data,
                                            field=odds_fields,
@@ -447,3 +449,33 @@ def feat_odds_volatility(data, odds_fields, odds_fields_neutral):
     df1['field'] = 'odds_volatility'
 
     return df1
+
+
+
+def feat_odds_accuracy(data, odds):
+    """Estimate odds accuracy using a logit model.
+
+    # Parameters:
+    -------------
+        data:   pd dataframe
+                a dataframe with columns div, date, season, home_team, away_team, field, val
+        odds:   pd dataframe
+                a dataframe with columns div, date, season, field, val
+
+    """
+    event_wdl = con_res_wd(data=data, field='FTR', encoding=True)
+    # merge results with odds
+    mo = odds.pivot_table(index=['div', 'season', 'date', 'team'], columns='field', values='val').reset_index()
+    rndo = pd.merge(event_wdl, mo, on=['div', 'season', 'date', 'team'], how='left')
+    # remove na's
+    rndo = rndo.dropna().reset_index(drop=True)
+    # estimate accuracy
+    rndo_est = rndo.groupby(['div', 'season', 'team', 'field']).apply(fose.est_odds_accuracy,
+                                                                      y='val',
+                                                                      x=['odds_win', 'odds_draw',
+                                                                         'odds_lose']).reset_index()
+    return rndo_est
+
+
+
+
