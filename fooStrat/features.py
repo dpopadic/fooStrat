@@ -478,5 +478,33 @@ def feat_odds_accuracy(data, odds):
     return rndo_est
 
 
+def feat_odds_uncertainty(data, odds):
+    """Derives the prediction/odds uncertainty features.
+        - volatility of odds (the higher, the better)
+        - odds prediction uncertainty (the less accurate, the better)
+        - pricing spread (the higher, the better)
+    """
+    # --- odds volatility
+    df1 = feat_odds_volatility(data=data)
+    df1_ed = fose.expand_field(data=df1)
+    df1_ed['val'] = df1_ed.groupby(['div', 'season', 'date', 'field'])['val'].transform(lambda x: zscore(x, ddof=1))
 
+    # --- historical odds prediction accuracy
+    df2 = feat_odds_accuracy(data=data, odds=odds)
+    df2_ed = df2.query("field in ['win', 'lose']").groupby(['div', 'season', 'team']).agg('mean').reset_index()
+    # reverse direction
+    df2_ed['val'] = 1 - df2_ed['val']
+    df2_ed['field'] = "odds_accuracy"
+    # expand field
+    date_univ = fose.con_date_univ(data=data)
+    df2_ed = fose.expand_field(data=df2_ed, dates=date_univ, keys=['div', 'season', 'team', 'field'])
+    df2_ed['val'] = df2_ed.groupby(['div', 'season', 'date', 'field'])['val'].transform(lambda x: zscore(x, ddof=1))
 
+    # --- odds uncertainty composite
+    dfc = pd.concat([df1_ed, df2_ed], axis=0, sort=True)
+    dfc = dfc.groupby(['div', 'season', 'date', 'team']).agg('mean').reset_index()
+    dfc['field'] = "uncertainty_composite"
+    dfc['val'] = dfc.groupby(['div', 'season', 'date', 'field'])['val'].transform(lambda x: zscore(x, ddof=1))
+
+    res = pd.concat([df1_ed, df2_ed, dfc], axis=0, sort=True)
+    return res

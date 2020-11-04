@@ -30,6 +30,7 @@ fsb = sf.feat_stanbased(data=source_core)
 ftf = sf.feat_turnaround(data=source_core)
 fh2h = sf.feat_h2h(data=source_core)
 hf = sf.fhome(data=source_core)
+fun = sf.feat_odds_uncertainty(data=source_core, odds=match_odds)
 
 
 # factor library ------------------------------------------------------------------------------------------------------
@@ -37,7 +38,7 @@ fsb.field.unique()
 su.delete_flib(field=["points_advantage", "rank_position"])
 
 su.update_flib(data=[fh2h], update=True)
-su.update_flib(data=[fgb, frb, fstre, fsb, ftf, fh2h, hf], update=False)
+su.update_flib(data=[fgb, frb, fstre, fsb, ftf, fh2h, hf, fun], update=False)
 
 # consolidate for feature evaluation
 su.consol_flib()
