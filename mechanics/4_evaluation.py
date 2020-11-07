@@ -5,19 +5,20 @@ import fooStrat.evaluation as se
 from fooStrat.modelling import est_prob
 
 # DATA PREPARATIONS ---------------------------------------------------------------------------------------------------
-# load all required data
 source_core = pd.read_pickle('data/pro_data/source_core.pkl')
-flib = pd.read_pickle('data/pro_data/flib.pkl')
+flib = pd.read_pickle('data/pro_data/flib_e0.pkl')
 match_odds = pd.read_pickle('data/pro_data/match_odds.pkl')
 game_day = pd.read_pickle('data/pro_data/game_day.pkl')
-res_obj = se.con_res(data=source_core, obj=['wdl', 'gd'])
+results = se.con_res(data=source_core, obj=['wdl', 'gd'])
+
+a = flib.query("team=='liverpool' & season=='2019' & date=='2020-07-26'")
 
 
 
 # SIGNAL EFFICACY -----------------------------------------------------------------------------------------------------
 # Q: Is the hit ratio higher for teams that have a higher gsf score?
 # H: The higher the score, the higher the hit ratio.
-fe = se.eval_feature(data=flib, results=res_obj, feature="goal_superiority")
+fe = se.eval_feature(data=flib, results=results, feature="goal_superiority")
 
 # compute probability & evaluate
 gsf_proba, gsf_evaly = est_prob(scores=data_gsf, result=res_custom, field = fm)
@@ -27,7 +28,7 @@ gsf_proba, gsf_evaly = est_prob(scores=data_gsf, result=res_custom, field = fm)
 # Q: Do teams that play at home win more often than when they play away?
 data_ha = flib.query('field=="home"')
 data_ha.rename(columns={'val': 'bucket'}, inplace=True)
-res_custom = res_obj['wd'].query('field=="win"').drop('field', axis=1)
+res_custom = results['wd'].query('field=="win"').drop('field', axis=1)
 # compute the hit ratio for home-away
 ha_edge = comp_edge(factor_data=data_ha, results=res_custom, byf=['overall', 'div'])
 f0 = ['E0', 'D1']
