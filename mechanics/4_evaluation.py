@@ -26,8 +26,6 @@ fe['edge_div']
 # attack_strength, shots_conceded, shots_conceded_tgt (reversed), wood_conceded, corners_conceded
 # defense_strength, atadef_composite, team_quality_cluster, team_quality_consistency
 
-# reversed features: rank_position, odds_volatility, odds_accuracy, uncertainty_composite
-
 # best features: avg_goal_scored, goal_superiority, not_failed_scoring,
 # points_per_game, form_home, form_away, form_all, points_advantage, rank_position, turnaround_ability_last,
 # h2h_next_opponent_advantage, h2h_next_opponent_chance, turnaround_ability_trend, odds_volatility,

@@ -253,6 +253,12 @@ def feat_stanbased(data):
     tmp_2 = df_1.loc[:, ['div', 'season', 'date', 'team', 'rank']]
     tmp_2['field'] = "rank_position"
     tmp_2.rename(columns={'rank': 'val'}, inplace=True)
+    # reverse order so that lower rank is perceived better
+    rroh = tmp_2.groupby(['div', 'season'], as_index=False)['val'].max()
+    rroh.rename(columns={'val': 'n_places'}, inplace=True)
+    tmp_2 = pd.merge(tmp_2, rroh, on=['div', 'season'])
+    tmp_2['val'] = tmp_2['n_places'] - tmp_2['val'] + 1
+    tmp_2.drop('n_places', axis=1, inplace=True)
 
     rppa = pd.concat([tmp_1, tmp_2],
                      axis=0,
@@ -480,20 +486,18 @@ def feat_odds_accuracy(data, odds):
 
 def feat_odds_uncertainty(data, odds):
     """Derives the prediction/odds uncertainty features.
-        - volatility of odds (the higher, the better)
-        - odds prediction uncertainty (the less accurate, the better)
+        - volatility of odds (the lower, the better)
+        - odds prediction accuracy (the more accurate, the better)
         - pricing spread (the higher, the better)
     """
     # --- odds volatility
     df1 = feat_odds_volatility(data=data)
     df1_ed = fose.expand_field(data=df1)
-    df1_ed['val'] = df1_ed.groupby(['div', 'season', 'date', 'field'])['val'].transform(lambda x: zscore(x, ddof=1))
+    df1_ed['val'] = df1_ed.groupby(['div', 'season', 'date', 'field'])['val'].transform(lambda x: zscore(-1 * x, ddof=1))
 
     # --- historical odds prediction accuracy
     df2 = feat_odds_accuracy(data=data, odds=odds)
     df2_ed = df2.query("field in ['win', 'lose']").groupby(['div', 'season', 'team']).agg('mean').reset_index()
-    # reverse direction
-    df2_ed['val'] = 1 - df2_ed['val']
     df2_ed['field'] = "odds_accuracy"
     # expand field
     date_univ = fose.con_date_univ(data=data)
