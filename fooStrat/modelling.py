@@ -6,7 +6,7 @@ from fooStrat.helpers import class_accuracy_stats
 import fooStrat.servicers as fose
 
 
-def est_prob(scores, result, field):
+def est_prob(factors, results, feature):
     """Estimate probability of an event occuring (eg. win) for a factor using a logit-model.
 
     Parameters:
@@ -26,17 +26,18 @@ def est_prob(scores, result, field):
         Note that the probabilities are related to the 1-event (eg. win).
 
     """
-    acon = scores.pivot_table(index=['season', 'div', 'date', 'team'],
-                              columns='field',
-                              values='val').reset_index()
+    sfd = factors.query("field==@feature").reset_index(drop=True)
+    acon = sfd.pivot_table(index=['season', 'div', 'date', 'team'],
+                           columns='field',
+                           values='val').reset_index()
     # merge with results
-    prob = pd.merge(result, acon,
+    prob = pd.merge(results, acon,
                     on=['div', 'season', 'date', 'team'],
                     how='left')
     prob.dropna(inplace=True)
     # fit logit model
     y = prob['val'].values.ravel()
-    X = prob[field].values.reshape(-1, 1)
+    X = prob[feature].values.reshape(-1, 1)
     mod = LogisticRegression()
     mod.fit(X, y)
     y_pred = mod.predict(X)
@@ -48,13 +49,13 @@ def est_prob(scores, result, field):
     stats = class_accuracy_stats(conf_mat)
     # reshape results
     prob["val"] = y_pp
-    del prob[field]
+    del prob[feature]
 
     return prob, stats
 
 
 
-def con_mod_datset_0(scores, results):
+def con_mod_datset_0(factors, results):
     """Construct the modelling data set.
 
     Parameters:
@@ -66,9 +67,9 @@ def con_mod_datset_0(scores, results):
 
     """
     # reshape to wide format
-    acon = scores.pivot_table(index=['season', 'div', 'date', 'team'],
-                              columns='field',
-                              values='val').reset_index()
+    acon = factors.pivot_table(index=['season', 'div', 'date', 'team'],
+                               columns='field',
+                               values='val').reset_index()
 
     rcon = results.drop(['field'], axis=1)
     rcon.rename(columns={'val': 'result'}, inplace=True)
