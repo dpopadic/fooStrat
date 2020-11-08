@@ -11,7 +11,7 @@ match_odds = pd.read_pickle('data/pro_data/match_odds.pkl')
 game_day = pd.read_pickle('data/pro_data/game_day.pkl')
 results = se.con_res(data=source_core, obj=['wdl', 'gd'])
 
-a = flib.query("team=='liverpool' & season=='2019' & date=='2020-07-26'")
+a = flib.query("team=='liverpool' & season=='2019' & field=='uncertainty_composite'")
 source_core['div'].unique()
 
 
@@ -21,8 +21,13 @@ source_core['div'].unique()
 # 3. Would the factor on itself make money?
 
 flib['field'].unique()
-fe = se.eval_feature(data=flib, results=results, feature="uncertainty_composite")
-
+fesel = "turnaround_ability_last"
+# feature evaluation analysis
+fe = se.eval_feature(data=flib, results=results, feature=fesel)
+# estimate probability & evaluate
+pe, fme = est_prob(factors=flib,
+                   results=results['wdl'][results['wdl']['field']=='win'],
+                   feature=fesel)
 fe['summary']
 fe['edge_div']
 
@@ -31,8 +36,7 @@ fe['edge_div']
 # h2h_next_opponent_advantage, h2h_next_opponent_chance, turnaround_ability_trend, odds_volatility,
 # odds_accuracy, uncertainty_composite, home
 
-# compute probability & evaluate
-gsf_proba, gsf_evaly = est_prob(factors=flib, results=results['wdl'], feature="uncertainty_composite")
+
 
 
 # 2) home advantage signal -----
