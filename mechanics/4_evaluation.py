@@ -3,13 +3,14 @@ import pandas as pd
 import numpy as np
 import fooStrat.evaluation as se
 from fooStrat.modelling import est_prob
+from fooStrat.response import con_res
 
 # DATA PREPARATIONS ---------------------------------------------------------------------------------------------------
 source_core = pd.read_pickle('data/pro_data/source_core.pkl')
 flib = pd.read_pickle('data/pro_data/flib_e0.pkl')
 match_odds = pd.read_pickle('data/pro_data/match_odds.pkl')
 game_day = pd.read_pickle('data/pro_data/game_day.pkl')
-results = se.con_res(data=source_core, obj=['wdl', 'gd'])
+results = con_res(data=source_core, obj=['wdl', 'gd'])
 
 a = flib.query("team=='liverpool' & season=='2019' & field=='uncertainty_composite'")
 source_core['div'].unique()
@@ -21,10 +22,10 @@ source_core['div'].unique()
 # 3. Would the factor on itself make money?
 
 flib['field'].unique()
-fesel = "turnaround_ability_last"
+fesel = "home"
 # feature evaluation analysis
-fe = se.eval_feature(data=flib, results=results, feature=fesel)
-# estimate probability & evaluate
+fe = se.eval_feature(data=flib, results=results, feature=fesel, categorical=True)
+# estimate probability & evaluate (only non-categorical)
 pe, fme = est_prob(factors=flib,
                    results=results['wdl'][results['wdl']['field']=='win'],
                    feature=fesel)
@@ -39,23 +40,8 @@ fe['edge_div']
 
 
 
-# 2) home advantage signal -----
-# Q: Do teams that play at home win more often than when they play away?
-data_ha = flib.query('field=="home"')
-data_ha.rename(columns={'val': 'bucket'}, inplace=True)
-res_custom = results['wd'].query('field=="win"').drop('field', axis=1)
-# compute the hit ratio for home-away
-ha_edge = comp_edge(factor_data=data_ha, results=res_custom, byf=['overall', 'div'])
-f0 = ['E0', 'D1']
-ha_edge.query("field in @f0")
 
-
-
-
-
-# PNL ANALYSIS --------------------------------------------------------------------------------------------------------
-
-# run a logistic regression for all data to rertieve a probability
+# pnl analysis
 # top bucket..
 P = gsf_data.query('bucket==10 & div=="E0"').loc[:, ['season', 'div', 'date', 'team']]
 P.sort_values(by=['season', 'date'], inplace=True)
