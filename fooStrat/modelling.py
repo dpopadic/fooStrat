@@ -50,8 +50,15 @@ def est_prob(factors, results, feature):
     # reshape results
     prob["val"] = y_pp
     del prob[feature]
+    prob.reset_index(drop=True, inplace=True)
 
     return prob, stats
+
+
+
+
+
+
 
 
 
