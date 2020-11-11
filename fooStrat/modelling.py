@@ -5,7 +5,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.naive_bayes import GaussianNB
 from fooStrat.helpers import class_accuracy_stats
 import fooStrat.servicers as fose
-
+from sklearn.preprocessing import MinMaxScaler
 
 def est_prob(factors, results, feature):
     """Estimate probability of an event occuring (eg. win) for a factor using a logit-model.
@@ -229,8 +229,15 @@ def comp_mispriced(prob, odds, prob_threshold, res_threshold):
     resi = pd.merge(odds.rename(columns={'val': 'odds'}),
                     prob.rename(columns={'val': 'implied'}),
                     on=["div", "season", "date", "team"],
-                    how="left")
+                    how="inner")
     resi["market"] = 1 / resi.loc[:, "odds"]
+    resi['market'].agg({"max", "min"})
+    # scale estimated probabilities to the implied range
+    xi = resi['implied'].values.reshape(-1, 1)
+    xif = MinMaxScaler().fit(xi)
+    xif = xif.transform(xi)
+    resi['implied'] = xif
+    # compute residuals
     resi["resid"] = resi["implied"] - resi["market"]
     pos = resi.query("resid>@res_threshold & implied>@prob_threshold").loc[:, ['season', 'div', 'date', 'team']]
     pos.reset_index(inplace=True, drop=True)

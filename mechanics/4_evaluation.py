@@ -23,7 +23,7 @@ a.agg({"max", "min"})
 # 3. Would the factor on itself make money?
 
 flib['field'].unique()
-fesel = "goal_superiority"
+fesel = "points_advantage"
 # feature evaluation analysis
 fe = se.eval_feature(data=flib, results=results, feature=fesel, categorical=True)
 # estimate probability & evaluate (only non-categorical)
@@ -37,14 +37,14 @@ oe = match_odds.query("field=='odds_win'").reset_index(drop=True).drop('field', 
 a = comp_mispriced(prob=pe,
                    odds=oe,
                    prob_threshold=0.5,
-                   res_threshold=0.10)
+                   res_threshold=0.1)
 
 b = se.comp_pnl(positions=a,
                 odds=oe,
                 results=results['wdl'],
                 event="win",
                 stake=10)
-
+b
 
 
 
