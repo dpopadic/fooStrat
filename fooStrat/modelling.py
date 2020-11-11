@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 from sklearn.metrics import confusion_matrix
 from sklearn.linear_model import LogisticRegression
+from sklearn.naive_bayes import GaussianNB
 from fooStrat.helpers import class_accuracy_stats
 import fooStrat.servicers as fose
 
@@ -38,8 +39,11 @@ def est_prob(factors, results, feature):
     # fit logit model
     y = prob['val'].values.ravel()
     X = prob[feature].values.reshape(-1, 1)
-    mod = LogisticRegression()
-    mod.fit(X, y)
+    # mod = LogisticRegression()
+    # mod.fit(X, y)
+    # y_pred = mod.predict(X)
+    mod = GaussianNB()
+    mod = mod.fit(X, y)
     y_pred = mod.predict(X)
     # retrieve probability
     # note: that output is 2d array with 1st (2nd) column probability for 0 (1) with 0.5 threshold
@@ -209,10 +213,10 @@ def comp_mispriced(prob, odds, prob_threshold, res_threshold):
     """
     Parameters
     ----------
-    prob:   pandas dataframe
-            implied probabilities from a model for each event with columns date, team
-    odds:   pandas dataframe
-            market odds from bookmaker
+    prob:           pandas dataframe
+                    implied probabilities from a model for each event with columns date, team
+    odds:           pandas dataframe
+                    market odds from bookmaker
     prob_threshold: float
                     implied probability threshold for events to look at
     res_threshold:  float

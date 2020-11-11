@@ -2,7 +2,7 @@
 import pandas as pd
 import numpy as np
 import fooStrat.evaluation as se
-from fooStrat.modelling import est_prob
+from fooStrat.modelling import est_prob, comp_mispriced
 from fooStrat.response import con_res
 
 # DATA PREPARATIONS ---------------------------------------------------------------------------------------------------
@@ -13,10 +13,8 @@ game_day = pd.read_pickle('data/pro_data/game_day.pkl')
 results = con_res(data=source_core, obj=['wdl', 'gd'])
 
 a = flib.query("team=='liverpool' & season=='2019' & field=='uncertainty_composite'")
-pwin.query("team=='liverpool' & season=='2019'")
-a = pe.query("season=='2019'").reset_index(drop=True)
+a = prob.query("season=='2019' & team=='liverpool' ").reset_index(drop=True)
 a.agg({"max", "min"})
-source_core['div'].unique()
 
 
 # SIGNAL EFFICACY -----------------------------------------------------------------------------------------------------
@@ -35,17 +33,23 @@ pe, fme = est_prob(factors=flib,
 fe['summary']
 fe['edge_div']
 
+oe = match_odds.query("field=='odds_win'").reset_index(drop=True).drop('field', axis=1)
+a = comp_mispriced(prob=pe,
+                   odds=oe,
+                   prob_threshold=0.5,
+                   res_threshold=0.10)
+
+b = se.comp_pnl(positions=a,
+                odds=oe,
+                results=results['wdl'],
+                event="win",
+                stake=10)
+
+
+
 
 def est_prob_multi(factors, results, feature):
     """Estimate probability by seperate estimation of win, draw & lose events and normalisation."""
-    b = results['wdl'][results['wdl']['field'] == 'win'].query("season=='2010'").reset_index(drop=True)
-    flib.query("field==@fesel").agg({'max', 'min', 'mean'})
-    from sklearn.preprocessing import MinMaxScaler
-    features = X.columns.values
-    scaler = MinMaxScaler(feature_range=(0, 1))
-    scaler.fit(X)
-    X = pd.DataFrame(scaler.transform(X))
-
 
     pwin = est_prob(factors=flib,
                     results=results['wdl'][results['wdl']['field'] == 'win'],
@@ -63,8 +67,8 @@ def est_prob_multi(factors, results, feature):
     pall['val'] = pall['win'] + pall['lose'] + pall['draw']
 
 
-
-
+ypp2 = pd.Series(y_pp)
+ypp2.plot.hist(grid=True, bins=20, rwidth=0.9,color='#607c8e')
 
 
 
