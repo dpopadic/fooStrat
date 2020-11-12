@@ -114,3 +114,12 @@ def class_accuracy_stats(conf_mat):
     return x
 
 
+def transform_range(x, y):
+    xmin = x.min()
+    xmax = x.max()
+    ymin = y.min()
+    ymax = y.max()
+    z = ((x - xmin) / (xmax - xmin)) * (ymax - ymin) + ymin
+    return z
+
+

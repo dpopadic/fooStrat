@@ -3,7 +3,7 @@ import numpy as np
 from sklearn.metrics import confusion_matrix
 from sklearn.linear_model import LogisticRegression
 from sklearn.naive_bayes import GaussianNB
-from fooStrat.helpers import class_accuracy_stats
+from fooStrat.helpers import class_accuracy_stats, transform_range
 import fooStrat.servicers as fose
 from sklearn.preprocessing import MinMaxScaler
 
@@ -231,15 +231,11 @@ def comp_mispriced(prob, odds, prob_threshold, res_threshold):
                     on=["div", "season", "date", "team"],
                     how="inner")
     resi["market"] = 1 / resi.loc[:, "odds"]
-    resi['market'].agg({"max", "min"})
     # scale estimated probabilities to the implied range
-    xi = resi['implied'].values.reshape(-1, 1)
-    xif = MinMaxScaler().fit(xi)
-    xif = xif.transform(xi)
-    resi['implied'] = xif
+    resi["implied"] = transform_range(x = resi['implied'], y = resi['market'])
     # compute residuals
     resi["resid"] = resi["implied"] - resi["market"]
-    pos = resi.query("resid>@res_threshold & implied>@prob_threshold").loc[:, ['season', 'div', 'date', 'team']]
+    pos = resi.query("resid>@res_threshold & implied>@prob_threshold")[['season', 'div', 'date', 'team', 'implied', 'market']]
     pos.reset_index(inplace=True, drop=True)
     return pos
 
