@@ -91,8 +91,8 @@ def comp_pnl(positions, odds, results, event, stake):
     # add odds to positions
     pay = pd.merge(positions, odds, on=['div', 'season', 'date', 'team'], how='left')
     # retrieve the right odds
-    res_0 = results.query('field == @event')
-    res_0.drop(['field'], axis=1, inplace=True)
+    res_0 = results.query('field == @event').reset_index(drop=True)
+    res_0.drop('field', axis=1, inplace=True)
     res_0.rename(columns={'val': 'res'}, inplace=True)
     # add the actual result
     payres = pd.merge(pay, res_0, on=['div', 'season', 'date', 'team'], how='left')

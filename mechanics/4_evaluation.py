@@ -14,8 +14,15 @@ results = con_res(data=source_core, obj=['wdl', 'gd'])
 
 a = flib.query("team=='liverpool' & season=='2019' & field=='uncertainty_composite'")
 d = a.query("season=='2019' & team=='liverpool' ").reset_index(drop=True)
+match_odds.query("date=='2020-07-26' & season=='2019' & team=='liverpool'")
+source_core.query("date=='2020-07-26' & season=='2019' & away_team=='liverpool' & field in ['MaxH', 'MaxD', 'MaxA']")
+source_core.query("div=='E0' & date=='2020-09-12' & field=='FTR'")
+bb = payres.query("season=='2019'")
+pos
+oe.query("div=='E0' & date=='2020-09-12'")
+b.query("season=='2020'")[['date', 'team', 'res', 'implied', 'market', 'payoff']]
 d.agg({"max", "min"})
-
+flib = flib.query("team in ['leicester']").reset_index(drop=True)
 
 # SIGNAL EFFICACY -----------------------------------------------------------------------------------------------------
 # 1. Is the hit ratio higher for teams that have a higher score?
@@ -23,28 +30,33 @@ d.agg({"max", "min"})
 # 3. Would the factor on itself make money?
 
 flib['field'].unique()
-fesel = "atadef_composite"
+fesel = "points_per_game"
 # feature evaluation analysis
 fe = se.eval_feature(data=flib, results=results, feature=fesel, categorical=True)
-# estimate probability & evaluate (only non-categorical)
+# estimate probability & evaluate (only non-categorical) -> try 3-5y rolling
 pe, fme = est_prob(factors=flib,
                    results=results['wdl'][results['wdl']['field']=='win'],
                    feature=fesel)
 fe['summary']
 fe['edge_div']
 
-oe = match_odds.query("field=='odds_lose'").reset_index(drop=True).drop('field', axis=1)
+oe = match_odds.query("field=='odds_win'").reset_index(drop=True).drop('field', axis=1)
 a = comp_mispriced(prob=pe,
                    odds=oe,
                    prob_threshold=0.5,
-                   res_threshold=0.1)
+                   res_threshold=0.2)
 
 b = se.comp_pnl(positions=a,
                 odds=oe,
                 results=results['wdl'],
-                event="lose",
+                event="win",
                 stake=10)
 b
+
+
+
+
+
 
 
 
