@@ -8,7 +8,7 @@ import fooStrat.servicers as fose
 from sklearn.preprocessing import MinMaxScaler
 
 def est_prob(factors, results, feature):
-    """Estimate probability of an event occuring (eg. win) for a factor using a logit-model.
+    """Estimate probability of an event occuring (eg. win) for a factor using a naive bayes model.
 
     Parameters:
     -----------
@@ -35,6 +35,7 @@ def est_prob(factors, results, feature):
     prob = pd.merge(results, acon,
                     on=['div', 'season', 'date', 'team'],
                     how='left')
+    prob.reset_index(drop=True, inplace=True)
     prob.dropna(inplace=True)
     # fit logit model
     y = prob['val'].values.ravel()
@@ -57,8 +58,6 @@ def est_prob(factors, results, feature):
     prob.reset_index(drop=True, inplace=True)
 
     return prob, stats
-
-
 
 
 

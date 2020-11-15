@@ -22,7 +22,8 @@ pos
 oe.query("div=='E0' & date=='2020-09-12'")
 b.query("season=='2020'")[['date', 'team', 'res', 'implied', 'market', 'payoff']]
 d.agg({"max", "min"})
-flib = flib.query("team in ['leicester']").reset_index(drop=True)
+
+flib = flib.query("season in ['2019', '2018', '2017', '2016', '2015']").reset_index(drop=True)
 
 # SIGNAL EFFICACY -----------------------------------------------------------------------------------------------------
 # 1. Is the hit ratio higher for teams that have a higher score?
@@ -30,21 +31,19 @@ flib = flib.query("team in ['leicester']").reset_index(drop=True)
 # 3. Would the factor on itself make money?
 
 flib['field'].unique()
-fesel = "points_per_game"
+fesel = "form_all"
 # feature evaluation analysis
 fe = se.eval_feature(data=flib, results=results, feature=fesel, categorical=True)
 # estimate probability & evaluate (only non-categorical) -> try 3-5y rolling
 pe, fme = est_prob(factors=flib,
                    results=results['wdl'][results['wdl']['field']=='win'],
                    feature=fesel)
-fe['summary']
-fe['edge_div']
 
 oe = match_odds.query("field=='odds_win'").reset_index(drop=True).drop('field', axis=1)
 a = comp_mispriced(prob=pe,
                    odds=oe,
                    prob_threshold=0.5,
-                   res_threshold=0.2)
+                   res_threshold=0.1)
 
 b = se.comp_pnl(positions=a,
                 odds=oe,
