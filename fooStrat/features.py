@@ -3,7 +3,7 @@ import numpy as np
 from scipy.stats import zscore
 from itertools import chain
 import fooStrat.servicers as fose
-import fooStrat.features_standalone as sfs
+import fooStrat.metrics as sfs
 from fooStrat.mapping import odds_fields, odds_fields_neutral
 from fooStrat.response import con_res_wd
 
