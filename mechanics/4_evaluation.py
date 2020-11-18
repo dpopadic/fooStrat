@@ -12,8 +12,8 @@ match_odds = pd.read_pickle('data/pro_data/match_odds.pkl')
 game_day = pd.read_pickle('data/pro_data/game_day.pkl')
 results = con_res(data=source_core, obj=['wdl', 'gd'])
 
-flib = flib.query("season in ['2019', '2018', '2017', '2016', '2015']").reset_index(drop=True)
-flib = flib.query("season in ['2019']").reset_index(drop=True)
+flib = flib.query("season in ['2019', '2018', '2017']").reset_index(drop=True)
+
 
 # SIGNAL EFFICACY -----------------------------------------------------------------------------------------------------
 # 1. Is the hit ratio higher for teams that have a higher score?
@@ -21,53 +21,25 @@ flib = flib.query("season in ['2019']").reset_index(drop=True)
 # 3. Would the factor on itself make money?
 
 flib['field'].unique()
-fesel = "form_all"
+fesel = "turnaround_ability_last"
 # feature evaluation analysis
-fe = se.eval_feature(data=flib, results=results, feature=fesel, categorical=True)
-# estimate probability & evaluate (only non-categorical) -> try 3-5y rolling
+fe = se.eval_feature(data=flib, results=results, feature=fesel, categorical=False)
+# estimate probability & evaluate (only non-categorical) -> 3y rolling by team seems to work quite well
 pe, fme = est_prob(factors=flib,
                    results=results['wdl'][results['wdl']['field']=='win'],
                    feature=fesel)
-
+# derive mispriced events
 oe = match_odds.query("field=='odds_win'").reset_index(drop=True).drop('field', axis=1)
-a = comp_mispriced(prob=pe,
+mo = comp_mispriced(prob=pe,
+                    odds=oe,
+                    prob_threshold=0.5,
+                    res_threshold=0.2)
+# compute pnl
+fpnl = se.comp_pnl(positions=mo,
                    odds=oe,
-                   prob_threshold=0.5,
-                   res_threshold=0.1)
-
-b = se.comp_pnl(positions=a,
-                odds=oe,
-                results=results['wdl'],
-                event="win",
-                stake=10)
-b
-
-
-
-
-
-
-
-
-def est_prob_multi(factors, results, feature):
-    """Estimate probability by seperate estimation of win, draw & lose events and normalisation."""
-
-    pwin = est_prob(factors=flib,
-                    results=results['wdl'][results['wdl']['field'] == 'win'],
-                    feature=fesel)[0]
-    pdraw = est_prob(factors=flib,
-                     results=results['wdl'][results['wdl']['field'] == 'draw'],
-                     feature=fesel)[0]
-    plose = est_prob(factors=flib,
-                     results=results['wdl'][results['wdl']['field'] == 'lose'],
-                     feature=fesel)[0]
-    pall = pd.concat([pwin, pdraw, plose], axis=0)
-    pall = pall.pivot_table(index=['date', 'div', 'season', 'team'],
-                            columns='field',
-                            values='val').reset_index()
-    pall['val'] = pall['win'] + pall['lose'] + pall['draw']
-
-
+                   results=results['wdl'],
+                   event="win",
+                   stake=10)
 
 
 # best features: avg_goal_scored, goal_superiority, not_failed_scoring,

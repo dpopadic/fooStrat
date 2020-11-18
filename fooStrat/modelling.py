@@ -38,7 +38,7 @@ def est_prob(factors, results, feature):
     prob.dropna(inplace=True)
     prob.reset_index(drop=True, inplace=True)
     # estimate probability
-    prob['proba'] = prob.groupby('season', as_index=False, group_keys=False)[['val', feature]].apply(lambda x: mod_est_nb(x))
+    prob['proba'] = prob.groupby('team', as_index=False, group_keys=False)[['val', feature]].apply(lambda x: mod_est_nb(x))
     # accurary evaluation
     y = prob['val'].to_numpy()
     y_pred = prob['proba'].apply(lambda x: 1 if x >= 0.5 else 0).to_numpy()
@@ -230,7 +230,8 @@ def comp_mispriced(prob, odds, prob_threshold, res_threshold):
     resi["implied"] = transform_range(x = resi['implied'], y = resi['market'])
     # compute residuals
     resi["resid"] = resi["implied"] - resi["market"]
-    pos = resi.query("resid>@res_threshold & implied>@prob_threshold")[['season', 'div', 'date', 'team', 'implied', 'market']]
+    pos = resi.query("resid>@res_threshold & implied>@prob_threshold")
+    pos = pos[['season', 'div', 'date', 'team', 'implied', 'market']]
     pos.reset_index(inplace=True, drop=True)
     return pos
 
