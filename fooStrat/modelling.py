@@ -5,7 +5,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.naive_bayes import GaussianNB
 from fooStrat.helpers import class_accuracy_stats, transform_range
 import fooStrat.servicers as fose
-from sklearn.preprocessing import MinMaxScaler
+
 
 def est_prob(factors, results, feature):
     """Estimate probability of an event occuring (eg. win) for a factor using a naive bayes model.
@@ -35,33 +35,29 @@ def est_prob(factors, results, feature):
     prob = pd.merge(results, acon,
                     on=['div', 'season', 'date', 'team'],
                     how='left')
-    prob.reset_index(drop=True, inplace=True)
     prob.dropna(inplace=True)
-    # fit logit model
-    y = prob['val'].values.ravel()
-    X = prob[feature].values.reshape(-1, 1)
-    # mod = LogisticRegression()
-    # mod.fit(X, y)
-    # y_pred = mod.predict(X)
-    mod = GaussianNB()
-    mod = mod.fit(X, y)
-    y_pred = mod.predict(X)
-    # retrieve probability
-    # note: that output is 2d array with 1st (2nd) column probability for 0 (1) with 0.5 threshold
-    y_pp = mod.predict_proba(X)[:, 1]
+    prob.reset_index(drop=True, inplace=True)
+    # estimate probability
+    prob['proba'] = prob.groupby('season', as_index=False, group_keys=False)[['val', feature]].apply(lambda x: mod_est_nb(x))
     # accurary evaluation
+    y = prob['val'].to_numpy()
+    y_pred = prob['proba'].apply(lambda x: 1 if x >= 0.5 else 0).to_numpy()
     conf_mat = confusion_matrix(y, y_pred)
     stats = class_accuracy_stats(conf_mat)
     # reshape results
-    prob["val"] = y_pp
-    del prob[feature]
-    prob.reset_index(drop=True, inplace=True)
-
+    prob = prob.drop(['val', feature], axis=1)
+    prob.rename(columns = {'proba': 'val'}, inplace=True)
     return prob, stats
 
 
 
-
+def mod_est_nb(x):
+    """Estimate target variable using naive bayes model."""
+    xed = x.drop('val', axis=1).values.reshape(len(x), -1)
+    y = x['val'].values
+    # note: that output is 2d array with 1st (2nd) column probability for 0 (1) with 0.5 threshold
+    z = GaussianNB().fit(xed, y).predict_proba(xed)[:, 1]
+    return pd.Series(z, index=x.index).to_frame()
 
 
 
