@@ -12,7 +12,7 @@ match_odds = pd.read_pickle('data/pro_data/match_odds.pkl')
 game_day = pd.read_pickle('data/pro_data/game_day.pkl')
 results = con_res(data=source_core, obj=['wdl', 'gd'])
 
-flib = flib.query("season in ['2019', '2018', '2017']").reset_index(drop=True)
+flib = flib.query("season in ['2019', '2018', '2017', '2016', '2015', '2014', '2013', '2012', '2011']").reset_index(drop=True)
 
 
 # SIGNAL EFFICACY -----------------------------------------------------------------------------------------------------
@@ -21,7 +21,7 @@ flib = flib.query("season in ['2019', '2018', '2017']").reset_index(drop=True)
 # 3. Would the factor on itself make money?
 
 flib['field'].unique()
-fesel = "turnaround_ability_last"
+fesel = "h2h_next_opponent_chance"
 # feature evaluation analysis
 fe = se.eval_feature(data=flib, results=results, feature=fesel, categorical=False)
 # estimate probability & evaluate (only non-categorical) -> 3y rolling by team seems to work quite well

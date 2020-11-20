@@ -28,17 +28,18 @@ def est_prob(factors, results, feature):
 
     """
     sfd = factors.query("field==@feature").reset_index(drop=True)
-    acon = sfd.pivot_table(index=['season', 'div', 'date', 'team'],
+    sfd = fose.append_custom_window(sfd, k=3)
+    acon = sfd.pivot_table(index=['season', 'div', 'date', 'team', 'window'],
                            columns='field',
                            values='val').reset_index()
     # merge with results
     prob = pd.merge(results, acon,
                     on=['div', 'season', 'date', 'team'],
-                    how='left')
+                    how='right')
     prob.dropna(inplace=True)
     prob.reset_index(drop=True, inplace=True)
     # estimate probability
-    prob['proba'] = prob.groupby('team', as_index=False, group_keys=False)[['val', feature]].apply(lambda x: mod_est_nb(x))
+    prob['proba'] = prob.groupby(['team', 'window'], as_index=False, group_keys=False)[['val', feature]].apply(lambda x: mod_est_nb(x))
     # accurary evaluation
     y = prob['val'].to_numpy()
     y_pred = prob['proba'].apply(lambda x: 1 if x >= 0.5 else 0).to_numpy()

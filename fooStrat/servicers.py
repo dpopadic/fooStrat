@@ -688,8 +688,23 @@ def est_odds_accuracy(data, y, x):
     return z
 
 
+def append_custom_window(data, k):
+    """Appends a custom window based on the season."""
+        # estimation window (3y non-overlapping)
+    ewi = pd.DataFrame(data['season'].unique())
+    ewi.rename(columns={0: 'season'}, inplace=True)
+    ewi['window'] = custom_window(k=k, l=len(ewi))
+    data_ed = pd.merge(data, ewi, on='season', how='left')
+    return data_ed
 
 
+def custom_window(k, l):
+    """Constructs a custom window of k non-overlapping groups given a length."""
+    nper = np.int(np.ceil(l / k))
+    nper = np.sort([i + 1 for i in range(0, nper, 1)] * k)
+    nper = nper[::-1]
+    nper = nper[(len(nper) - l):]
+    return nper
 
 
 
