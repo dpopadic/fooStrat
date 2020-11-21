@@ -6,11 +6,10 @@ from fooStrat.modelling import est_prob, comp_mispriced
 from fooStrat.response import con_res
 
 # DATA PREPARATIONS ---------------------------------------------------------------------------------------------------
-source_core = pd.read_pickle('data/pro_data/source_core.pkl')
 flib = pd.read_pickle('data/pro_data/flib_e0.pkl')
 match_odds = pd.read_pickle('data/pro_data/match_odds.pkl')
-game_day = pd.read_pickle('data/pro_data/game_day.pkl')
-results = con_res(data=source_core, obj=['wdl', 'gd'])
+source_core = pd.read_pickle('data/pro_data/source_core.pkl')
+results = con_res(data=source_core, obj=['wdl', 'gd'], event='win')
 
 # not working at season start with insufficient data
 flib = flib.query("season not in ['2020']").reset_index(drop=True)
@@ -23,12 +22,12 @@ flib = flib.query("season not in ['2020']").reset_index(drop=True)
 # -- noticable features: wood_hit, rank_position, odds_volatility
 
 flib['field'].unique()
-fesel = "odds_accuracy"
+fesel = "goal_superiority"
 # feature evaluation analysis
 fe = se.eval_feature(data=flib, results=results, feature=fesel, categorical=False)
 # estimate probability & evaluate (only non-categorical) -> 3y rolling by team seems to work quite well
 pe, fme = est_prob(factors=flib,
-                   results=results['wdl'][results['wdl']['field']=='win'],
+                   results=results['wdl'],
                    feature=fesel)
 # derive mispriced events
 oe = match_odds.query("field=='odds_win'").reset_index(drop=True).drop('field', axis=1)

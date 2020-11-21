@@ -1,18 +1,20 @@
 # MODEL CONSTRUCTION --------------------------------------------------------------------------------------------------
 import pandas as pd
-import fooStrat.servicers as ss
 import fooStrat.modelling as sm
 import fooStrat.evaluation as se
+from fooStrat.response import con_res
+from fooStrat.servicers import con_est_dates
 
-factor_library = pd.read_pickle('data/pro_data/flib_e0.pkl')
+# DATA LOADING --------------------------------------------------------------------------------------------------------
+# pre-processed
+flib = pd.read_pickle('data/pro_data/flib_e0.pkl')
 source_core = pd.read_pickle('data/pro_data/source_core.pkl')
 match_odds = pd.read_pickle('data/pro_data/match_odds.pkl')
 game_day = pd.read_pickle('data/pro_data/game_day.pkl')
 
-# datasets for evaluation
-results = ss.con_res_wd(data=source_core, field=['FTR'], encoding=False)
-arcon = sm.con_mod_datset_0(scores=factor_library, results=results)
-res_wd = se.con_res(data=source_core, obj='wdl', field='FTR')
+# data reshaping for evaluation
+results = con_res(data=source_core, obj=['wdl'], event='win')
+dasetmod = sm.con_mod_datset_0(factors=flib, results=results)
 mest_dates = ss.con_est_dates(data=game_day, k=5)
 
 # estimate event probabilities
