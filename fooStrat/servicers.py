@@ -550,16 +550,18 @@ def get_odds(data, field_home, field_away, field_draw):
 
 
 
-def con_est_dates(data, k):
-    """Compute the model estimation dates for each division and season. The model estimation
+def con_est_dates(data, k, map_date=False):
+    """Compute the model re-estimation dates for each division and season. The model estimation
     dates are calculated so that every team has at least k games in between two estimation dates.
 
     Parameters:
     -----------
-        data:   pd dataframe
-                game day data with columns season, div, date, team, val
-        k:      int
-                the time lag in periods between estimation dates (eg. k=5)
+        data:       pd dataframe
+                    game day data with columns season, div, date, team, val
+        k:          int
+                    the time lag in periods between estimation dates (eg. k=5)
+        map_date:   boolean (False)
+                    whether to map to original dates
     """
 
     data_ed = data.groupby(['season', 'team'])['date'].cumcount() % k
@@ -568,7 +570,17 @@ def con_est_dates(data, k):
     # retrieve the max date after n games
     res = res.groupby(['div', 'season', 'val'])['date'].max()
     res = res.reset_index().loc[:, ['div', 'season', 'date']]
+    res.rename(columns={'date': 'est_date'}, inplace=True)
+
+    if map_date:
+        res['date'] = res['est_date']
+        ugd = data.groupby(['div', 'season'])['date'].unique().reset_index()
+        ugd = ugd.explode('date').reset_index(drop=True)
+        res = pd.merge(ugd, res, on=['div', 'season', 'date'], how='left')
+        res['est_date'] = res.groupby('div')['est_date'].fillna(method='ffill', axis=0)
+
     return res
+
 
 
 def con_gameday(data):
@@ -690,7 +702,7 @@ def est_odds_accuracy(data, y, x):
 
 def append_custom_window(data, k):
     """Appends a custom window based on the season."""
-        # estimation window (3y non-overlapping)
+        # estimation window (k-year non-overlapping)
     ewi = pd.DataFrame(data['season'].unique())
     ewi.rename(columns={0: 'season'}, inplace=True)
     ewi['window'] = custom_window(k=k, l=len(ewi))

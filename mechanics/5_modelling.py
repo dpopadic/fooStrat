@@ -15,7 +15,26 @@ game_day = pd.read_pickle('data/pro_data/game_day.pkl')
 # data reshaping for evaluation
 results = con_res(data=source_core, obj=['wdl'], event='win')
 dasetmod = sm.con_mod_datset_0(factors=flib, results=results)
-mest_dates = ss.con_est_dates(data=game_day, k=5)
+mest_dates = con_est_dates(data=game_day, k=5, map_date=True)
+
+
+# start with simple naive bayes model with 3y model fitting
+from sklearn.naive_bayes import GaussianNB
+
+
+
+df_ext = pd.merge(dasetmod, mest_dates, on=['div', 'season'], how='left')
+df_ext = df_ext.sort_values(['season', 'est_date']).reset_index(drop=True)
+# declare estimation window
+df_ext[['date', 'est_date']].cumcount()
+
+df_ext.query("est_date=='2020-06-22'")
+
+game_day.query("div=='E0' & date == '2020-06-22'")
+
+
+
+
 
 # estimate event probabilities
 est_probs = sm.est_hist_prob_rf(arcon=arcon, est_dates=mest_dates, start_date="2010-01-01")

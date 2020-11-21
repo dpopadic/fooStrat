@@ -39,7 +39,9 @@ def est_prob(factors, results, feature):
     prob.dropna(inplace=True)
     prob.reset_index(drop=True, inplace=True)
     # estimate probability
-    prob['proba'] = prob.groupby(['team', 'window'], as_index=False, group_keys=False)[['val', feature]].apply(lambda x: mod_est_nb(x))
+    prob['proba'] = prob.groupby(['team', 'window'],
+                                 as_index=False,
+                                 group_keys=False)[['val', feature]].apply(lambda x: mod_est_nb(x))
     # accurary evaluation
     y = prob['val'].to_numpy()
     y_pred = prob['proba'].apply(lambda x: 1 if x >= 0.5 else 0).to_numpy()
