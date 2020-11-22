@@ -17,7 +17,9 @@ match_odds = pd.read_pickle('data/pro_data/match_odds.pkl')
 results = con_res(data=source_core, obj=['wdl'], event='win')
 dasetmod = sm.con_mod_datset_0(factors=flib, results=results)
 mest_dates = con_est_dates(data=source_core, k=5, map_date=True)
+# declare estimation window: mest_window -> based on est_date (rolling last 3 year)
 
+a = mest_dates.query("div=='E0'")
 
 # start with simple naive bayes model with 3y model fitting
 from sklearn.naive_bayes import GaussianNB
@@ -26,7 +28,18 @@ from sklearn.naive_bayes import GaussianNB
 # add estimation points
 df_ext = pd.merge(dasetmod, mest_dates, on=['div', 'season', 'date'], how='left')
 df_ext = df_ext.sort_values(['season', 'est_date']).reset_index(drop=True)
-# declare estimation window
+
+b = df_ext.query("team == 'liverpool' & est_date in ['2020-06-22', '2020-02-02', '2020-01-02', '2019-12-05']")
+b = b.reset_index(drop=True)
+corem = [x for x in b.columns if x not in  ['date', 'div', 'season', 'team', 'est_date']]
+d = b[corem]
+xed = d.drop('result', axis=1).values.reshape(len(d), -1)
+y = d['result'].values
+# note: that output is 2d array with 1st (2nd) column probability for 0 (1) with 0.5 threshold
+z = GaussianNB().fit(xed, y).predict_proba(xed)[:, 1]
+# need to predict the next k probabilities
+
+
 df_ext.query("est_date=='2020-06-22'")
 
 

@@ -584,7 +584,7 @@ def con_est_dates(data, k, map_date=False):
     game_day = con_gameday(data=data)
     # calculate when teams have played k games
     data_ed = game_day.groupby(['season', 'team'])['date'].cumcount() % k
-    res = data[data_ed == k - 1]
+    res = game_day[data_ed == k - 1]
     res.reset_index(drop=True, inplace=True)
     # retrieve the max date after n games
     res = res.groupby(['div', 'season', 'val'])['date'].max()
