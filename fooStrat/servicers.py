@@ -550,39 +550,6 @@ def get_odds(data, field_home, field_away, field_draw):
 
 
 
-def con_est_dates(data, k, map_date=False):
-    """Compute the model re-estimation dates for each division and season. The model estimation
-    dates are calculated so that every team has at least k games in between two estimation dates.
-
-    Parameters:
-    -----------
-        data:       pd dataframe
-                    game day data with columns season, div, date, team, val
-        k:          int
-                    the time lag in periods between estimation dates (eg. k=5)
-        map_date:   boolean (False)
-                    whether to map to original dates
-    """
-
-    data_ed = data.groupby(['season', 'team'])['date'].cumcount() % k
-    res = data[data_ed == k - 1]
-    res.reset_index(drop=True, inplace=True)
-    # retrieve the max date after n games
-    res = res.groupby(['div', 'season', 'val'])['date'].max()
-    res = res.reset_index().loc[:, ['div', 'season', 'date']]
-    res.rename(columns={'date': 'est_date'}, inplace=True)
-
-    if map_date:
-        res['date'] = res['est_date']
-        ugd = data.groupby(['div', 'season'])['date'].unique().reset_index()
-        ugd = ugd.explode('date').reset_index(drop=True)
-        res = pd.merge(ugd, res, on=['div', 'season', 'date'], how='left')
-        res['est_date'] = res.groupby('div')['est_date'].fillna(method='ffill', axis=0)
-
-    return res
-
-
-
 def con_gameday(data):
     """Compute the game day for every team.
     Parameters:
@@ -597,6 +564,42 @@ def con_gameday(data):
     data_ed['val'] = data_ed.groupby(['div', 'season', 'team']).cumcount() + 1
 
     return data_ed
+
+
+
+def con_est_dates(data, k, map_date=False):
+    """Compute the model re-estimation dates for each division and season. The model estimation
+    dates are calculated so that every team has at least k games in between two estimation dates.
+
+    Parameters:
+    -----------
+        data:       pd dataframe
+                    game day data with columns season, div, date, team, val
+        k:          int
+                    the time lag in periods between estimation dates (eg. k=5)
+        map_date:   boolean (False)
+                    whether to map to original dates
+    """
+    # retrieve game day for each team
+    game_day = con_gameday(data=data)
+    # calculate when teams have played k games
+    data_ed = game_day.groupby(['season', 'team'])['date'].cumcount() % k
+    res = data[data_ed == k - 1]
+    res.reset_index(drop=True, inplace=True)
+    # retrieve the max date after n games
+    res = res.groupby(['div', 'season', 'val'])['date'].max()
+    res = res.reset_index().loc[:, ['div', 'season', 'date']]
+    res.rename(columns={'date': 'est_date'}, inplace=True)
+
+    if map_date:
+        res['date'] = res['est_date']
+        ugd = game_day.groupby(['div', 'season'])['date'].unique().reset_index()
+        ugd = ugd.explode('date').reset_index(drop=True)
+        res = pd.merge(ugd, res, on=['div', 'season', 'date'], how='left')
+        res['est_date'] = res.groupby('div')['est_date'].fillna(method='ffill', axis=0)
+
+    return res
+
 
 
 def con_date_univ(data):

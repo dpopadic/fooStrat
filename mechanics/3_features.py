@@ -2,7 +2,6 @@
 import pandas as pd
 import numpy as np
 import fooStrat.features as sf
-import fooStrat.servicers as ss
 import fooStrat.processing as su
 
 # load source data..
@@ -10,10 +9,6 @@ source_core = pd.read_pickle('data/pro_data/source_core.pkl')
 
 # odds retrieval ------------------------------------------------------------------------------------------------------
 match_odds = pd.read_pickle('data/pro_data/match_odds.pkl')
-# game day dataset
-game_day = ss.con_gameday(data=source_core)
-game_day.to_pickle('./data/pro_data/game_day.pkl')
-
 
 # features ------------------------------------------------------------------------------------------------------------
 # - goal based factors

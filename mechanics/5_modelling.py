@@ -10,29 +10,24 @@ from fooStrat.servicers import con_est_dates
 flib = pd.read_pickle('data/pro_data/flib_e0.pkl')
 source_core = pd.read_pickle('data/pro_data/source_core.pkl')
 match_odds = pd.read_pickle('data/pro_data/match_odds.pkl')
-game_day = pd.read_pickle('data/pro_data/game_day.pkl')
+
+
 
 # data reshaping for evaluation
 results = con_res(data=source_core, obj=['wdl'], event='win')
 dasetmod = sm.con_mod_datset_0(factors=flib, results=results)
-mest_dates = con_est_dates(data=game_day, k=5, map_date=True)
+mest_dates = con_est_dates(data=source_core, k=5, map_date=True)
 
 
 # start with simple naive bayes model with 3y model fitting
 from sklearn.naive_bayes import GaussianNB
 
 
-
-df_ext = pd.merge(dasetmod, mest_dates, on=['div', 'season'], how='left')
+# add estimation points
+df_ext = pd.merge(dasetmod, mest_dates, on=['div', 'season', 'date'], how='left')
 df_ext = df_ext.sort_values(['season', 'est_date']).reset_index(drop=True)
 # declare estimation window
-df_ext[['date', 'est_date']].cumcount()
-
 df_ext.query("est_date=='2020-06-22'")
-
-game_day.query("div=='E0' & date == '2020-06-22'")
-
-
 
 
 
