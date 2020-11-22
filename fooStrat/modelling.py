@@ -95,7 +95,7 @@ def con_mod_datset_0(factors, results):
 
 
 
-def con_mod_datset_1(data, per_ind, t, per):
+def con_mod_datset_1(data, per_ind, t_fit, t_pred, per):
     """Construct the modelling dataset for a single model fit at time t. The default lookback
     period is 3 years. The model is only fitted at dates specified in per_ind.
 
@@ -105,8 +105,10 @@ def con_mod_datset_1(data, per_ind, t, per):
                     a table with factor data and key columns date, div, season, team, result, factor_1, .., factor_n
         per_ind:    pd dataframe
                     a table with columns div, date representing the dates on which games took place
-        t:          datetime64
+        t_fit:      datetime64
                     a date of interest for which to fit the model
+        t_pred:     datetime64
+                    a upper bound date for which to make predictions
         per:        str
                     a string indicating the lookback period to use for the model data set (eg. '52W')
 
@@ -121,17 +123,17 @@ def con_mod_datset_1(data, per_ind, t, per):
         X_train, X_test, y_train, id_test
     """
     # consider only last n obervations
-    per_ind_t = per_ind.query("date <= @t").set_index('date').last(per).reset_index()
+    per_ind_t = per_ind.query("date <= @t_pred").set_index('date').last(per).reset_index()
     data_ed = pd.merge(data, per_ind_t['date'], how="inner", on="date")
     # one-hot encoding
     data_ed = pd.get_dummies(data_ed, columns=['home'])
 
-    # drop not needed variables
-    as_train = data_ed[data_ed['date'] < t].reset_index(drop=True)
+    # training data set
+    as_train = data_ed[data_ed['date'] <= t_fit].reset_index(drop=True)
     as_train_0 = as_train.drop(['date', 'div', 'team', 'season'], axis=1)
 
     # prediction data set
-    as_test = data_ed[data_ed['date'] == t].reset_index(drop=True)
+    as_test = data_ed[(data_ed['date'] > t_fit) & (data_ed['date'] <= t_pred)].reset_index(drop=True)
     as_test_0 = as_test.drop(['date', 'div', 'team', 'season'], axis=1)
 
     # explanatory and target variables declarations
@@ -142,9 +144,9 @@ def con_mod_datset_1(data, per_ind, t, per):
     X_test = as_test_0.drop('result', axis=1).values
 
     # meta data with keys
-    id_test = as_test.loc[:, ['date', 'div', 'season', 'team', 'result']]
+    meta_test = as_test.loc[:, ['date', 'div', 'season', 'team', 'result']]
 
-    return X_train, X_test, y_train, id_test
+    return X_train, X_test, y_train, meta_test
 
 
 

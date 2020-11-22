@@ -1,5 +1,6 @@
 # MODEL CONSTRUCTION --------------------------------------------------------------------------------------------------
 import pandas as pd
+import numpy as np
 import fooStrat.modelling as sm
 import fooStrat.evaluation as se
 from fooStrat.response import con_res
@@ -18,34 +19,62 @@ results = con_res(data=source_core, obj=['wdl'], event='win')
 dasetmod = sm.con_mod_datset_0(factors=flib, results=results)
 mest_dates = con_est_dates(data=source_core, k=5, map_date=True)
 # declare estimation window: mest_window -> based on est_date (rolling last 3 year)
-
-a = mest_dates.query("div=='E0'")
-
-# start with simple naive bayes model with 3y model fitting
-from sklearn.naive_bayes import GaussianNB
-
+a = mest_dates.query("div=='E0'").reset_index(drop=True)
+a['period'] = a.groupby('div')['date'].cumcount() + 1
+a['period_2'] = a['period'] % 15
 
 # add estimation points
 df_ext = pd.merge(dasetmod, mest_dates, on=['div', 'season', 'date'], how='left')
 df_ext = df_ext.sort_values(['season', 'est_date']).reset_index(drop=True)
 
-b = df_ext.query("team == 'liverpool' & est_date in ['2020-06-22', '2020-02-02', '2020-01-02', '2019-12-05']")
-b = b.reset_index(drop=True)
-corem = [x for x in b.columns if x not in  ['date', 'div', 'season', 'team', 'est_date']]
-d = b[corem]
-xed = d.drop('result', axis=1).values.reshape(len(d), -1)
-y = d['result'].values
-# note: that output is 2d array with 1st (2nd) column probability for 0 (1) with 0.5 threshold
-z = GaussianNB().fit(xed, y).predict_proba(xed)[:, 1]
-# need to predict the next k probabilities
 
 
-df_ext.query("est_date=='2020-06-22'")
+# start with simple naive bayes model with 3y model fitting
+from sklearn.naive_bayes import GaussianNB
+from fooStrat.modelling import con_mod_datset_1
+
+
+# simplistic naive bayes estimation
+start_date = np.datetime64('2015-01-01')
+
+# construct date universe
+per_ind = mest_dates[(mest_dates['div'] == dasetmod['div'].iloc[0])].reset_index(drop=True)
+if start_date is not None:
+    tmp = per_ind.loc[per_ind['date'] >= start_date, 'est_date']
+    per_iter = pd.DataFrame(tmp.unique(), columns=['date'])
+else:
+    per_iter = per_ind['est_date']
+    per_iter = pd.DataFrame(per_iter.unique(), columns=['date'])
+
+per_iter = per_iter[per_iter['date'].notnull()].date
+per_ind = per_ind[['div', 'season', 'date']]
+
+t=1
+res = pd.DataFrame()
+for t in range(1, len(per_iter)):
+    t_fit = per_iter[t - 1]
+    t_pred = per_iter[t]
+    X_train, X_test, y_train, meta_test = con_mod_datset_1(data=dasetmod,
+                                                           per_ind=per_ind,
+                                                           t_fit=t_fit,
+                                                           t_pred=t_pred,
+                                                           per='156W')
+    if len(X_test) < 1:
+        continue
+    else:
+        # todo: estimation by team
+        z = GaussianNB().fit(X_train, y_train).predict_proba(X_test)[:, 1]
+        est_proba = pd.concat([meta_test, pd.DataFrame(z, columns=['val'])], axis=1)
+        res = pd.concat([res, est_proba])
+    print(t)
+
+
+
 
 
 
 # estimate event probabilities
-est_probs = sm.est_hist_prob_rf(arcon=arcon, est_dates=mest_dates, start_date="2010-01-01")
+est_probs = sm.est_hist_prob_rf(arcon=dasetmod, est_dates=mest_dates, start_date="2010-01-01")
 
 
 # calculate pnl
