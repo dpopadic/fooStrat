@@ -19,9 +19,6 @@ results = con_res(data=source_core, obj=['wdl'], event='win')
 dasetmod = sm.con_mod_datset_0(factors=flib, results=results)
 mest_dates = con_est_dates(data=source_core, k=5, map_date=True)
 # declare estimation window: mest_window -> based on est_date (rolling last 3 year)
-a = mest_dates.query("div=='E0'").reset_index(drop=True)
-a['period'] = a.groupby('div')['date'].cumcount() + 1
-a['period_2'] = a['period'] % 15
 
 # add estimation points
 df_ext = pd.merge(dasetmod, mest_dates, on=['div', 'season', 'date'], how='left')
@@ -49,11 +46,14 @@ else:
 per_iter = per_iter[per_iter['date'].notnull()].date
 per_ind = per_ind[['div', 'season', 'date']]
 
+
 t=1
 res = pd.DataFrame()
 for t in range(1, len(per_iter)):
     t_fit = per_iter[t - 1]
     t_pred = per_iter[t]
+    # approach 1: estimation by team -> team as dummy variables - not working
+    # approach 2: con_mod_datset_1 and estimation in a single function & output predictions only
     a = dasetmod.query("team=='liverpool'").reset_index(drop=True)
     X_train, X_test, y_train, meta_test = con_mod_datset_1(data=a,
                                                            per_ind=per_ind,
@@ -63,10 +63,8 @@ for t in range(1, len(per_iter)):
     if len(X_test) < 1:
         continue
     else:
-        # todo: estimation by team -> team as dummy variables
         z = GaussianNB().fit(X_train, y_train).predict_proba(X_test)[:, 1]
         est_proba = pd.concat([meta_test, pd.DataFrame(z, columns=['val'])], axis=1)
-        res.query("team=='liverpool'")
         res = pd.concat([res, est_proba])
     print(t)
 
