@@ -126,14 +126,15 @@ def con_mod_datset_1(data, per_ind, t_fit, t_pred, per):
     per_ind_t = per_ind.query("date <= @t_pred").set_index('date').last(per).reset_index()
     data_ed = pd.merge(data, per_ind_t['date'], how="inner", on="date")
     # one-hot encoding
-    data_ed = pd.get_dummies(data_ed, columns=['home'])
+    data_edoh = pd.get_dummies(data_ed, columns=['home', 'team'])
+    data_edoh = pd.concat([data_ed['team'], data_edoh], axis=1)
 
     # training data set
-    as_train = data_ed[data_ed['date'] <= t_fit].reset_index(drop=True)
+    as_train = data_edoh[data_edoh['date'] <= t_fit].reset_index(drop=True)
     as_train_0 = as_train.drop(['date', 'div', 'team', 'season'], axis=1)
 
     # prediction data set
-    as_test = data_ed[(data_ed['date'] > t_fit) & (data_ed['date'] <= t_pred)].reset_index(drop=True)
+    as_test = data_edoh[(data_edoh['date'] > t_fit) & (data_ed['date'] <= t_pred)].reset_index(drop=True)
     as_test_0 = as_test.drop(['date', 'div', 'team', 'season'], axis=1)
 
     # explanatory and target variables declarations

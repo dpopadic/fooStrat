@@ -54,7 +54,8 @@ res = pd.DataFrame()
 for t in range(1, len(per_iter)):
     t_fit = per_iter[t - 1]
     t_pred = per_iter[t]
-    X_train, X_test, y_train, meta_test = con_mod_datset_1(data=dasetmod,
+    a = dasetmod.query("team=='liverpool'").reset_index(drop=True)
+    X_train, X_test, y_train, meta_test = con_mod_datset_1(data=a,
                                                            per_ind=per_ind,
                                                            t_fit=t_fit,
                                                            t_pred=t_pred,
@@ -62,9 +63,10 @@ for t in range(1, len(per_iter)):
     if len(X_test) < 1:
         continue
     else:
-        # todo: estimation by team
+        # todo: estimation by team -> team as dummy variables
         z = GaussianNB().fit(X_train, y_train).predict_proba(X_test)[:, 1]
         est_proba = pd.concat([meta_test, pd.DataFrame(z, columns=['val'])], axis=1)
+        res.query("team=='liverpool'")
         res = pd.concat([res, est_proba])
     print(t)
 
