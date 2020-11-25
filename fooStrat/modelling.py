@@ -149,6 +149,62 @@ def con_mod_datset_1(data, per_ind, t_fit, t_pred, per):
     return X_train, X_test, y_train, meta_test
 
 
+def est_hist_proba_nb(data, est_dates, start_date=None, lookback='156W'):
+    """Estimate historical probability using a naive bayes model."""
+    per_iter = mod_periods(est_dates=est_dates, start_date=start_date)
+    per_ind = est_dates[['div', 'season', 'date']]
+    res = pd.DataFrame()
+    for t in range(1, len(per_iter)):
+        t_fit = per_iter[t - 1]
+        t_pred = per_iter[t]
+        dfz = data.groupby('team',
+                           as_index=False,
+                           group_keys=False).apply(lambda x: est_proba_nb(data=x,
+                                                                          per_ind=per_ind,
+                                                                          t_fit=t_fit,
+                                                                          t_pred=t_pred,
+                                                                          lookback=lookback))
+        res = pd.concat([res, dfz])
+
+    return res
+
+
+def est_proba_nb(data, per_ind, t_fit, t_pred, lookback):
+    """Estimate historical probabilities."""
+    X_train, X_test, y_train, meta_test = con_mod_datset_1(data=data,
+                                                           per_ind=per_ind,
+                                                           t_fit=t_fit,
+                                                           t_pred=t_pred,
+                                                           per=lookback)
+    if len(X_train) < 1 or len(X_test) < 1:
+        est_proba = pd.DataFrame()
+    else:
+        # make no predictions if only 1 class (eg. win) is present in training set (revisit this later)
+        try:
+            z = GaussianNB().fit(X_train, y_train).predict_proba(X_test)[:, 1]
+            est_proba = pd.concat([meta_test, pd.DataFrame(z, columns=['val'])], axis=1)
+        except:
+            est_proba = pd.DataFrame()
+
+    return est_proba
+
+
+
+def mod_periods(est_dates, start_date):
+    """Construct estimation period set for modelling."""
+    if start_date is not None:
+        tmp = est_dates.loc[est_dates['date'] >= start_date, 'est_date']
+        per_iter = pd.DataFrame(tmp.unique(), columns=['date'])
+    else:
+        per_iter = est_dates['est_date']
+        per_iter = pd.DataFrame(per_iter.unique(), columns=['date'])
+
+    per_iter = per_iter[per_iter['date'].notnull()].date
+
+    return per_iter
+
+
+
 
 
 def est_hist_prob_rf(arcon, est_dates, start_date=None):

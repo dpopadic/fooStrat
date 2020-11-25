@@ -567,7 +567,7 @@ def con_gameday(data):
 
 
 
-def con_est_dates(data, k, map_date=False):
+def con_est_dates(data, k, map_date=False, div=None):
     """Compute the model re-estimation dates for each division and season. The model estimation
     dates are calculated so that every team has at least k games in between two estimation dates.
 
@@ -579,9 +579,13 @@ def con_est_dates(data, k, map_date=False):
                     the time lag in periods between estimation dates (eg. k=5)
         map_date:   boolean (False)
                     whether to map to original dates
+        div:        string, None
+                    optional, the division/league to construct the estimation dates for
     """
+    if div is not None:
+        data_fi = data[data['div'] == div].reset_index(drop=True)
     # retrieve game day for each team
-    game_day = con_gameday(data=data)
+    game_day = con_gameday(data=data_fi)
     # calculate when teams have played k games
     data_ed = game_day.groupby(['season', 'team'])['date'].cumcount() % k
     res = game_day[data_ed == k - 1]
