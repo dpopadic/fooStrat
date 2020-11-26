@@ -270,21 +270,22 @@ def feat_stanbased(data):
     rppa = fose.expand_field(data=rppa, dates=None)
 
     # --- team quality cluster (no lag required here)
-    tqc = sfs.team_quality_cluster(data=df_1)
+    tqc = sfs.team_quality_cluster(data=df_1) # already a z-score where necessary
     # normalise
     date_univ = fose.con_date_univ(data=data)
     # a = tqc.query("div=='E0' & field=='team_quality_consistency' & season=='2018'")
     tqc = fose.expand_field(data=tqc, dates=date_univ)
-
     # consolidate
-    res = pd.concat([rppa, tqc],
+    tog = pd.concat([rppa, tqc[tqc['field'] != 'team_quality_cluster'].reset_index(drop=True)],
                     axis=0,
                     sort=False,
                     ignore_index=True)
-
-    # z-score
-    res['val'] = res.groupby(['div', 'season', 'date', 'field'])['val'].transform(lambda x: zscore(x, ddof=1))
-
+    # z-score (only for non-categorical)
+    tog['val'] = tog.groupby(['div', 'season', 'date', 'field'])['val'].transform(lambda x: zscore(x, ddof=1))
+    res = pd.concat([tog, tqc[tqc['field'] == 'team_quality_cluster'].reset_index(drop=True)],
+                    axis=0,
+                    sort=False,
+                    ignore_index=True)
     return res
 
 

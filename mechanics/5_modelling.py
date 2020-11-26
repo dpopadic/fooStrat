@@ -17,10 +17,12 @@ match_odds = pd.read_pickle('data/pro_data/match_odds.pkl')
 results = con_res(data=source_core, obj=['wdl'], event='win')
 dasetmod = sm.con_mod_datset_0(factors=flib, results=results)
 mest_dates = con_est_dates(data=source_core, k=5, map_date=True, div=flib['div'].iloc[0])
+flib['field'].unique()
 
-dasetmod_fi = dasetmod[['date', 'div', 'season', 'team', 'result', 'rank_position', 'home']]
+dasetmod_fi = dasetmod[['date', 'div', 'season', 'team', 'result',
+                        'rank_position', 'goal_superiority', 'home', 'avg_goal_scored', 'turnaround_ability_last']]
 # simplistic naive bayes estimation
-pe = sm.est_hist_proba_nb(data=dasetmod_fi, est_dates=mest_dates, start_date=np.datetime64('2010-01-01'), lookback='312W')
+pe = sm.est_hist_proba_nb(data=dasetmod_fi, est_dates=mest_dates, start_date=np.datetime64('2015-01-01'), lookback='500W')
 # derive mispriced events
 oe = match_odds.query("field=='odds_win'").reset_index(drop=True).drop('field', axis=1)
 mo = sm.comp_mispriced(prob=pe,

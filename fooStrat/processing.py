@@ -356,17 +356,19 @@ def update_data_historic(path, file_desc, file_key, file_key_name, file_desc_2, 
 
 
 
-def update_flib(data, dir='./data/pro_data/', update = True):
+def update_flib(data, dir='./data/pro_data/', update = True, recreate_feature=False):
     """Builds or updates the factor library.
 
     Parameters:
     -----------
-        data:   list
-                a list of pandas dataframe's with factors across leagues
-        dir:    str, default data/pro_data
-                a directory where to store the factor library
-        update: boolean, default True
-                Whether to update or create new factor library
+        data:               list
+                            a list of pandas dataframe's with factors across leagues
+        dir:                str, default data/pro_data
+                            a directory where to store the factor library
+        update:             boolean, default True
+                            whether to update or create new factor library
+        recreate_feature:   boolean, default False
+                            when update=True, whether to update only latest or entire dataset for the features in question
 
     Details:
     --------
@@ -385,19 +387,30 @@ def update_flib(data, dir='./data/pro_data/', update = True):
             data_new.to_pickle(dir + 'flib_' + ik + '.pkl')
         else:
             data_ex = pd.read_pickle(dir + 'flib_' + ik + '.pkl')
-            # find what is new
-            # 1st identify mutual observations
-            data_mut = pd.merge(data_new.loc[:, ['div', 'season', 'team', 'date', 'field']],
-                                data_ex.loc[:, ['div', 'season', 'team', 'date', 'field']],
-                                on=['div', 'season', 'team', 'date', 'field'],
-                                how="inner")
-            # remove already existing from source
-            data_res = anti_join(x=data_ex,
-                                 y=data_mut,
-                                 on=['div', 'season', 'team', 'date', 'field'])
-            # add new data
-            res = pd.concat([data_res, data_new], axis=0, sort=True, ignore_index=True)
-            res = res.reset_index(drop=True)
+
+            if recreate_feature is True:
+
+                feat_tc = data_new['field'].unique()
+                data_ex_stay = data_ex.query("field not in @feat_tc")
+                res = pd.concat([data_ex_stay, data_new], axis=0, sort=True, ignore_index=True)
+                res = res.reset_index(drop=True)
+
+            else:
+                # find what is new
+                # 1st identify mutual observations
+                data_mut = pd.merge(data_new.loc[:, ['div', 'season', 'team', 'date', 'field']],
+                                    data_ex.loc[:, ['div', 'season', 'team', 'date', 'field']],
+                                    on=['div', 'season', 'team', 'date', 'field'],
+                                    how="inner")
+                # remove already existing from source
+                data_res = anti_join(x=data_ex,
+                                     y=data_mut,
+                                     on=['div', 'season', 'team', 'date', 'field'])
+                # add new data
+                res = pd.concat([data_res, data_new], axis=0, sort=True, ignore_index=True)
+                res = res.reset_index(drop=True)
+
+
             res.to_pickle(dir + 'flib_' + ik + '.pkl')
 
         print("Factor library for " + i + " is updated.")
