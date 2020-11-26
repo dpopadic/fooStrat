@@ -8,7 +8,7 @@ from fooStrat.servicers import con_est_dates
 
 # DATA LOADING --------------------------------------------------------------------------------------------------------
 # pre-processed
-flib = pd.read_pickle('data/pro_data/flib_e0.pkl')
+flib = pd.read_pickle('data/pro_data/flib_d1.pkl')
 source_core = pd.read_pickle('data/pro_data/source_core.pkl')
 match_odds = pd.read_pickle('data/pro_data/match_odds.pkl')
 
@@ -22,12 +22,16 @@ flib['field'].unique()
 dasetmod_fi = dasetmod[['date', 'div', 'season', 'team', 'result',
                         'rank_position', 'goal_superiority', 'home', 'avg_goal_scored', 'turnaround_ability_last']]
 # simplistic naive bayes estimation
-pe = sm.est_hist_proba_nb(data=dasetmod_fi, est_dates=mest_dates, start_date=np.datetime64('2015-01-01'), lookback='500W')
+pe = sm.est_hist_proba_nb(data=dasetmod_fi,
+                          est_dates=mest_dates,
+                          start_date=np.datetime64('2010-01-01'),
+                          lookback='260W',
+                          categorical=['home'])
 # derive mispriced events
 oe = match_odds.query("field=='odds_win'").reset_index(drop=True).drop('field', axis=1)
 mo = sm.comp_mispriced(prob=pe,
                        odds=oe,
-                       prob_threshold=0.5,
+                       prob_threshold=0.3,
                        res_threshold=0.2)
 # compute pnl
 fpnl = se.comp_pnl(positions=mo,

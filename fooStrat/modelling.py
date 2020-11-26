@@ -95,7 +95,7 @@ def con_mod_datset_0(factors, results):
 
 
 
-def con_mod_datset_1(data, per_ind, t_fit, t_pred, per):
+def con_mod_datset_1(data, per_ind, t_fit, t_pred, per, categorical=None):
     """Construct the modelling dataset for a single model fit at time t. The default lookback
     period is 3 years. The model is only fitted at dates specified in per_ind.
 
@@ -111,6 +111,8 @@ def con_mod_datset_1(data, per_ind, t_fit, t_pred, per):
                     a upper bound date for which to make predictions
         per:        str
                     a string indicating the lookback period to use for the model data set (eg. '52W')
+        categorical: list
+                    a list of categorical features if any
 
     Details:
     --------
@@ -124,16 +126,17 @@ def con_mod_datset_1(data, per_ind, t_fit, t_pred, per):
     """
     # consider only last n obervations
     per_ind_t = per_ind.query("date <= @t_pred").set_index('date').last(per).reset_index()
-    data_ed = pd.merge(data, per_ind_t['date'], how="inner", on="date")
+    data_edoh = pd.merge(data, per_ind_t['date'], how="inner", on="date")
     # one-hot encoding
-    data_edoh = pd.get_dummies(data_ed, columns=['home'])
+    if categorical is not None:
+        data_edoh = pd.get_dummies(data_edoh, columns=categorical)
 
     # training data set
     as_train = data_edoh[data_edoh['date'] <= t_fit].reset_index(drop=True)
     as_train_0 = as_train.drop(['date', 'div', 'team', 'season'], axis=1)
 
     # prediction data set
-    as_test = data_edoh[(data_edoh['date'] > t_fit) & (data_ed['date'] <= t_pred)].reset_index(drop=True)
+    as_test = data_edoh[(data_edoh['date'] > t_fit) & (data_edoh['date'] <= t_pred)].reset_index(drop=True)
     as_test_0 = as_test.drop(['date', 'div', 'team', 'season'], axis=1)
 
     # explanatory and target variables declarations
@@ -149,7 +152,8 @@ def con_mod_datset_1(data, per_ind, t_fit, t_pred, per):
     return X_train, X_test, y_train, meta_test
 
 
-def est_hist_proba_nb(data, est_dates, start_date=None, lookback='156W'):
+
+def est_hist_proba_nb(data, est_dates, start_date=None, lookback='156W', categorical=None):
     """Estimate historical probability using a naive bayes model."""
     per_iter = mod_periods(est_dates=est_dates, start_date=start_date)
     per_ind = est_dates[['div', 'season', 'date']]
@@ -163,19 +167,21 @@ def est_hist_proba_nb(data, est_dates, start_date=None, lookback='156W'):
                                                                           per_ind=per_ind,
                                                                           t_fit=t_fit,
                                                                           t_pred=t_pred,
-                                                                          lookback=lookback))
+                                                                          lookback=lookback,
+                                                                          categorical=categorical))
         res = pd.concat([res, dfz])
 
     return res
 
 
-def est_proba_nb(data, per_ind, t_fit, t_pred, lookback):
+def est_proba_nb(data, per_ind, t_fit, t_pred, lookback, categorical):
     """Estimate historical probabilities."""
     X_train, X_test, y_train, meta_test = con_mod_datset_1(data=data,
                                                            per_ind=per_ind,
                                                            t_fit=t_fit,
                                                            t_pred=t_pred,
-                                                           per=lookback)
+                                                           per=lookback,
+                                                           categorical=categorical)
     if len(X_train) < 1 or len(X_test) < 1:
         est_proba = pd.DataFrame()
     else:
