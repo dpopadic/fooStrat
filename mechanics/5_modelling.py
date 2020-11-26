@@ -39,49 +39,4 @@ fpnl = se.comp_pnl(positions=mo,
 
 
 
-a = dasetmod.query("date <= @t_pred").set_index('date').last('156W').reset_index()
-d = a.team.unique()
-b = a.query("team=='bournemouth'").reset_index(drop=True)
-
-for i in range(0, len(d)):
-    ik = d[i]
-    b = a.query("team==@ik").reset_index(drop=True)
-    X_train, X_test, y_train, meta_test = con_mod_datset_1(data=b,
-                                                           per_ind=per_ind,
-                                                           t_fit=t_fit,
-                                                           t_pred=t_pred,
-                                                           per='156W')
-    if len(X_train) < 1 or len(X_test) < 1:
-        est_proba = pd.DataFrame()
-    else:
-        # make no predictions if only 1 class (eg. win) is present in training set (revisit this later)
-        try:
-            z = GaussianNB().fit(X_train, y_train).predict_proba(X_test)[:, 1]
-            est_proba = pd.concat([meta_test, pd.DataFrame(z, columns=['val'])], axis=1)
-        except:
-            est_proba = pd.DataFrame()
-
-    print(ik)
-
-
-
-
-
-# estimate event probabilities
-est_probs = sm.est_hist_prob_rf(arcon=dasetmod, est_dates=mest_dates, start_date="2010-01-01")
-
-
-# calculate pnl
-event = "win"
-event_of =  "odds_" + event
-event_opps = est_probs.loc[:, ['date', 'div', 'season', 'team', event]]
-event_opps.rename(columns={event: 'val'}, inplace=True)
-
-odds_event = match_odds.query('field == @event_of')
-gsf_pos = sm.comp_mispriced(prob=event_opps, odds=odds_event, prob_threshold=0.5, res_threshold=0.10)
-gsf_pnl = se.comp_pnl(positions=gsf_pos, odds=odds_event, results=res_wd, event=event, stake=10)
-
-
-
-
 
