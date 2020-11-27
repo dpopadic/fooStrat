@@ -24,7 +24,7 @@ dasetmod_fi = dasetmod[['date', 'div', 'season', 'team', 'result',
 pe = sm.est_hist_proba_nb(data=dasetmod_fi,
                           est_dates=mest_dates,
                           start_date=np.datetime64('2015-01-01'),
-                          lookback='260W',
+                          lookback='520W',
                           categorical=['home'])
 # derive mispriced events
 oe = match_odds.query("field=='odds_win'").reset_index(drop=True).drop('field', axis=1)
