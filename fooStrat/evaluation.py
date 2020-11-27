@@ -201,3 +201,54 @@ def info_coef(data, results, byf=None):
     ic.rename(columns={'gd': 'val'}, inplace=True)
     return ic
 
+
+def pnl_eval_summary(z):
+    """P&L evaluation summary"""
+    # hit ratio
+    n_won = np.sum(z > 0)
+    n_lost = np.sum(z < 0)
+    hit_ratio = n_won / (n_won + n_lost)
+    # payoff
+    payoff_bet_mean = np.mean(z)
+    payoff_bet_wins = np.sum(z[z > 0]) / n_won
+    # streak
+    streak = streaks_analysis(x=z)
+    streak = np.array(streak)
+    streak_win_mean = np.mean(streak[streak > 0])
+    streak_lose_mean = np.abs(np.mean(streak[streak < 0]))
+    streak_win_max = np.max(streak[streak > 0])
+    streak_lose_max = np.abs(np.min(streak[streak < 0]))
+    rn = ['hit_ratio', 'payoff_bet_mean', 'payoff_bet_wins', 'streak_win_mean',
+          'streak_lose_mean', 'streak_win_max', 'streak_lose_max']
+    va = [hit_ratio, payoff_bet_mean, payoff_bet_wins, streak_win_mean,
+          streak_lose_mean, streak_win_max, streak_lose_max]
+    q = pd.DataFrame(va, columns=['val'], index=rn)
+    return q
+
+
+
+def streaks_analysis(x):
+    """Returns streaks of positive / negative streaks."""
+    z = [1 if i > 0 else 0 for i in x]
+    y = []
+    p = 1
+    for j in range(1, len(z)):
+        if z[j] - z[j - 1] == 0:
+            p += 1
+        else:
+            if z[j - 1] == 1:
+                y.append(p)
+            else:
+                y.append(-p)
+            p = 1
+    # last iteration to add
+    y.append(p * (1 if z[j - 1] == 1 else -1))
+    return y
+
+
+
+
+
+
+
+

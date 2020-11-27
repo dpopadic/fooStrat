@@ -8,10 +8,9 @@ from fooStrat.servicers import con_est_dates
 
 # DATA LOADING --------------------------------------------------------------------------------------------------------
 # pre-processed
-flib = pd.read_pickle('data/pro_data/flib_d1.pkl')
+flib = pd.read_pickle('data/pro_data/flib_e0.pkl')
 source_core = pd.read_pickle('data/pro_data/source_core.pkl')
 match_odds = pd.read_pickle('data/pro_data/match_odds.pkl')
-
 
 # data reshaping for evaluation
 results = con_res(data=source_core, obj=['wdl'], event='win')
@@ -24,7 +23,7 @@ dasetmod_fi = dasetmod[['date', 'div', 'season', 'team', 'result',
 # simplistic naive bayes estimation
 pe = sm.est_hist_proba_nb(data=dasetmod_fi,
                           est_dates=mest_dates,
-                          start_date=np.datetime64('2010-01-01'),
+                          start_date=np.datetime64('2015-01-01'),
                           lookback='260W',
                           categorical=['home'])
 # derive mispriced events
@@ -39,6 +38,14 @@ fpnl = se.comp_pnl(positions=mo,
                    results=results,
                    event="win",
                    stake=10)
+# summary of evaluation
+epnl = se.pnl_eval_summary(z=fpnl['payoff'].values)
+
+
+
+
+
+
 
 
 
