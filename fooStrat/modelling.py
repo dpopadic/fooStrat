@@ -1,8 +1,10 @@
 import pandas as pd
 import numpy as np
 from sklearn.metrics import confusion_matrix
-from sklearn.linear_model import LogisticRegression
 from sklearn.naive_bayes import GaussianNB
+from sklearn.linear_model import LogisticRegression
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.tree import DecisionTreeClassifier
 from fooStrat.helpers import class_accuracy_stats, transform_range
 import fooStrat.servicers as fose
 
@@ -153,8 +155,15 @@ def con_mod_datset_1(data, per_ind, t_fit, t_pred, per, categorical=None):
 
 
 
-def est_hist_proba_nb(data, est_dates, start_date=None, lookback='156W', categorical=None):
-    """Estimate historical probability using a naive bayes model."""
+def est_hist_proba(data,
+                   est_dates,
+                   start_date=None,
+                   lookback='156W',
+                   categorical=None,
+                   models=['nb', 'knn', 'lg', 'dt']):
+    """Estimate historical probability using a various model. By default,
+    four classification models are estimated: naive bayes, knn, logistic regression
+    and a random forest tree model."""
     per_iter = mod_periods(est_dates=est_dates, start_date=start_date)
     per_ind = est_dates[['div', 'season', 'date']]
     res = pd.DataFrame()
@@ -163,12 +172,13 @@ def est_hist_proba_nb(data, est_dates, start_date=None, lookback='156W', categor
         t_pred = per_iter[t]
         dfz = data.groupby('team',
                            as_index=False,
-                           group_keys=False).apply(lambda x: est_proba_nb(data=x,
-                                                                          per_ind=per_ind,
-                                                                          t_fit=t_fit,
-                                                                          t_pred=t_pred,
-                                                                          lookback=lookback,
-                                                                          categorical=categorical))
+                           group_keys=False).apply(lambda x: est_proba_ensemble(data=x,
+                                                                                per_ind=per_ind,
+                                                                                t_fit=t_fit,
+                                                                                t_pred=t_pred,
+                                                                                lookback=lookback,
+                                                                                categorical=categorical,
+                                                                                models=models))
         res = pd.concat([res, dfz])
 
     return res
@@ -193,6 +203,45 @@ def est_proba_nb(data, per_ind, t_fit, t_pred, lookback, categorical):
             est_proba = pd.DataFrame()
 
     return est_proba
+
+
+
+def est_proba_ensemble(data, per_ind, t_fit, t_pred, lookback, categorical, models):
+    """Estimate historical probabilities."""
+    X_train, X_test, y_train, meta_test = con_mod_datset_1(data=data,
+                                                           per_ind=per_ind,
+                                                           t_fit=t_fit,
+                                                           t_pred=t_pred,
+                                                           per=lookback,
+                                                           categorical=categorical)
+    if len(X_train) < 1 or len(X_test) < 1:
+        est_proba = pd.DataFrame()
+    else:
+        # make no predictions if only 1 class (eg. win) is present in training set (revisit this later)
+        try:
+            # fit various models
+            z_nb = z_knn = z_lg = z_dt = [np.nan for i in range(len(X_test))]
+            if 'nb' in models:
+                z_nb = GaussianNB().fit(X_train, y_train).predict_proba(X_test)[:, 1]
+            if 'knn' in models:
+                z_knn = KNeighborsClassifier(n_neighbors=50).fit(X_train, y_train).predict_proba(X_test)[:, 1]
+            if 'lg' in models:
+                z_lg = LogisticRegression().fit(X_train, y_train).predict_proba(X_test)[:, 1]
+            if 'dt' in models:
+                z_dt = DecisionTreeClassifier(max_depth=10,
+                                              max_features="sqrt",
+                                              min_samples_leaf=30,
+                                              criterion="gini").fit(X_train, y_train).predict_proba(X_test)[:, 1]
+            # average probability
+            z = np.nanmean([z_nb, z_knn, z_lg, z_dt], axis=0)
+            est_proba = pd.concat([meta_test, pd.DataFrame(z, columns=['val'])], axis=1)
+        except:
+            est_proba = pd.DataFrame()
+
+    return est_proba
+
+
+
 
 
 
