@@ -4,19 +4,19 @@ import numpy as np
 import fooStrat.modelling as sm
 import fooStrat.evaluation as se
 from fooStrat.response import con_res
-from fooStrat.servicers import con_est_dates
+from fooStrat.servicers import con_est_dates, flib_list
 
 # DATA LOADING --------------------------------------------------------------------------------------------------------
 # pre-processed
-flib = pd.read_pickle('data/pro_data/flib_switzerland_super_league.pkl')
 source_core = pd.read_pickle('data/pro_data/source_core.pkl')
 match_odds = pd.read_pickle('data/pro_data/match_odds.pkl')
+leagues = flib_list(data=source_core)
+flib = pd.read_pickle('data/pro_data/flib_f1.pkl')
 
 # data reshaping for evaluation
 results = con_res(data=source_core, obj=['wdl'], event='win')
 dasetmod = sm.con_mod_datset_0(factors=flib, results=results)
-mest_dates = con_est_dates(data=source_core, k=5, map_date=True, div=flib['div'].iloc[0])
-flib['field'].unique()
+est_dates = con_est_dates(data=source_core, k=5, map_date=True, div=flib['div'].iloc[0])
 
 
 # reducing profit: odds_volatility, h2h_next_opponent_advantage, h2h_next_opponent_chance
@@ -29,7 +29,7 @@ dasetmod_fi = dasetmod.loc[:, dasetmod.columns.isin(['date', 'div', 'season', 't
 
 # simplistic naive bayes estimation
 pe = sm.est_hist_proba_nb(data=dasetmod_fi,
-                          est_dates=mest_dates,
+                          est_dates=est_dates,
                           start_date=np.datetime64('2010-01-01'),
                           lookback='520W',
                           categorical=['home'])

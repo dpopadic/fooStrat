@@ -726,6 +726,11 @@ def custom_window(k, l):
     return nper
 
 
+def flib_list(data):
+    """Retrieve a list of all feature librariies."""
+    l = data['div'].unique()
+    x = [i.lower().replace(" ", "_").replace("-", "_") for i in l]
+    return x
 
 
 

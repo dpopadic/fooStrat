@@ -206,7 +206,7 @@ def mod_periods(est_dates, start_date):
         per_iter = pd.DataFrame(per_iter.unique(), columns=['date'])
 
     per_iter = per_iter[per_iter['date'].notnull()].date
-
+    per_iter.reset_index(drop=True, inplace=True)
     return per_iter
 
 
