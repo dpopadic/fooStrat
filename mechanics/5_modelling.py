@@ -11,7 +11,7 @@ from fooStrat.servicers import con_est_dates, flib_list
 source_core = pd.read_pickle('data/pro_data/source_core.pkl')
 match_odds = pd.read_pickle('data/pro_data/match_odds.pkl')
 leagues = flib_list(data=source_core)
-flib = pd.read_pickle('data/pro_data/flib_d1.pkl')
+flib = pd.read_pickle('data/pro_data/flib_e0.pkl')
 
 # data reshaping for evaluation
 results = con_res(data=source_core, obj=['wdl'], event='win')
@@ -30,7 +30,7 @@ dasetmod_fi = dasetmod.loc[:, dasetmod.columns.isin(['date', 'div', 'season', 't
 # simplistic naive bayes estimation
 pe = sm.est_hist_proba(data=dasetmod_fi,
                        est_dates=est_dates,
-                       start_date=np.datetime64('2010-01-01'),
+                       start_date=np.datetime64('2015-01-01'),
                        lookback='520W',
                        categorical=['home'],
                        models=['nb', 'knn'])
@@ -45,7 +45,8 @@ fpnl = se.comp_pnl(positions=mo,
                    odds=oe,
                    results=results,
                    event="win",
-                   stake=10)
+                   stake=10,
+                   size_naive=False)
 # summary of evaluation
 epnl = se.pnl_eval_summary(z=fpnl['payoff'].values)
 epnl

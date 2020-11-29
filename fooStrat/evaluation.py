@@ -57,7 +57,7 @@ def eval_feature(data, results, feature, categorical=False):
 
 
 
-def comp_pnl(positions, odds, results, event, stake):
+def comp_pnl(positions, odds, results, event, stake, size_naive=True):
     """Calculates the PnL of a factor. Note that the factor needs to be adjusted for lookahead bias.
 
     Parameters:
@@ -67,6 +67,7 @@ def comp_pnl(positions, odds, results, event, stake):
         results (dataframe): a dataframe with results and columns season, div, date, team, field, val
         event (string): a string defining the event (eg. 'win')
         stake (double): the stake for each bet (eg. 10)
+        size_naive (boolean): whether to size bets naively (equal amount for each bet) or using kelly criterion
 
     Returns:
     --------
@@ -77,13 +78,15 @@ def comp_pnl(positions, odds, results, event, stake):
 
     # define helper function
     def f0(x, stake):
+
+        weight = x[2]
         if x[1] == 0:
             if np.isnan(x[0]):
                 z = np.nan
             else:
-                z = -1 * stake
+                z = -1 * stake * weight
         elif x[1] == 1:
-            z = (x[0] - 1) * stake
+            z = (x[0] - 1) * stake * weight
         else:
             z = 0
         return z
@@ -96,8 +99,15 @@ def comp_pnl(positions, odds, results, event, stake):
     res_0.rename(columns={'val': 'res'}, inplace=True)
     # add the actual result
     payres = pd.merge(pay, res_0, on=['div', 'season', 'date', 'team'], how='left')
+    # sizing
+    if size_naive is True:
+        payres['weight'] = 1
+    else:
+        # kelly criterion
+        payres['weight'] = payres['implied'] - (1 - payres['implied']) / (payres['val'] - 1)
+
     # calculate pnl
-    payres['payoff'] = payres.loc[:, ['val', 'res']].apply(f0, stake=stake, axis=1)
+    payres['payoff'] = payres.loc[:, ['val', 'res', 'weight']].apply(f0, stake=stake, axis=1)
     # cumulative pnl
     payres['payoff_cum'] = payres.loc[:, 'payoff'].cumsum(skipna=True)
     return payres
