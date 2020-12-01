@@ -1,14 +1,15 @@
 # STRATEGY TESTING ----------------------------------------------------------------------------------------------------
 import pandas as pd
 import numpy as np
+from fooStrat.processing import fp_cloud
 import fooStrat.evaluation as se
 from fooStrat.modelling import est_prob, comp_mispriced
 from fooStrat.response import con_res
 
 # DATA PREPARATIONS ---------------------------------------------------------------------------------------------------
-flib = pd.read_pickle('data/pro_data/flib_e0.pkl')
-match_odds = pd.read_pickle('data/pro_data/match_odds.pkl')
-source_core = pd.read_pickle('data/pro_data/source_core.pkl')
+flib = pd.read_pickle(fp_cloud + 'pro_data/flib_e0.pkl')
+match_odds = pd.read_pickle(fp_cloud + 'pro_data/match_odds.pkl')
+source_core = pd.read_pickle(fp_cloud + 'pro_data/source_core.pkl')
 results = con_res(data=source_core, obj=['wdl', 'gd'], event='win')
 
 # not working at season start with insufficient data

@@ -8,10 +8,10 @@ from fooStrat.servicers import con_est_dates, flib_list
 
 # DATA LOADING --------------------------------------------------------------------------------------------------------
 # pre-processed
-source_core = pd.read_pickle('data/pro_data/source_core.pkl')
-match_odds = pd.read_pickle('data/pro_data/match_odds.pkl')
+source_core = pd.read_pickle(fp_cloud + 'pro_data/source_core.pkl')
+match_odds = pd.read_pickle(fp_cloud + 'pro_data/match_odds.pkl')
 leagues = flib_list(data=source_core)
-flib = pd.read_pickle('data/pro_data/flib_e0.pkl')
+flib = pd.read_pickle(fp_cloud + 'pro_data/flib_e0.pkl')
 
 # data reshaping for evaluation
 results = con_res(data=source_core, obj=['wdl'], event='win')

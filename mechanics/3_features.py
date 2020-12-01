@@ -3,12 +3,11 @@ import pandas as pd
 import numpy as np
 import fooStrat.features as sf
 import fooStrat.processing as su
-
 # load source data..
-source_core = pd.read_pickle('data/pro_data/source_core.pkl')
+source_core = pd.read_pickle(su.fp_cloud + 'pro_data/source_core.pkl')
 
 # odds retrieval ------------------------------------------------------------------------------------------------------
-match_odds = pd.read_pickle('data/pro_data/match_odds.pkl')
+match_odds = pd.read_pickle(su.fp_cloud + 'pro_data/match_odds.pkl')
 
 # features ------------------------------------------------------------------------------------------------------------
 # - goal based factors
@@ -40,7 +39,7 @@ su.consol_flib()
 
 
 # verify..
-flib_x = pd.read_pickle('data/pro_data/flib_e0.pkl')
+flib_x = pd.read_pickle(su.fp_cloud + 'pro_data/flib_e0.pkl')
 flib_x.field.unique()
 flib_x.query("div=='E0' & season==2020 & team=='liverpool' & date=='2020-09-12'")
 

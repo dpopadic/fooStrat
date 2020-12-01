@@ -1,6 +1,7 @@
 # DATA SOURCING ---------------------------------------------------
 import urllib.request
 from datetime import datetime
+from fooStrat.processing import fp_cloud
 # split into categories: historical, latest, fixtures
 
 # Download the latest data ----------------------------------------
@@ -15,7 +16,7 @@ file_nm = ['latest_results_major.xlsx',
            'latest_fixtures_major.xlsx',
            'latest_fixtures_minor.xlsx']
 
-url_store = '/Users/dariopopadic/PycharmProjects/fooStrat/data/src_data/'
+url_store = fp_cloud + 'src_data/'
 for ob in range(len(url_source)):
     urllib.request.urlretrieve(url_source[ob], url_store + file_nm[ob])
     print(url_source[ob], file_nm[ob])
