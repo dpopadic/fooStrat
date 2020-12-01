@@ -1,6 +1,7 @@
 # MODEL CONSTRUCTION --------------------------------------------------------------------------------------------------
 import pandas as pd
 import numpy as np
+from fooStrat.processing import fp_cloud
 import fooStrat.modelling as sm
 import fooStrat.evaluation as se
 from fooStrat.response import con_res
