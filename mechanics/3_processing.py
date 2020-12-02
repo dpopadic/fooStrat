@@ -4,17 +4,9 @@
 # This script reads the necessary data files and processes them into the right shape. As of now,
 # two different data source formats are handled: major leagues, minor leagues
 import pandas as pd
-from fooStrat.processing import update_data_latest, update_data_historic, fp_cloud
+from fooStrat.processing import update_data_latest, fp_cloud
 from fooStrat.mapping import odds_fields
 from fooStrat.servicers import get_odds
-
-# history update ------------------------------------------------------
-update_data_historic(path=fp_cloud + 'src_data/',
-                     file_desc='all-euro-data',
-                     file_key=[23, 32],
-                     file_key_name='season',
-                     file_desc_2='new_leagues_data.xlsx',
-                     file_key_name_2='Season')
 
 
 # latest update ------------------------------------------------------
