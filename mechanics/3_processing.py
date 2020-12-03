@@ -18,9 +18,7 @@ source_core = pd.read_pickle(fp_cloud + 'pro_data/source_core.pkl')
 update_data_latest(ex=source_core,
                    new_1='latest_results_major.xlsx',
                    new_2='latest_results_minor.xlsx',
-                   season='2020-2021',
-                   path=fp_cloud,
-                   path_store=fp_cloud + 'pro_data/')
+                   season='2020-2021')
 
 
 # odds update --------------------------------------------------------

@@ -295,17 +295,15 @@ def update_data_latest(ex, new_1, new_2, season, path=fp_cloud):
                     on=['div', 'season', 'date', 'home_team', 'away_team', 'field', 'val'],
                     how='outer')
     # store
-    data.to_pickle(path_store + 'pro_data/source_core.pkl')
+    data.to_pickle(path + 'pro_data/source_core.pkl')
     print("Source Data has been updated.")
 
 
-def update_data_historic(path=fp_cloud, file_desc, file_key, file_key_name, file_desc_2, file_key_name_2):
+def update_data_historic(file_desc, file_key, file_key_name, file_desc_2, file_key_name_2, path=fp_cloud):
     """Updates historical data across major and minor leagues.
 
     Parameters:
     -----------
-        path (string): source path to all the underlying data within the project (eg. where
-                       'all-euro-data-2004-2005.xls' is located)
         file_desc (string): a string that is part of each file that will be examined (eg. 'all-euro_data'
                             for files that have the same structure:
                             'all-euro-data-2002-2003.xls', 'all-euro-data-2017-2018.xlsx')
@@ -317,6 +315,8 @@ def update_data_historic(path=fp_cloud, file_desc, file_key, file_key_name, file
                               but where all data is stored in a single file (eg. 'new_leagues_data.xlsx')
         file_key_name_2 (string): a column in the file that describes the same key that is used in file_key_name to
                                   be able to merge the different data sources by this key (eg. 'Season')
+        path (string): source path to all the underlying data within the project (eg. where
+                       'all-euro-data-2004-2005.xls' is located)
 
     """
     # MAJOR LEAGUES ------
