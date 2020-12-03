@@ -7,7 +7,7 @@ from crontab import CronTab # python -m pip install python-crontab
 cron = CronTab(user=True)
 # create new cron job..
 py_inst = '/Library/Frameworks/Python.framework/Versions/3.7/bin/python3.7'
-py_file = '/Users/dariopopadic/PycharmProjects/fooStrat/1_sourcing.py'
+py_file = '/Users/dariopopadic/PycharmProjects/fooStrat/mechanics/1_sourcing.py'
 job = cron.new(command = py_inst + ' ' + py_file, comment = 'foostrat_data_download')
 # schedule for 24h at midnight..
 job.minute.on(0)
