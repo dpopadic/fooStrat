@@ -29,19 +29,18 @@ fun = sf.feat_odds_uncertainty(data=source_core, odds=match_odds)
 
 # factor library ------------------------------------------------------------------------------------------------------
 fsb.field.unique()
-su.delete_flib(field=["points_advantage", "rank_position"])
+# su.delete_flib(field=["points_advantage", "rank_position"])
+# su.update_flib(data=[fsb], update=True, recreate_feature=True)
+su.update_flib(data=[fgb, frb, fstre, fsb, ftf, fh2h, hf, fun], recreate_feature=False, update=True)
 
-su.update_flib(data=[fsb], update=True, recreate_feature=True)
-su.update_flib(data=[fgb, frb, fstre, fsb, ftf, fh2h, hf, fun], update=False)
-
-# consolidate for feature evaluation
+# consolidate all feature libraries (flib)
 su.consol_flib()
 
 
 # verify..
-flib_x = pd.read_pickle(su.fp_cloud + 'pro_data/flib_e0.pkl')
-flib_x.field.unique()
-flib_x.query("div=='E0' & season==2020 & team=='liverpool' & date=='2020-09-12'")
+# flib_x = pd.read_pickle(su.fp_cloud + 'pro_data/flib_e0.pkl')
+# flib_x.field.unique()
+# flib_x.query("div=='E0' & season==2020 & team=='liverpool' & date=='2020-09-12'")
 
 
 
