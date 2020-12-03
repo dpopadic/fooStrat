@@ -4,7 +4,7 @@
 from fooStrat.processing import update_data_historic, fp_cloud
 
 # history update ------------------------------------------------------
-update_data_historic(path=fp_cloud + 'src_data/',
+update_data_historic(path=fp_cloud,
                      file_desc='all-euro-data',
                      file_key=[23, 32],
                      file_key_name='season',

@@ -243,7 +243,7 @@ def synchronise_data(data):
 
 
 
-def update_data_latest(ex, new_1, new_2, season, path):
+def update_data_latest(ex, new_1, new_2, season, path=fp_cloud):
     """Updates the data with latest games. Only latest season results are updated and history is
     not changed from previous seasons.
 
@@ -253,7 +253,7 @@ def update_data_latest(ex, new_1, new_2, season, path):
         new_1 (string): new latest data major leagues name
         new_2 (string): new latest data minor leagues name
         season (string): latest season for which the data is being updated (eg. '2019-2020')
-        path (string): path to the data folder
+        path (string): path to the data
 
     Returns:
     --------
@@ -262,7 +262,7 @@ def update_data_latest(ex, new_1, new_2, season, path):
     """
 
     # major leagues recent data
-    new_file = [path + new_1]
+    new_file = [path + 'src_data/' + new_1]
     new_key = pd.DataFrame({'fi_nm': new_file, 'season': season})
     major_latest = process_data_major(fi_nm=new_file,
                                       extra_key=new_key,
@@ -276,7 +276,7 @@ def update_data_latest(ex, new_1, new_2, season, path):
     major_latest = synchronise_data(data=major_latest)
 
     # minor leagues recent data
-    minor_latest = pd.read_excel(path + new_2, sheet_name=None)
+    minor_latest = pd.read_excel(path + 'src_data/' + new_2, sheet_name=None)
     minor_latest = process_data_minor(minor_latest,
                                       key_cols={'Country': 'country',
                                                 'League': 'league',
@@ -295,11 +295,11 @@ def update_data_latest(ex, new_1, new_2, season, path):
                     on=['div', 'season', 'date', 'home_team', 'away_team', 'field', 'val'],
                     how='outer')
     # store
-    data.to_pickle('./data/pro_data/source_core.pkl')
+    data.to_pickle(path_store + 'pro_data/source_core.pkl')
     print("Source Data has been updated.")
 
 
-def update_data_historic(path, file_desc, file_key, file_key_name, file_desc_2, file_key_name_2):
+def update_data_historic(path=fp_cloud, file_desc, file_key, file_key_name, file_desc_2, file_key_name_2):
     """Updates historical data across major and minor leagues.
 
     Parameters:
@@ -320,11 +320,12 @@ def update_data_historic(path, file_desc, file_key, file_key_name, file_desc_2, 
 
     """
     # MAJOR LEAGUES ------
+    path_ed = path + 'src_data/'
     # retrieve source data full path
-    src_dat_path = os.path.join(os.getcwd(), path[:-1], '')
+    src_dat_path = os.path_ed.join(os.getcwd(), path_ed[:-1], '')
     # all the relevant files names
     # iterate through source folder and determine which files should be loaded
-    fi_nm = [path + f for f in os.listdir(src_dat_path) if f[:len(file_desc)] == file_desc]
+    fi_nm = [path_ed + f for f in os.listdir(src_dat_path) if f[:len(file_desc)] == file_desc]
     # map file key
     extra_key = pd.DataFrame({'fi_nm': fi_nm,
                               file_key_name: [i[file_key[0]:file_key[1]] for i in fi_nm]})
@@ -338,7 +339,7 @@ def update_data_historic(path, file_desc, file_key, file_key_name, file_desc_2, 
                                              'AT': 'AwayTeam'})
 
     # MINOR LEAGUES ------
-    minor = pd.read_excel(path + file_desc_2, sheet_name=None)
+    minor = pd.read_excel(path_ed + file_desc_2, sheet_name=None)
     # process data..
     minor = process_data_minor(minor,
                                key_cols={'Country': 'country',
@@ -353,12 +354,12 @@ def update_data_historic(path, file_desc, file_key, file_key_name, file_desc_2, 
     # data synchronisation: renaming fields so that they have the same names to make it easier
     # to process the data later in a concise way..
     data_prc = synchronise_data(data=data_prc)
-    data_prc.to_pickle('./data/pro_data/source_core.pkl')
+    data_prc.to_pickle(path + 'pro_data/source_core.pkl')
     print("Source Data History has been updated.")
 
 
 
-def update_flib(data, dir='./data/pro_data/', update = True, recreate_feature=False):
+def update_flib(data, dir=fp_cloud, update = True, recreate_feature=False):
     """Builds or updates the factor library.
 
     Parameters:
@@ -378,17 +379,17 @@ def update_flib(data, dir='./data/pro_data/', update = True, recreate_feature=Fa
     present by league.
 
     """
-    data_ed = pd.concat(data, axis=0, sort=False, ignore_index=True)
+    dir_ed = dir + 'pro_data/'
     # i = 'F1'
-    for i in data_ed.loc[:, 'div'].unique():
+    for i in data.loc[:, 'div'].unique():
 
-        data_new = data_ed.query("div==@i")
+        data_new = data.query("div==@i")
         ik = i.lower().replace(" ", "_").replace("-", "_")
 
         if update is False:
-            data_new.to_pickle(dir + 'flib_' + ik + '.pkl')
+            data_new.to_pickle(dir_ed + 'flib_' + ik + '.pkl')
         else:
-            data_ex = pd.read_pickle(dir + 'flib_' + ik + '.pkl')
+            data_ex = pd.read_pickle(dir_ed + 'flib_' + ik + '.pkl')
 
             if recreate_feature is True:
 
@@ -413,13 +414,13 @@ def update_flib(data, dir='./data/pro_data/', update = True, recreate_feature=Fa
                 res = res.reset_index(drop=True)
 
 
-            res.to_pickle(dir + 'flib_' + ik + '.pkl')
+            res.to_pickle(dir_ed + 'flib_' + ik + '.pkl')
 
         print("Factor library for " + i + " is updated.")
 
 
 
-def delete_flib(field, path='data/pro_data/'):
+def delete_flib(field, path=fp_cloud):
     """Delete fields from the factor library.
 
     Parameters:
@@ -431,8 +432,9 @@ def delete_flib(field, path='data/pro_data/'):
 
     """
     # retrieve source path
-    dat_path = os.path.join(os.getcwd(), path[:-1], '')
-    files = [path + f for f in os.listdir(dat_path) if f[:5] == "flib_"]
+    path_ed = dir + 'pro_data/'
+    dat_path = os.path_ed.join(os.getcwd(), path_ed[:-1], '')
+    files = [path_ed + f for f in os.listdir(dat_path) if f[:5] == "flib_"]
     # i = 0
     for i in range(len(files)):
         data_ex = pd.read_pickle(files[i])
@@ -442,7 +444,7 @@ def delete_flib(field, path='data/pro_data/'):
     print("Factor library is updated.")
 
 
-def consol_flib():
+def consol_flib(path=fp_cloud):
     """Consolidate all feature libraries.
 
     Details:
@@ -452,13 +454,13 @@ def consol_flib():
     """
     # read relevant files
     l = []
-    for p in glob.glob('pro_data/flib_*'):
-        if p != 'data/pro_data/flib.pkl':
+    for p in glob.glob(path + 'pro_data/flib_*'):
+        if p != path + 'pro_data/flib.pkl':
             l.append(p)
 
     res = pd.concat([pd.read_pickle(i) for i in l], axis=0, sort=False)
     res.reset_index(drop=True, inplace=True)
-    res.to_pickle("data/pro_data/flib.pkl")
+    res.to_pickle(path + "pro_data/flib.pkl")
 
     print("Factor library is consolidated.")
 
