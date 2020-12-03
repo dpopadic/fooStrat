@@ -22,6 +22,7 @@ update_data_latest(ex=source_core,
 
 
 # odds update --------------------------------------------------------
+source_core = pd.read_pickle(fp_cloud + 'pro_data/source_core.pkl')
 match_odds = get_odds(data=source_core,
                       field_home=list(odds_fields.get('odds_home_win')),
                       field_away=list(odds_fields.get('odds_away_win')),
