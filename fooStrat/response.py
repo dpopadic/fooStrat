@@ -114,7 +114,7 @@ def reshape_wdl(data, event, as_numeric=False):
     return res
 
 
-def con_res_wd(data, field, event, encoding=True):
+def con_res_wd(data, field, event=None, encoding=True):
     """
     Constructs the event result data in a manner that is readily available for back-testing.
 

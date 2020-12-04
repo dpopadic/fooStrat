@@ -51,7 +51,7 @@ def fhome(data):
 
 
 
-def feat_goalbased(data, k):
+def feat_goalbased(data, k=5):
     """Compute goal based factors. Goal based factors are:
 
         - goal superiority rating
@@ -264,7 +264,7 @@ def feat_stanbased(data):
                      axis=0,
                      sort=False,
                      ignore_index=True)
-    # lag factor
+    # expand factor
     rppa = rppa.sort_values(['team', 'date']).reset_index(drop=True)
     rppa['val'] = rppa.groupby(['team', 'field'])['val'].shift(1)
     rppa = fose.expand_field(data=rppa, dates=None)
@@ -341,7 +341,7 @@ def feat_h2h(data):
 
 
 
-def feat_strength(data, k):
+def feat_strength(data, k=3):
     """Compute team strength features:
         - shots attempted / conceded
         - shots on target attempted / conceded
@@ -351,7 +351,7 @@ def feat_strength(data, k):
         - defense strength
         - attack + defense strength
 
-    These features are calculated using the last 5 games.
+    These features are calculated using the last 3 games.
 
     Details:
     --------
@@ -377,7 +377,7 @@ def feat_strength(data, k):
 
     # rolling average over n periods
     xm1 = xm1.sort_values('date').reset_index(drop=True)
-    xm2 = xm1.groupby(['team'])[list(chain(*fm.values()))].rolling(3, min_periods=1).mean().reset_index(drop=True)
+    xm2 = xm1.groupby(['team'])[list(chain(*fm.values()))].rolling(k=k, min_periods=1).mean().reset_index(drop=True)
     xm2 = pd.concat([xm1[['div', 'season', 'team', 'date']], xm2], axis=1, sort=True)
 
     # calculate cross-sectional z-score for attack & defense strength

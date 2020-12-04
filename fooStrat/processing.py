@@ -382,10 +382,12 @@ def update_flib(data, dir=fp_cloud, update = True, recreate_feature=False):
 
     """
     dir_ed = dir + 'pro_data/'
+    # consolidate list of df's in a single dataframe
+    data_ed = pd.concat(data, axis=0, sort=False, ignore_index=True)
     # i = 'F1'
-    for i in data.loc[:, 'div'].unique():
+    for i in data_ed.loc[:, 'div'].unique():
 
-        data_new = data.query("div==@i")
+        data_new = data_ed.query("div==@i")
         ik = i.lower().replace(" ", "_").replace("-", "_")
 
         if update is False:

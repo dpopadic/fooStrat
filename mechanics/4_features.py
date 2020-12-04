@@ -17,9 +17,9 @@ match_odds = pd.read_pickle(su.fp_cloud + 'pro_data/match_odds.pkl')
 # - turnaround ability factors
 # - head-to-head factors
 # - home factor
-fgb = sf.feat_goalbased(data=source_core, k=5)
+fgb = sf.feat_goalbased(data=source_core)
 frb = sf.feat_resbased(data=source_core)
-fstre = sf.feat_strength(data=source_core, k=5)
+fstre = sf.feat_strength(data=source_core)
 fsb = sf.feat_stanbased(data=source_core)
 ftf = sf.feat_turnaround(data=source_core)
 fh2h = sf.feat_h2h(data=source_core)
@@ -32,7 +32,6 @@ fsb.field.unique()
 # su.delete_flib(field=["points_advantage", "rank_position"])
 # su.update_flib(data=[fsb], update=True, recreate_feature=True)
 su.update_flib(data=[fgb, frb, fstre, fsb, ftf, fh2h, hf, fun], recreate_feature=False, update=True)
-
 # consolidate all feature libraries (flib)
 su.consol_flib()
 
