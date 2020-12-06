@@ -208,6 +208,13 @@ def synchronise_data(data):
         The seasons are defined differently depending which league you look at (eg. 2019 for Brasil Serie A vs
         2019-2020 for England Premier League (E0)). Season synchronisation is performed to bring all leagues and
         seasons on the same denominator.
+        - League Mapping
+        The definition of the league can change (eg. Argentina Superliga -> Argentina Copa Diego Maradonna). League
+        synchronisation rewrites league name histories with the original definition (not latest due to update issues).
+        - Unique Data Items
+        This adjusts the data for unique issues:
+                1. there're some leagues where the 4-digit season description is
+                   forward-looking (Ireland Premier Division)
 
     """
     # fields ---------------------
@@ -236,6 +243,11 @@ def synchronise_data(data):
     res.drop(['season'], axis=1, inplace=True)
     res.rename(columns={'season_new': 'season'}, inplace=True)
 
+    # league mapping -------------
+    divd = {'Argentina Copa Diego Maradona': 'Argentina Superliga'}
+    res = res.replace({'div': divd})
+
+    # unique data items ----------
     # exception alterations: there're some leagues where the 4-digit season description is forward-looking
     div_season_spec = 'Ireland Premier Division'
     res.loc[(res['div'] == div_season_spec), 'season'] = res.loc[(res['div'] == div_season_spec), 'season'].values - 1
@@ -272,7 +284,8 @@ def update_data_latest(ex, new_1, new_2, season, path=fp_cloud):
                                                 'Date': 'date',
                                                 'HomeTeam': 'home_team',
                                                 'AwayTeam': 'away_team'},
-                                      key_cols_map={'HT': 'HomeTeam', 'AT': 'AwayTeam'})
+                                      key_cols_map={'HT': 'HomeTeam',
+                                                    'AT': 'AwayTeam'})
     # data synchronisation: renaming fields so that they have the same names to make it easier
     # to process the data later in a concise way..
     major_latest = synchronise_data(data=major_latest)
@@ -301,7 +314,7 @@ def update_data_latest(ex, new_1, new_2, season, path=fp_cloud):
     print("Source Data has been updated.")
 
 
-def update_data_historic(file_desc, file_key, file_key_name, file_desc_2, file_key_name_2, path=fp_cloud):
+def update_data_historic(file_desc, file_key_name, file_desc_2, file_key_name_2, path=fp_cloud):
     """Updates historical data across major and minor leagues.
 
     Parameters:
@@ -309,9 +322,6 @@ def update_data_historic(file_desc, file_key, file_key_name, file_desc_2, file_k
         file_desc (string): a string that is part of each file that will be examined (eg. 'all-euro_data'
                             for files that have the same structure:
                             'all-euro-data-2002-2003.xls', 'all-euro-data-2017-2018.xlsx')
-        file_key (list): the range of the file name that will be used as key to describe from which file the
-                         data came from. For example, in  'data/src_data/all-euro-data-1993-1994.xls' 1993-1994 will
-                         be used as key and file_key = [23, 32]
         file_key_name (string): a string with the column name of file_key in the resulting dataframe (eg. 'season')
         file_desc_2 (string): a string for an additional file that has the same structure as the files in file_desc
                               but where all data is stored in a single file (eg. 'new_leagues_data.xlsx')
@@ -324,15 +334,18 @@ def update_data_historic(file_desc, file_key, file_key_name, file_desc_2, file_k
     # MAJOR LEAGUES ------
     path_ed = path + 'src_data/'
     # retrieve source data full path
-    src_dat_path = os.path_ed.join(os.getcwd(), path_ed[:-1], '')
+    src_dat_path = os.path.join(os.getcwd(), path_ed[:-1], '')
     # all the relevant files names
     # iterate through source folder and determine which files should be loaded
     fi_nm = [path_ed + f for f in os.listdir(src_dat_path) if f[:len(file_desc)] == file_desc]
     # map file key
+    season_extr = [i[-13:-4] if i.rsplit('.', 1)[1] == 'xls' else (i[-14:-5]) for i in fi_nm]
     extra_key = pd.DataFrame({'fi_nm': fi_nm,
-                              file_key_name: [i[file_key[0]:file_key[1]] for i in fi_nm]})
+                              file_key_name: season_extr})
+
     # process data
-    major = process_data_major(fi_nm=fi_nm, extra_key=extra_key,
+    major = process_data_major(fi_nm=fi_nm,
+                               extra_key=extra_key,
                                key_cols={'Div': 'div',
                                          'Date': 'date',
                                          'HomeTeam': 'home_team',
