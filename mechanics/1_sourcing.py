@@ -1,8 +1,7 @@
 # DATA SOURCING ---------------------------------------------------
 import urllib.request
 from datetime import datetime
-from fooStrat.processing import fp_cloud
-# split into categories: historical, latest, fixtures
+fp_cloud = '/Users/dariopopadic/Library/Mobile Documents/com~apple~CloudDocs/Data/fooStrat/'
 
 # Download the latest data ----------------------------------------
 
