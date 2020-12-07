@@ -90,7 +90,7 @@ def feat_goalbased(data, k=5):
 
     # ----- feature: goal superiority (last 5)
     feat_gsup = data_goals_co_i.sort_values('date').groupby(['team'])[['g_scored', 'g_received']]. \
-        rolling(k, min_periods=1).sum().reset_index()
+        rolling(window=k, min_periods=1).sum().reset_index()
     feat_gsup['val'] = feat_gsup['g_scored'] - feat_gsup['g_received']
     feat_gsup.drop(['g_scored', 'g_received'], axis=1, inplace=True)
     feat_gsup['field'] = 'goal_superiority'
@@ -377,7 +377,7 @@ def feat_strength(data, k=3):
 
     # rolling average over n periods
     xm1 = xm1.sort_values('date').reset_index(drop=True)
-    xm2 = xm1.groupby(['team'])[list(chain(*fm.values()))].rolling(k=k, min_periods=1).mean().reset_index(drop=True)
+    xm2 = xm1.groupby(['team'])[list(chain(*fm.values()))].rolling(window=k, min_periods=1).mean().reset_index(drop=True)
     xm2 = pd.concat([xm1[['div', 'season', 'team', 'date']], xm2], axis=1, sort=True)
 
     # calculate cross-sectional z-score for attack & defense strength
