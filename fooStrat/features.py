@@ -123,25 +123,7 @@ def feat_goalbased(data, k=5):
                         how='left')
 
     # add dummy-date &  lag factor
-
-    data_fct = insert_tp1_vals(data=data_fct)
-
-    def insert_tp1_vals(data, date_tp1='2050-01-01', append=True):
-        """Inserts t+1 values so that latest observations can be used for predictions."""
-        dst = np.datetime64(date_tp1)
-        tmp_1 = data.groupby(['div'], as_index=False)['season'].max()
-        tmp_2 = data.groupby(['div', 'team'], as_index=False)['season'].max()
-        tmp_3 = data.groupby(['div', 'field'], as_index=False)['season'].max()
-        c0 = pd.merge(tmp_1, tmp_2, on=['div', 'season'], how='left')
-        c1 = pd.merge(c0, tmp_3, on=['div', 'season'], how='inner')
-        c1['date'] = dst
-        c1['val'] = np.nan
-        if append is True:
-            c1 = pd.concat([data_fct, c1], sort=True, axis=0)
-
-        return(c1)
-
-
+    data_fct = fose.insert_tp1_vals(data=data_fct)
     data_fct.sort_values(['team', 'date', 'field'], inplace=True)
     data_fct['val'] = data_fct.groupby(['team', 'field'])['val'].shift(1)
     data_fct.reset_index(level=0, drop=True, inplace=True)
@@ -149,9 +131,9 @@ def feat_goalbased(data, k=5):
     # identify promoted/demoted teams & neutralise score for them..
     team_chng = fose.newcomers(data=data_fct)
     res = fose.neutralise_scores(data=data_fct, teams=team_chng, n=k - 1)
-    # check: a = res.query("div=='E0' & season=='2019' & team=='sheffield_united'").sort_values(['date'])
+    # check: a = res.query("div=='E0' & season=='2020' & team=='liverpool'").sort_values(['date'])
     # expand factors
-    res2 = fose.expand_field(data=res)
+    res = fose.expand_field(data=res)
 
     # z-score (1 degree of freedom to reflect sample stdev)
     res['val'] = res.groupby(['div', 'season', 'date', 'field'])['val'].transform(lambda x: zscore(x, ddof=1))
@@ -235,7 +217,8 @@ def feat_turnaround(data):
     # combine
     cog_co = pd.concat([cog, cog_past], axis=0, sort=False, ignore_index=True)
 
-    # lag values
+    # add dummy-date &  lag factor
+    cog_co = fose.insert_tp1_vals(data=cog_co)
     cog_co = cog_co.sort_values(['team', 'date']).reset_index(drop=True)
     cog_co['val'] = cog_co.groupby(['team', 'field'])['val'].shift(1)
     res = fose.expand_field(data=cog_co)
@@ -284,12 +267,16 @@ def feat_stanbased(data):
                      sort=False,
                      ignore_index=True)
     # expand factor
+    # add dummy-date &  lag factor
+    rppa = fose.insert_tp1_vals(data=rppa)
     rppa = rppa.sort_values(['team', 'date']).reset_index(drop=True)
     rppa['val'] = rppa.groupby(['team', 'field'])['val'].shift(1)
     rppa = fose.expand_field(data=rppa, dates=None)
 
     # --- team quality cluster (no lag required here)
     tqc = sfs.team_quality_cluster(data=df_1) # already a z-score where necessary
+    # add dummy-date
+    tqc = fose.insert_tp1_vals(data=tqc)
     # normalise
     date_univ = fose.con_date_univ(data=data)
     # a = tqc.query("div=='E0' & field=='team_quality_consistency' & season=='2018'")
@@ -439,7 +426,8 @@ def feat_strength(data, k=3):
     # get all together
     tmp = pd.concat([xm2_ed, xm2_edc], axis=0, sort=True)
 
-    # lag factor feat_strength
+    # add dummy-date &  lag factor
+    tmp = fose.insert_tp1_vals(data=tmp)
     tmp_lag = tmp.sort_values(['team', 'date']).reset_index(drop=True)
     tmp_lag['val'] = tmp_lag.groupby(['team', 'field'])['val'].shift(1)
 

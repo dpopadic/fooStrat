@@ -446,6 +446,22 @@ def expand_field(data, dates=None, keys=['div', 'season', 'date', 'team', 'field
 
 
 
+def insert_tp1_vals(data, date_tp1='2050-01-01', append=True):
+    """Inserts t+1 values so that latest observations can be used for predictions."""
+    dst = np.datetime64(date_tp1)
+    tmp_1 = data.groupby(['div'], as_index=False)['season'].max()
+    tmp_2 = data.groupby(['div', 'team'], as_index=False)['season'].max()
+    tmp_3 = data.groupby(['div', 'field'], as_index=False)['season'].max()
+    c0 = pd.merge(tmp_1, tmp_2, on=['div', 'season'], how='left')
+    c1 = pd.merge(c0, tmp_3, on=['div', 'season'], how='inner')
+    c1['date'] = dst
+    c1['val'] = np.nan
+    if append is True:
+        c1 = pd.concat([data, c1], sort=True, axis=0)
+
+    return(c1)
+
+
 
 def max_event_odds_asym(data, field, team, new_field):
     """Retrieves the maximum odds for a certain event with asymmetric odds (eg. home-team win).

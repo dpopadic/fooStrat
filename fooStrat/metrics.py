@@ -96,7 +96,8 @@ def fform(data, field, type, k=5):
                       how='left')
 
     ha_fin['field'] = 'form' + '_' + type
-    # lag factor
+    # add dummy-date &  lag factor
+    ha_fin = fose.insert_tp1_vals(data=ha_fin)
     ha_fin = ha_fin.sort_values(['team', 'date']).reset_index(drop=True)
     ha_fin['val'] = ha_fin.groupby(['team', 'field'])['val'].shift(1)
     # neutralise for new entrants
