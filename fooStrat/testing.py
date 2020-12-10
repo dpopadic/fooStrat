@@ -4,6 +4,11 @@ from sklearn.linear_model import LinearRegression
 from sklearn.naive_bayes import GaussianNB
 from scipy.stats import zscore
 
+
+data = source_core.query("div == 'E0'").reset_index(drop=True)
+
+a = dfac_fil.query("team == 'liverpool' & season == '2020'")
+
 df = pd.DataFrame({
     'y': np.random.randn(20),
     'x1': np.random.randn(20),

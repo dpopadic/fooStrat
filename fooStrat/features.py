@@ -297,7 +297,7 @@ def feat_stanbased(data):
 
 
 def feat_h2h(data):
-    """Computes head-to-head factors:
+    """Computes head-to-head factors (last 5 h2h):
         - h2h next opponent advantage
         - h2h next opponent chance
     Details:
@@ -333,7 +333,11 @@ def feat_h2h(data):
                       how='left')
     dfa_fi['field'] = 'h2h_next_opponent_chance'
 
+    # assemble
     dfac_fil = pd.concat([dfc_fi, dfa_fi], axis=0, sort=False)
+
+    # insert t+1 observations -> need to know the upcoming opponent!
+    # dfac_fil = fose.insert_tp1_vals(data=dfac_fil, by=['field', 'opponent'])
 
     # lag values by team & opponent
     dfac_fil = dfac_fil.sort_values(['field', 'team', 'opponent', 'date']).reset_index(drop=True)
