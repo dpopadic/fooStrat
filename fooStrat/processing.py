@@ -374,7 +374,7 @@ def update_data_historic(file_desc, file_key_name, file_desc_2, file_key_name_2,
 
 
 
-def update_flib(data, dir=fp_cloud, update = True, recreate_feature=False):
+def update_flib(data, dir=fp_cloud, update=True, recreate_feature=False):
     """Builds or updates the factor library.
 
     Parameters:
@@ -413,7 +413,6 @@ def update_flib(data, dir=fp_cloud, update = True, recreate_feature=False):
                 feat_tc = data_new['field'].unique()
                 data_ex_stay = data_ex.query("field not in @feat_tc")
                 res = pd.concat([data_ex_stay, data_new], axis=0, sort=True, ignore_index=True)
-                res = res.reset_index(drop=True)
 
             else:
                 # find what is new
@@ -427,10 +426,10 @@ def update_flib(data, dir=fp_cloud, update = True, recreate_feature=False):
                                      y=data_mut,
                                      on=['div', 'season', 'team', 'date', 'field'])
                 # add new data
-                res = pd.concat([data_res, data_new], axis=0, sort=True, ignore_index=True)
-                res = res.reset_index(drop=True)
+                res = pd.concat([data_res, data_new], axis=0, sort=False, ignore_index=True)
 
-
+            res = res.sort_values(['div', 'season', 'date', 'field'])
+            res = res.reset_index(drop=True)
             res.to_pickle(dir_ed + 'flib_' + ik + '.pkl')
 
         print("Factor library for " + i + " is updated.")

@@ -39,7 +39,7 @@ pe = sm.est_hist_proba(data=dasetmod_fi,
 oe = match_odds.query("field=='odds_win'").reset_index(drop=True).drop('field', axis=1)
 mo = sm.comp_mispriced(prob=pe,
                        odds=oe,
-                       prob_threshold=0.3,
+                       prob_threshold=0.5,
                        res_threshold=0.2)
 # compute pnl
 fpnl = se.comp_pnl(positions=mo,

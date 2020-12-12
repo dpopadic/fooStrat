@@ -4,10 +4,16 @@ from sklearn.linear_model import LinearRegression
 from sklearn.naive_bayes import GaussianNB
 from scipy.stats import zscore
 
-
+fp_cloud = '/Users/dariopopadic/Library/Mobile Documents/com~apple~CloudDocs/Data/fooStrat/'
+flib = pd.read_pickle(fp_cloud + 'pro_data/flib_e0.pkl')
+a=flib.query("date=='2050-01-01'")
+a=flib.query("date=='2050-01-01'")['field'].unique()
+len(a)
+a=flib.query("date=='2020-11-30'")['field'].unique()
 data = source_core.query("div == 'E0'").reset_index(drop=True)
 
 a = dfac_fil.query("team == 'liverpool' & season == '2020'")
+
 
 df = pd.DataFrame({
     'y': np.random.randn(20),

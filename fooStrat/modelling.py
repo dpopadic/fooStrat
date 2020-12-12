@@ -10,7 +10,9 @@ import fooStrat.servicers as fose
 
 
 def est_prob(factors, results, feature):
-    """Estimate probability of an event occuring (eg. win) for a factor using a naive bayes model.
+    """Estimate probability of an event occuring (eg. win) for a factor using a naive bayes model. The
+    estimation uses a 3 season non-overlapping window. Note that the probability estimation is in-sample
+    and only provides a crude guide.
 
     Parameters:
     -----------

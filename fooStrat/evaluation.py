@@ -221,7 +221,6 @@ def pnl_eval_summary(z):
     # payoff
     payoff_bet_mean = np.mean(z)
     payoff_bet_wins = np.sum(z[z > 0]) / n_won
-
     # streak
     streak = streaks_analysis(x=z)
     streak = np.array(streak)
@@ -229,11 +228,13 @@ def pnl_eval_summary(z):
     streak_lose_mean = np.abs(np.mean(streak[streak < 0]))
     streak_win_max = np.max(streak[streak > 0])
     streak_lose_max = np.abs(np.min(streak[streak < 0]))
+    # number of bets
+    n_bets = len(fpnl)
     # cumulative gain
     profit_total = np.sum(z)
-    rn = ['hit_ratio', 'payoff_bet_mean', 'payoff_bet_wins', 'streak_win_mean',
+    rn = ['hit_ratio', 'n_bets', 'payoff_bet_mean', 'payoff_bet_wins', 'streak_win_mean',
           'streak_lose_mean', 'streak_win_max', 'streak_lose_max', 'profit_total']
-    va = [hit_ratio, payoff_bet_mean, payoff_bet_wins, streak_win_mean,
+    va = [hit_ratio, n_bets, payoff_bet_mean, payoff_bet_wins, streak_win_mean,
           streak_lose_mean, streak_win_max, streak_lose_max, profit_total]
     q = pd.DataFrame(va, columns=['val'], index=rn)
     return q
