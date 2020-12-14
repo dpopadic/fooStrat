@@ -455,9 +455,12 @@ def insert_tp1_vals(data, date_tp1='2050-01-01', by='field', append=True):
     # take into account all relevant keys
     if isinstance(by, str):
         byf = ['div', by]
-    else:
+    elif isinstance(by, list):
         byf = [i for i in by]
         byf.append('div')
+    else:
+        byf = 'div'
+
     tmp_3 = data.groupby(byf, as_index=False)['season'].max()
     # put together a synthetic df
     c0 = pd.merge(tmp_1, tmp_2, on=['div', 'season'], how='left')
