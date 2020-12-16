@@ -18,8 +18,9 @@ flib = pd.read_pickle(fp_cloud + 'pro_data/flib_e0.pkl')
 results = con_res(data=source_core, obj=['wdl'], event='win')
 dasetmod = sm.con_mod_datset_0(factors=flib, results=results)
 
+# function: upcoming_games with columns team, odds, home
 
-
+from fooStrat.servicers import insert_tp1_vals
 
 acon = factors.pivot_table(index=['season', 'div', 'date', 'team'],
                            columns='field',
@@ -27,12 +28,9 @@ acon = factors.pivot_table(index=['season', 'div', 'date', 'team'],
 
 rcon = results.drop(['field'], axis=1)
 rcon_ed = insert_tp1_vals(data=rcon, by=None, append=True)
-rcon_ed[rcon_ed['val'].isnull()==False]
-rcon.rename(columns={'val': 'result'}, inplace=True)
-
-
+rcon_ed.rename(columns={'val': 'result'}, inplace=True)
 # signals and results
-arcon = pd.merge(rcon, acon,
+arcon = pd.merge(rcon_ed, acon,
                  on=['div', 'season', 'date', 'team'],
                  how='inner')
 

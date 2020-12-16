@@ -13,7 +13,7 @@ a=flib.query("date=='2020-11-30'")['field'].unique()
 data = source_core.query("div == 'E0'").reset_index(drop=True)
 
 a = dfac_fil.query("team == 'liverpool' & season == '2020'")
-dasetmod.query("date=='2050-01-01'")
+a = arcon.query("date=='2050-01-01'")
 
 df = pd.DataFrame({
     'y': np.random.randn(20),
