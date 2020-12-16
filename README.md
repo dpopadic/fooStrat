@@ -8,24 +8,27 @@ Statistical analysis and strategy development for football data
 
 **Core**
 
-> Data sourcing ```data_sourcing```
+> Data sourcing ```1_data_sourcing```
 
-> Prepare/update data ```data_processing```
+> Restore data ```2_restoration```
 
-> Compute all factors ```factor_construction```
+> Update data ```3_processing```
 
-> Factor evaluation```factor_evaluation```
+> Compute all factors ```4_features```
 
-> Model building ```model_construction```
+> Factor evaluation```5_evaluation```
 
-> Test strategies ```strats_testing```
+> Model building ```6_modelling```
+
+> Signal generation ```7_signals```
 
 
 **Utilities**
 
-> Functions and other support material required to perform data cleaning, calculations etc. ```foostrat_utils```
+> Utillity functions required to perform data cleaning, calculations etc. ```foostrat.servicers```
 
 > Daily ETL Process ```job_schedule.py```
 
+> Cloud access via ```from fooStrat.processing import fp_cloud```
 
 
