@@ -15,6 +15,9 @@ data = source_core.query("div == 'E0'").reset_index(drop=True)
 a = dfac_fil.query("team == 'liverpool' & season == '2020'")
 a = arcon.query("date=='2050-01-01'")
 
+df = pd.read_pickle(fp_cloud + 'pro_data/upcoming_games.pkl')
+
+
 df = pd.DataFrame({
     'y': np.random.randn(20),
     'x1': np.random.randn(20),
