@@ -1,7 +1,7 @@
 # ----------------------------------------------------
 # --- DATA RESTORATION
 # ----------------------------------------------------
-from fooStrat.processing import update_data_historic
+from fooStrat.processing import update_data_source
 
 # history update ------------------------------------------------------
 update_data_source(file_desc='all-euro-data',
