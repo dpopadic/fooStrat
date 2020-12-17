@@ -29,6 +29,30 @@ match_odds = get_odds(data=source_core,
                       field_draw=list(odds_fields.get('odds_draw_win')))
 match_odds.to_pickle(fp_cloud + 'pro_data/match_odds.pkl')
 
+
+# upcoming games -----------------------------------------------------
+path = fp_cloud
+f = 'latest_fixtures_major.xlsx'
+fp = path + 'src_data/' + f
+df0 = pd.read_excel(fp, sheet_name='fixtures')
+
+from fooStrat.processing import process_data_major
+
+extra_key = pd.DataFrame({'fi_nm': fi_nm,
+                          file_key_name: '2020-2021'})
+major = process_data_major(fi_nm=fi_nm,
+                               extra_key=extra_key,
+                               key_cols={'Div': 'div',
+                                         'Date': 'date',
+                                         'HomeTeam': 'home_team',
+                                         'AwayTeam': 'away_team'},
+                               key_cols_map={'HT': 'HomeTeam',
+                                             'AT': 'AwayTeam'})
+
+
+
+
+
 # meta data ----------------------------------------------------------
 leagues_map = pd.DataFrame(source_core.loc[:, 'div'].unique(), columns={'div'})
 leagues_map.to_pickle(fp_cloud + 'src_data/leagues_map.pkl')

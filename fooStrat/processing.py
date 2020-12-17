@@ -314,7 +314,13 @@ def update_data_latest(ex, new_1, new_2, season, path=fp_cloud):
     print("Source Data has been updated.")
 
 
-def update_data_historic(file_desc, file_key_name, file_desc_2, file_key_name_2, path=fp_cloud):
+
+def update_data_source(file_desc,
+                       file_key_name,
+                       file_desc_2,
+                       file_key_name_2,
+                       path=fp_cloud,
+                       file_name='source_core'):
     """Updates historical data across major and minor leagues.
 
     Parameters:
@@ -329,6 +335,7 @@ def update_data_historic(file_desc, file_key_name, file_desc_2, file_key_name_2,
                                   be able to merge the different data sources by this key (eg. 'Season')
         path (string): source path to all the underlying data within the project (eg. where
                        'all-euro-data-2004-2005.xls' is located)
+        file_name (string):  the name of the output file (default source_core)
 
     """
     # MAJOR LEAGUES ------
@@ -369,7 +376,7 @@ def update_data_historic(file_desc, file_key_name, file_desc_2, file_key_name_2,
     # data synchronisation: renaming fields so that they have the same names to make it easier
     # to process the data later in a concise way..
     data_prc = synchronise_data(data=data_prc)
-    data_prc.to_pickle(path + 'pro_data/source_core.pkl')
+    data_prc.to_pickle(path + 'pro_data/' + file_name + '.pkl')
     print("Source Data History has been updated.")
 
 
