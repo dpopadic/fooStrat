@@ -130,8 +130,8 @@ def process_data_minor(data, key_cols):
 
     Parameters:
     -----------
-        data (ordered dict): a ordered dictionary with dataframe's with all data to be processed and at least all key
-        columns
+        data (ordered dict / pd dataframe): a ordered dictionary with dataframe's with all data to be
+        processed and at least all key columns
         key_cols (dict): a dictionary specifying all key columns which are:
         Country | League | Date | Season | Home | Away
 
@@ -152,17 +152,23 @@ def process_data_minor(data, key_cols):
     # add season as additional key variable..
     key_cols_l = list(key_cols.keys())
 
-    df = pd.DataFrame()
-    for key, i in data.items():
-        if i.shape[0] == 0:
-            # in case of no data skip to next..
-            continue
-        else:
-            df_lf = pd.melt(i,
-                            id_vars=key_cols_l,
-                            var_name='field',
-                            value_name='val').dropna()
-            df = df.append(df_lf, ignore_index=True, sort=False)
+    if isinstance(data, pd.DataFrame):
+        df = pd.melt(data,
+                     id_vars=key_cols_l,
+                     var_name='field',
+                     value_name='val').dropna()
+    else:
+        df = pd.DataFrame()
+        for key, i in data.items():
+            if i.shape[0] == 0:
+                # in case of no data skip to next..
+                continue
+            else:
+                df_lf = pd.melt(i,
+                                id_vars=key_cols_l,
+                                var_name='field',
+                                value_name='val').dropna()
+                df = df.append(df_lf, ignore_index=True, sort=False)
 
     # transform to appropriate shape..
     df['div'] = df['Country'] + ' ' + df['League']

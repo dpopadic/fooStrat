@@ -32,12 +32,13 @@ match_odds.to_pickle(fp_cloud + 'pro_data/match_odds.pkl')
 
 # upcoming games -----------------------------------------------------
 path = fp_cloud
-f = 'latest_fixtures_major.xlsx'
-fp = path + 'src_data/' + f
-df0 = pd.read_excel(fp, sheet_name='fixtures')
 
-from fooStrat.processing import process_data_major
+from fooStrat.processing import process_data_major, process_data_minor
 
+# MAJOR LEAGUES ------
+file_desc = 'latest_fixtures_major'
+src_dat_path = os.path.join(os.getcwd(), path + 'src_data/', '')
+fi_nm = [path + 'src_data/' + f for f in os.listdir(src_dat_path) if f[:len(file_desc)] == file_desc]
 extra_key = pd.DataFrame({'fi_nm': fi_nm,
                           file_key_name: '2020-2021'})
 major = process_data_major(fi_nm=fi_nm,
@@ -48,6 +49,20 @@ major = process_data_major(fi_nm=fi_nm,
                                          'AwayTeam': 'away_team'},
                                key_cols_map={'HT': 'HomeTeam',
                                              'AT': 'AwayTeam'})
+
+# MINOR LEAGUES ------
+file_desc_2 = 'latest_fixtures_minor.xlsx'
+file_key_name_2 = 'Season'
+minor = pd.read_excel(path + 'src_data/' + file_desc_2, sheet_name='new_league_fixtures')
+# process data..
+minor = process_data_minor(minor,
+                           key_cols={'Country': 'country',
+                                     'League': 'league',
+                                     'Date': 'date',
+                                     'Home': 'home_team',
+                                     'Away': 'away_team'})
+
+
 
 
 
