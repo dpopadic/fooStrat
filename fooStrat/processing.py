@@ -387,6 +387,43 @@ def update_data_source(file_desc,
 
 
 
+def update_upcoming_games(file_desc, file_desc_2, season, path=fp_cloud):
+    """Updates upcoming games that is used for signal generation."""
+
+    # MAJOR LEAGUES ------
+    src_dat_path = os.path.join(os.getcwd(), path + 'src_data/', '')
+    fi_nm = [path + 'src_data/' + f for f in os.listdir(src_dat_path) if f[:len(file_desc)] == file_desc]
+    extra_key = pd.DataFrame({'fi_nm': fi_nm,
+                              'season': season})
+    major = process_data_major(fi_nm=fi_nm,
+                               extra_key=extra_key,
+                               key_cols={'Div': 'div',
+                                         'Date': 'date',
+                                         'HomeTeam': 'home_team',
+                                         'AwayTeam': 'away_team'},
+                               key_cols_map={'HT': 'HomeTeam',
+                                             'AT': 'AwayTeam'})
+
+    # MINOR LEAGUES ------
+    file_key_name_2 = 'Season'
+    minor = pd.read_excel(path + 'src_data/' + file_desc_2, sheet_name='new_league_fixtures')
+    # process data..
+    minor = process_data_minor(minor,
+                               key_cols={'Country': 'country',
+                                         'League': 'league',
+                                         'Date': 'date',
+                                         'Home': 'home_team',
+                                         'Away': 'away_team'})
+    minor['season'] = season
+
+    # MERGE -------
+    data_prc = pd.concat([major, minor], axis=0, sort=False)
+    data_prc = synchronise_data(data=data_prc)
+    data_prc.to_pickle(path + 'pro_data/' + 'upcoming_games' + '.pkl')
+    print("Upcoming game data has been updated.")
+
+
+
 def update_flib(data, dir=fp_cloud, update=True, recreate_feature=False):
     """Builds or updates the factor library.
 
