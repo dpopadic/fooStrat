@@ -424,14 +424,19 @@ def update_upcoming_games(file_desc, file_desc_2, season, path=fp_cloud):
 
 
 
-def add_upcoming_games(source, upcoming, date_tp1='2050-01-01'):
+def add_upcoming_games(date_tp1='2050-01-01', path=fp_cloud):
     """Add upcoming games to the source data."""
-    # delete existing prediction set if available
+    # source upcoming games
+    upcoming = pd.read_pickle(path + 'pro_data/upcoming_games.pkl')
+    # delete existing prediction set if available in core data
+    source = pd.read_pickle(path + 'pro_data/source_core.pkl')
     sc_ed = source[source['date'] != date_tp1]
-    # add prediction date (so that all games to be predicted
+    # modify date (so that all games to be predicted
     # are easily identified later on)
     upcoming['date'] = np.datetime64(date_tp1)
-    sc_ed = pd.concat([sc_ed, upcoming], axis=0, sort=True)
+    sc_ed = pd.concat([sc_ed, upcoming],
+                      axis=0,
+                      sort=True)
     sc_ed.reset_index(drop=True, inplace=True)
     sc_ed.to_pickle(path + 'pro_data/source_core.pkl')
     print("Source Data has been updated with upcoming games.")

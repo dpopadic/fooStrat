@@ -23,9 +23,7 @@ update_upcoming_games(file_desc='latest_fixtures_major',
                       file_desc_2='latest_fixtures_minor.xlsx',
                       season='2020-2021')
 # add to source data file
-source_core = pd.read_pickle(fp_cloud + 'pro_data/source_core.pkl')
-upcoming_games = pd.read_pickle(fp_cloud + 'pro_data/upcoming_games.pkl')
-add_upcoming_games(source=source_core, upcoming=upcoming_games)
+add_upcoming_games()
 
 
 
