@@ -311,7 +311,9 @@ def feat_h2h(data):
 
     """
     # --- h2h next opponent goal advantage
-    dfc = fose.con_h2h_set(data=data, field=['FTHG', 'FTAG'], field_name=['g_scored', 'g_received'])
+    dfc = fose.con_h2h_set(data=data,
+                           field=['FTHG', 'FTAG'],
+                           field_name=['g_scored', 'g_received'])
     dfc_ed = dfc.set_index('date').sort_values('date').groupby(['team', 'opponent'])[['g_scored', 'g_received']]. \
                  rolling(window=5, min_periods=1).sum().reset_index()
     dfc_ed['val'] = dfc_ed['g_scored'] - dfc_ed['g_received']
@@ -320,10 +322,19 @@ def feat_h2h(data):
                       dfc_ed[['date', 'team', 'opponent', 'val']],
                       on=['date', 'team', 'opponent'],
                       how='left')
+    # add upcoming games
+    # data_cf = data.query("field=='AvgA'")[['div', 'season', 'date', 'home_team', 'away_team']]
+    # pds = data[data['date'] == data['date'].max()].reset_index(drop=True)
+    # pds_re = fhome(data=pds)
+    # pds_re.drop('field', axis=1, inplace=True)
+    # pds_re['val'] = np.nan
     dfc_fi['field'] = 'h2h_next_opponent_advantage'
 
+
     # --- h2h next opponent attempts advantage
-    dfa = fose.con_h2h_set(data=data, field=['HST', 'AST'], field_name=['shots_attempted_tgt', 'shots_conceded_tgt'])
+    dfa = fose.con_h2h_set(data=data,
+                           field=['HST', 'AST'],
+                           field_name=['shots_attempted_tgt', 'shots_conceded_tgt'])
     dfa_ed = dfa.set_index('date').sort_values('date').groupby(['team', 'opponent'])[
         ['shots_attempted_tgt', 'shots_conceded_tgt']]. \
         rolling(window=5, min_periods=1).sum().reset_index()

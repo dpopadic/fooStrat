@@ -387,6 +387,21 @@ def update_data_source(file_desc,
 
 
 
+def dummy_data_upcoming(data, fields, glue=True):
+    """Constructs dummy data for key fields so that the dataset has full representation."""
+    vars = ['div', 'season', 'date', 'home_team', 'away_team']
+    df = data.groupby(vars).apply(lambda x: pd.Series(np.nan, index=['val'])).reset_index()
+    dfr = pd.DataFrame()
+    for i in range(len(fields)):
+        dfr = pd.concat([dfr, df.assign(field=fields[i])], axis=0, sort=False)
+
+    if glue is True:
+        dfr = pd.concat([data, dfr], axis=0, sort=False)
+
+    return dfr
+
+
+
 def update_upcoming_games(file_desc, file_desc_2, season, path=fp_cloud):
     """Updates upcoming games that is used for signal generation."""
 
@@ -419,13 +434,20 @@ def update_upcoming_games(file_desc, file_desc_2, season, path=fp_cloud):
     # MERGE -------
     data_prc = pd.concat([major, minor], axis=0, sort=False)
     data_prc = synchronise_data(data=data_prc)
+    # add fields required for data analysis: FTR, FTHG, FTAG
+    data_prc = dummy_data_upcoming(data=data_prc, fields=['FTR', 'FTHG', 'FTAG'], glue=True)
     data_prc.to_pickle(path + 'pro_data/' + 'upcoming_games' + '.pkl')
     print("Upcoming game data has been updated.")
 
 
 
+
+
 def add_upcoming_games(date_tp1='2050-01-01', path=fp_cloud):
-    """Add upcoming games to the source data."""
+    """Add upcoming games to the source data.
+
+    Details:    - upcoming games are overwritten in source data (no duplicates)
+    """
     # source upcoming games
     upcoming = pd.read_pickle(path + 'pro_data/upcoming_games.pkl')
     # delete existing prediction set if available in core data
