@@ -31,7 +31,9 @@ def fhome(data):
         4                      F1  1993-1994 1993-07-24     lille     1
 
     """
-    data_cf = data.query('field=="FTR"').loc[:, ['div', 'season', 'date', 'home_team', 'away_team']]
+    # 2 ways to identify games: 1) FTR and 2) AvgA
+    data_cf = data.query("field=='FTR' | field=='AvgA'")[['div', 'season', 'date', 'home_team', 'away_team']]
+    data_cf.reset_index(drop=True, inplace=True)
 
     # home
     tmp1 = data_cf.drop('away_team', axis=1)
