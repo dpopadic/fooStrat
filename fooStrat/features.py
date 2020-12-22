@@ -32,7 +32,8 @@ def fhome(data):
 
     """
     # 2 ways to identify games: 1) FTR and 2) AvgA
-    data_cf = data.query("field=='FTR' | field=='AvgA'")[['div', 'season', 'date', 'home_team', 'away_team']]
+    # data_cf = data.query("field=='FTR' | field=='AvgA'")[['div', 'season', 'date', 'home_team', 'away_team']]
+    data_cf = data.query("field=='FTR'")[['div', 'season', 'date', 'home_team', 'away_team']]
     data_cf.reset_index(drop=True, inplace=True)
 
     # home
@@ -310,6 +311,9 @@ def feat_h2h(data):
         reflected in other factors, so only include opponent specific here.
 
     """
+    # add upcoming games
+    upc = fose.con_h2h_set_upcoming(data=data)
+
     # --- h2h next opponent goal advantage
     dfc = fose.con_h2h_set(data=data,
                            field=['FTHG', 'FTAG'],
@@ -322,7 +326,9 @@ def feat_h2h(data):
                       dfc_ed[['date', 'team', 'opponent', 'val']],
                       on=['date', 'team', 'opponent'],
                       how='left')
-    # add upcoming games
+    # upcoming
+
+
     # data_cf = data.query("field=='AvgA'")[['div', 'season', 'date', 'home_team', 'away_team']]
     # pds = data[data['date'] == data['date'].max()].reset_index(drop=True)
     # pds_re = fhome(data=pds)

@@ -239,6 +239,7 @@ def neutralise_field_multi(data, field, field_map, field_numeric=True, column_fi
 
 
 
+
 def con_h2h_set(data, field, field_name=None):
     """Constructs a head-to-head dataset.
 
@@ -279,6 +280,20 @@ def con_h2h_set(data, field, field_name=None):
     dfc = pd.concat([tmp1, tmp2], axis=0, sort=False)
 
     return dfc
+
+
+
+def con_h2h_set_upcoming(data):
+    """Constructs the head-to-head upcoming games dataset."""
+    pds = data.query("field=='FTR'")[['div', 'season', 'date', 'home_team', 'away_team']]
+    pds = pds[pds['date'] == pds['date'].max()].reset_index(drop=True)
+    pds_1 = pds.rename(columns={'home_team': 'team',
+                                'away_team': 'opponent'})
+    pds_2 = pds.rename(columns={'home_team': 'opponent',
+                                'away_team': 'team'})
+    pds = pd.concat([pds_1, pds_2], axis=0, sort=False)
+    pds = pds.assign(val = np.nan)
+    return pds
 
 
 
