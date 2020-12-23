@@ -45,13 +45,11 @@ def comp_league_standing(data,
                              columns='field',
                              values='val',
                              aggfunc='sum').reset_index()
-    # df_fw[['season', 'div', 'home_team', 'away_team']] = \
-    #     df_fw[['season', 'div', 'home_team', 'away_team']].astype(str, errors='ignore')
 
     # home team stats..
     df_h = df_fw.loc[:, ['season', 'div', 'date', 'home_team', away_goals, home_goals, result]]
     df_h['points'] = df_h[result].apply(lambda x: 3 if x == 'H' else (1 if x == 'D' else 0))
-    df_h['res'] = df_h[result].apply(lambda x: 'w' if x == 'H' else ('d' if x == 'D' else 'l'))
+    df_h['res'] = df_h[result].apply(lambda x: 'w' if x == 'H' else ('d' if x == 'D' else ('l' if x=='A' else np.nan)))
     df_h.rename(columns={'home_team': 'team',
                          away_goals: 'goals_received',
                          home_goals: 'goals_scored'}, inplace=True)
@@ -60,7 +58,7 @@ def comp_league_standing(data,
     # away team stats..
     df_a = df_fw.loc[:, ['season', 'div', 'date', 'away_team', away_goals, home_goals, result]]
     df_a['points'] = df_a[result].apply(lambda x: 3 if x == 'A' else (1 if x == 'D' else 0))
-    df_a['res'] = df_a[result].apply(lambda x: 'w' if x == 'A' else ('d' if x == 'D' else 'l'))
+    df_a['res'] = df_a[result].apply(lambda x: 'w' if x == 'A' else ('d' if x == 'D' else ('l' if x=='H' else np.nan)))
     df_a.rename(columns={'away_team': 'team',
                          away_goals: 'goals_scored',
                          home_goals: 'goals_received'}, inplace=True)
@@ -70,6 +68,8 @@ def comp_league_standing(data,
     dfc = pd.concat([df_h, df_a], axis=0, sort=True)
     dfc[['goals_scored', 'goals_received']] = dfc[['goals_scored', 'goals_received']].apply(pd.to_numeric,
                                                                                             errors='coerce')
+
+    # a = res.query("div=='E2' & team in ['shrewsbury']").sort_values(['team', 'date'])
 
     # over time
     dfc_tot_pts = dfc.sort_values(['date']).reset_index(drop=True)
@@ -86,21 +86,29 @@ def comp_league_standing(data,
                                      values='dummy').reset_index()
     dfc_agg_wdl = dfc_agg_wdl.fillna(0)
     dfc_agg_wdlc = dfc_agg_wdl.groupby(['div', 'season', 'team'])[['d', 'l', 'w']]. \
-        cumsum().reset_index(level=0, drop=True)
+        cumsum(skipna=True).reset_index(level=0, drop=True)
     dfc_agg_wdl = pd.concat([dfc_agg_wdl[['date', 'div', 'season', 'team']], dfc_agg_wdlc], axis=1)
 
     # rename columns
     dfc_agg_wdl.rename(columns={'w': 'wins', 'l': 'losses', 'd': 'draws'}, inplace=True)
 
     # add number of wins, draws & losses to standings
-    res = pd.merge(dfc_tot_pts_ed, dfc_agg_wdl, on=['div', 'season', 'team', 'date'], how='left')
+    res_0 = pd.merge(dfc_tot_pts_ed, dfc_agg_wdl,
+                     on=['div', 'season', 'team', 'date'],
+                     how='left')
+
+    # need to expand to have a representation of every team at each date
+    res_1 = expand_event_sphere(data=res_0[['div', 'season', 'date', 'team']])
+    res_1.reset_index(drop=True, inplace=True)
+    res_2 = pd.merge(res_0, res_1, on = ['div', 'season', 'date', 'team'], how='outer')
+    # fill missing
+    res = res_2.sort_values(['div', 'season', 'team', 'date']).reset_index(drop=True)
+    res = res.fillna(method='ffill')
+    # a = res.query("div=='E2' & date in ['2050-01-01', '2020-12-19']")
 
     # rankings
     res['rank'] = res.groupby(['div', 'season', 'date'])['points'].rank(ascending=False,
                                                                         method='first').reset_index(drop=True)
-
-    # verify
-    # a = res.query("div=='E0' & season=='2019' & team=='liverpool'")
 
     return res
 
