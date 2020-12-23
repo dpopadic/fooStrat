@@ -326,16 +326,10 @@ def feat_h2h(data):
                       dfc_ed[['date', 'team', 'opponent', 'val']],
                       on=['date', 'team', 'opponent'],
                       how='left')
-    # upcoming
-
-
-    # data_cf = data.query("field=='AvgA'")[['div', 'season', 'date', 'home_team', 'away_team']]
-    # pds = data[data['date'] == data['date'].max()].reset_index(drop=True)
-    # pds_re = fhome(data=pds)
-    # pds_re.drop('field', axis=1, inplace=True)
-    # pds_re['val'] = np.nan
+    # add upcoming
+    dfc_fi = pd.concat([dfc_fi, upc], axis=0, sort=True)
     dfc_fi['field'] = 'h2h_next_opponent_advantage'
-
+    # dfac_fil.query("div=='E2' & date=='2050-01-01'")
 
     # --- h2h next opponent attempts advantage
     dfa = fose.con_h2h_set(data=data,
@@ -350,14 +344,12 @@ def feat_h2h(data):
                       dfa_ed[['date', 'team', 'opponent', 'val']],
                       on=['date', 'team', 'opponent'],
                       how='left')
+    # add upcoming
+    dfa_fi = pd.concat([dfa_fi, upc], axis=0, sort=True)
     dfa_fi['field'] = 'h2h_next_opponent_chance'
 
     # assemble
     dfac_fil = pd.concat([dfc_fi, dfa_fi], axis=0, sort=False)
-
-    # insert t+1 observations -> need to know the upcoming opponent!
-    # dfac_fil = fose.insert_tp1_vals(data=dfac_fil, by=['field', 'opponent'])
-
     # lag values by team & opponent
     dfac_fil = dfac_fil.sort_values(['field', 'team', 'opponent', 'date']).reset_index(drop=True)
     dfac_fil['val'] = dfac_fil.groupby(['field', 'team', 'opponent'])['val'].shift(1)
