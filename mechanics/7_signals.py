@@ -18,10 +18,8 @@ flib = pd.read_pickle(fp_cloud + 'pro_data/flib_e0.pkl')
 results = con_res(data=source_core, obj=['wdl'], event='win')
 dasetmod = sm.con_mod_datset_0(factors=flib, results=results)
 
-# function: update_upcoming_games with columns team, odds, home
 
 from fooStrat.servicers import insert_tp1_vals
-
 acon = factors.pivot_table(index=['season', 'div', 'date', 'team'],
                            columns='field',
                            values='val').reset_index()

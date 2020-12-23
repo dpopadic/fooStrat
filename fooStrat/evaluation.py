@@ -229,7 +229,7 @@ def pnl_eval_summary(z):
     streak_win_max = np.max(streak[streak > 0])
     streak_lose_max = np.abs(np.min(streak[streak < 0]))
     # number of bets
-    n_bets = len(fpnl)
+    n_bets = len(z)
     # cumulative gain
     profit_total = np.sum(z)
     rn = ['hit_ratio', 'n_bets', 'payoff_bet_mean', 'payoff_bet_wins', 'streak_win_mean',

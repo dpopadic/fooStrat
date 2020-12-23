@@ -24,7 +24,8 @@ est_dates = con_est_dates(data=source_core, k=5, map_date=True, div=flib['div'].
 # leagues working: e0, e2, e3, i1, n1, sc0, sc2, sc3, sp1
 foi = ['rank_position', 'goal_superiority', 'home', 'avg_goal_scored', 'turnaround_ability_last',
        'form_all', 'atadef_composite', 'turnaround_ability_trend', 'odds_accuracy', 'attack_strength',
-       'points_advantage', 'not_failed_scoring', 'points_per_game', 'shots_attempted_tgt']
+       'points_advantage', 'not_failed_scoring', 'points_per_game', 'shots_attempted_tgt',
+       'h2h_next_opponent_advantage', 'h2h_next_opponent_chance']
 dasetmod_fi = dasetmod.loc[:, dasetmod.columns.isin(['date', 'div', 'season', 'team', 'result'] + foi)]
 # data = dasetmod_fi.query('team=="liverpool"').reset_index(drop=True)
 
@@ -39,7 +40,7 @@ pe = sm.est_hist_proba(data=dasetmod_fi,
 oe = match_odds.query("field=='odds_win'").reset_index(drop=True).drop('field', axis=1)
 mo = sm.comp_mispriced(prob=pe,
                        odds=oe,
-                       prob_threshold=0.5,
+                       prob_threshold=0.3,
                        res_threshold=0.2)
 # compute pnl
 fpnl = se.comp_pnl(positions=mo,
@@ -47,7 +48,7 @@ fpnl = se.comp_pnl(positions=mo,
                    results=results,
                    event="win",
                    stake=10,
-                   size_naive=False)
+                   size_naive=True)
 # summary of evaluation
 epnl = se.pnl_eval_summary(z=fpnl['payoff'].values)
 epnl
