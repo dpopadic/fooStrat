@@ -247,11 +247,7 @@ def feat_stanbased(data):
     df_0 = data[data['field'].isin(['FTR', 'FTHG', 'FTAG'])]
     # compute rolling league standings
     df_1 = fose.comp_league_standing(data=df_0, home_goals='FTHG', away_goals='FTAG', result='FTR')
-
     # a=df_1.query("div=='E2' & team in ['shrewsbury']").sort_values(['team', 'date'])
-    # a=df_h.query("div=='E2' & team in ['shrewsbury']").sort_values(['team', 'date'])
-
-
 
     # --- points advantage
     tmp_1 = df_1.loc[:, ['div', 'season', 'date', 'team', 'points']]

@@ -68,6 +68,7 @@ def fform(data, field, type, k=5):
                                                   'home_team',
                                                   'away_team',
                                                   'val']]
+    data_ed = data_ed.dropna().reset_index(drop=True)
 
     h = data_ed.loc[:, 'val'].apply(lambda x: 3 if x == 'H' else (1 if x == 'D' else 0))
     h = pd.concat([data_ed.loc[:, ['div',
