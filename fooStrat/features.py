@@ -280,6 +280,8 @@ def feat_stanbased(data):
     tqc = sfs.team_quality_cluster(data=df_1) # already a z-score where necessary
     # add dummy-date
     tqc = fose.insert_tp1_vals(data=tqc)
+
+
     # normalise
     date_univ = fose.con_date_univ(data=data)
     # a = tqc.query("div=='E0' & field=='team_quality_consistency' & season=='2018'")

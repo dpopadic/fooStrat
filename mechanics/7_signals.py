@@ -14,8 +14,8 @@ source_core = pd.read_pickle(fp_cloud + 'pro_data/source_core.pkl')
 match_odds = pd.read_pickle(fp_cloud + 'pro_data/match_odds.pkl')
 flib = pd.read_pickle(fp_cloud + 'pro_data/flib_e2.pkl')
 
-a = fsb.query("div == 'E2' & team in ['doncaster', 'shrewsbury'] & date=='2050-01-01'")
-a = fgb.query("div == 'E2' & team in ['doncaster', 'shrewsbury']")
+a = c1.query("div == 'E2' & team in ['doncaster', 'shrewsbury'] & date=='2050-01-01'")
+a = dfz.query("div == 'E2' & date=='2050-01-01'")
 
 # data reshaping for evaluation
 results = con_res(data=source_core, obj=['wdl'], event='win')
