@@ -5,9 +5,13 @@ import fooStrat.features as sf
 import fooStrat.processing as su
 # load source data..
 source_core = pd.read_pickle(su.fp_cloud + 'pro_data/source_core.pkl')
+source_core = su.latest_data_only(data=source_core)
+
 
 # odds retrieval ------------------------------------------------------------------------------------------------------
 match_odds = pd.read_pickle(su.fp_cloud + 'pro_data/match_odds.pkl')
+match_odds = su.latest_data_only(data=match_odds)
+
 
 # features ------------------------------------------------------------------------------------------------------------
 # - goal based factors
@@ -31,7 +35,7 @@ fun = sf.feat_odds_uncertainty(data=source_core, odds=match_odds)
 fsb.field.unique()
 # su.delete_flib(field=["points_advantage", "rank_position"])
 # su.update_flib(data=[fsb], update=True, recreate_feature=True)
-su.update_flib(data=[fgb, frb, fstre, fsb, ftf, fh2h, hf, fun], update=False, recreate_feature=False)
+su.update_flib(data=[fgb, frb, fstre, fsb, ftf, fh2h, hf, fun], update=True, recreate_feature=False)
 # consolidate all feature libraries (flib)
 su.consol_flib()
 

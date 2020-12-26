@@ -575,7 +575,16 @@ def consol_flib(path=fp_cloud):
 
 
 
-
+def latest_data_only(data, n_season=4):
+    """Retrieves the latest data from the source data so that computations are only
+    performed on required data."""
+    # get the data fields that need to be updated
+    tbu = data.sort_values(['div', 'season']).groupby('div')['season'].unique().reset_index()
+    tbu = tbu.explode('season')
+    tbu = tbu.groupby('div').tail(n_season).reset_index(drop=True)
+    # filter the source data to only get required data
+    new = pd.merge(data, tbu, on=['div', 'season'], how='inner')
+    return new
 
 
 
