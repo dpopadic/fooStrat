@@ -458,7 +458,9 @@ def feat_strength(data, k=3):
     return res
 
 
-def feat_odds_volatility(data, odds_fields=odds_fields, odds_fields_neutral=odds_fields_neutral):
+def feat_odds_volatility(data,
+                         odds_fields=odds_fields,
+                         odds_fields_neutral=odds_fields_neutral):
     """Calculates odds volatility of win/draw events across all bookies for each game."""
     data_neu = fose.neutralise_field_multi(data=data,
                                            field=odds_fields,
@@ -484,7 +486,8 @@ def feat_odds_volatility(data, odds_fields=odds_fields, odds_fields_neutral=odds
 
 
 def feat_odds_accuracy(data, odds):
-    """Estimate odds accuracy using a logit model.
+    """Estimate odds accuracy using a logit model. The accuracy for each team is measured
+    by season.
 
     # Parameters:
     -------------
@@ -503,17 +506,20 @@ def feat_odds_accuracy(data, odds):
     # estimate accuracy
     rndo_est = rndo.groupby(['div', 'season', 'team', 'field']).apply(fose.est_odds_accuracy,
                                                                       y='val',
-                                                                      x=['odds_win', 'odds_draw',
+                                                                      x=['odds_win',
+                                                                         'odds_draw',
                                                                          'odds_lose']).reset_index()
     rndo_est.rename(columns={0: 'val'}, inplace=True)
     return rndo_est
 
 
+
 def feat_odds_uncertainty(data, odds):
-    """Derives the prediction/odds uncertainty features.
+    """Derives the prediction (or odds) uncertainty features:
         - volatility of odds (the lower, the better)
         - odds prediction accuracy (the more accurate, the better)
-        - pricing spread (the higher, the better)
+        - pricing spread (the lower, the better - yet to implement)
+       Estimates are performed over the last 10 games for each team.
     """
     # --- odds volatility
     df1 = feat_odds_volatility(data=data)

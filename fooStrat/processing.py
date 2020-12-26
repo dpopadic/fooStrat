@@ -467,7 +467,8 @@ def add_upcoming_games(date_tp1='2050-01-01', path=fp_cloud):
 
 
 def update_flib(data, dir=fp_cloud, update=True, recreate_feature=False):
-    """Builds or updates the factor library.
+    """Builds or updates the factor library. If some data is already present in
+    source data, then it's overwritten by the new data.
 
     Parameters:
     -----------

@@ -493,7 +493,9 @@ def insert_tp1_vals(data, date_tp1='2050-01-01', by='field', append=True):
     c1['date'] = dst
     c1['val'] = np.nan
     if append is True:
-        dfz_0 = anti_join(c1, data.drop('val', axis=1), on=['div', 'season', 'team', 'field', 'date'])
+        # make sure no duplicates
+        dfz_0 = anti_join(c1, data.drop('val', axis=1),
+                          on=['div', 'season', 'team', 'field', 'date'])
         c1 = pd.concat([data, dfz_0], sort=True, axis=0)
 
     return(c1)

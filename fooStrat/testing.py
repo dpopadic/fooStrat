@@ -6,7 +6,7 @@ from scipy.stats import zscore
 
 fp_cloud = '/Users/dariopopadic/Library/Mobile Documents/com~apple~CloudDocs/Data/fooStrat/'
 
-a = arcon.query("date=='2050-01-01'")
+a = fsb.query("date=='2050-01-01'")
 data.query("date=='2050-01-01'")['field'].unique()
 a.to_pickle(fp_cloud + 'pro_data/pred_dataset_tp1.pkl')
 ug = pd.read_pickle(fp_cloud + 'pro_data/upcoming_games.pkl')
