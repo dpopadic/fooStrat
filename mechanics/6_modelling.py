@@ -26,6 +26,9 @@ foi = ['rank_position', 'goal_superiority', 'home', 'avg_goal_scored', 'turnarou
        'form_all', 'atadef_composite', 'turnaround_ability_trend', 'odds_accuracy', 'attack_strength',
        'points_advantage', 'not_failed_scoring', 'points_per_game', 'shots_attempted_tgt',
        'h2h_next_opponent_advantage', 'h2h_next_opponent_chance']
+
+# foi = ['h2h_next_opponent_chance', 'home']
+
 dasetmod_fi = dasetmod.loc[:, dasetmod.columns.isin(['date', 'div', 'season', 'team', 'result'] + foi)]
 # data = dasetmod_fi.query('team=="liverpool"').reset_index(drop=True)
 
@@ -55,8 +58,8 @@ epnl
 
 
 
-
-
+# source_core.query("div=='E0' & away_team=='southampton' & date=='2015-01-11' & field=='PSCA'")
+# issue: not all odds are in mapping file: eg. PSCA
 
 
 
