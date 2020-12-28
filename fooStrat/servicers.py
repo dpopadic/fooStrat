@@ -162,7 +162,11 @@ def neutralise_field(data, field, field_name=None, field_numeric=True, column_fi
     """
 
     # filter relevant fields..
-    data_ed = data[(data['field'].isin(field))].copy()
+    data_ed = data[(data['field'].isin(field))].reset_index(drop=True)
+    # sometimes, the field does not exist, so return empty df
+    if len(data_ed) < 1:
+        return pd.DataFrame(columns=['div', 'season', 'date', 'team'] + field_name)
+
     if field_numeric == True:
         data_ed['val'] = data_ed['val'].apply(lambda x: pd.to_numeric(x, errors='coerce'))
 
