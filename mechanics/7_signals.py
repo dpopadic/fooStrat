@@ -6,34 +6,31 @@ import fooStrat.modelling as sm
 import fooStrat.evaluation as se
 from fooStrat.response import con_res
 from fooStrat.servicers import con_est_dates
+from fooStrat.signals import est_upcoming_proba, use_features
 
 
 # DATA LOADING --------------------------------------------------------------------------------------------------------
 # pre-processed
 source_core = pd.read_pickle(fp_cloud + 'pro_data/source_core.pkl')
 match_odds = pd.read_pickle(fp_cloud + 'pro_data/match_odds.pkl')
-flib = pd.read_pickle(fp_cloud + 'pro_data/flib_e2.pkl')
-
-a = flib.query("div == 'E2' & team in ['doncaster', 'shrewsbury'] & date=='2050-01-01'")
-a = results.query("div == 'E2' & date=='2050-01-01'")
+ucg = pd.read_pickle(fp_cloud + 'pro_data/upcoming_games.pkl')
+flib = pd.read_pickle(fp_cloud + 'pro_data/flib_e0.pkl')
 
 # data reshaping for evaluation
 results = con_res(data=source_core, obj=['wdl'], event='win')
 dasetmod = sm.con_mod_datset_0(factors=flib, results=results)
+dasetmod = use_features(data=dasetmod)
+est_dates = con_est_dates(data=source_core, k=5, map_date=True, div=flib['div'].iloc[0])
+
+# upcoming games predictions
+preds = est_upcoming_proba(data=dasetmod,
+                           est_dates=est_dates,
+                           lookback='520W',
+                           categorical=['home'],
+                           models=['nb', 'knn'])
 
 
-from fooStrat.servicers import insert_tp1_vals
-acon = factors.pivot_table(index=['season', 'div', 'date', 'team'],
-                           columns='field',
-                           values='val').reset_index()
 
-rcon = results.drop(['field'], axis=1)
-rcon_ed = insert_tp1_vals(data=rcon, by=None, append=True)
-rcon_ed.rename(columns={'val': 'result'}, inplace=True)
-# signals and results
-arcon = pd.merge(rcon_ed, acon,
-                 on=['div', 'season', 'date', 'team'],
-                 how='inner')
 
 
 

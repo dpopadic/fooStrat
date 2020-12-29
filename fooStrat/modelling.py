@@ -162,17 +162,18 @@ def est_hist_proba(data,
                    start_date=None,
                    lookback='156W',
                    categorical=None,
-                   models=['nb', 'knn', 'lg', 'dt']):
-    """Estimate historical probability using a various model. By default,
+                   models=['nb', 'knn', 'lg', 'dt'],
+                   by='team'):
+    """Estimate historical probability using an ensemble model. By default,
     four classification models are estimated: naive bayes, knn, logistic regression
-    and a random forest tree model."""
+    and a random forest tree model. Models are estimated for each team by default."""
     per_iter = mod_periods(est_dates=est_dates, start_date=start_date)
     per_ind = est_dates[['div', 'season', 'date']]
     res = pd.DataFrame()
     for t in range(1, len(per_iter)):
         t_fit = per_iter[t - 1]
         t_pred = per_iter[t]
-        dfz = data.groupby('team',
+        dfz = data.groupby(by,
                            as_index=False,
                            group_keys=False).apply(lambda x: est_proba_ensemble(data=x,
                                                                                 per_ind=per_ind,
@@ -247,14 +248,22 @@ def est_proba_ensemble(data, per_ind, t_fit, t_pred, lookback, categorical, mode
 
 
 
-def mod_periods(est_dates, start_date):
-    """Construct estimation period set for modelling."""
+def mod_periods(est_dates, start_date=None, latest_only=False):
+    """Construct estimation period set for modelling.
+
+    Details: If needed, provide one of:
+                start_date:     when the estimation should start
+                latest_only:    to
+    """
     if start_date is not None:
         tmp = est_dates.loc[est_dates['date'] >= start_date, 'est_date']
         per_iter = pd.DataFrame(tmp.unique(), columns=['date'])
     else:
         per_iter = est_dates['est_date']
         per_iter = pd.DataFrame(per_iter.unique(), columns=['date'])
+
+    if latest_only is not False:
+        per_iter = per_iter.tail(1)
 
     per_iter = per_iter[per_iter['date'].notnull()].date
     per_iter.reset_index(drop=True, inplace=True)

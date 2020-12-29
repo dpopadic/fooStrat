@@ -12,7 +12,8 @@ from fooStrat.servicers import con_est_dates, flib_list
 source_core = pd.read_pickle(fp_cloud + 'pro_data/source_core.pkl')
 match_odds = pd.read_pickle(fp_cloud + 'pro_data/match_odds.pkl')
 leagues = flib_list(data=source_core)
-flib = pd.read_pickle(fp_cloud + 'pro_data/flib_e0.pkl')
+flib = pd.read_pickle(fp_cloud + 'pro_data/flib_d1.pkl')
+# flib = pd.read_pickle(fp_cloud + 'pro_data/flib.pkl')
 
 # data reshaping for evaluation
 results = con_res(data=source_core, obj=['wdl'], event='win')
@@ -32,7 +33,7 @@ foi = ['rank_position', 'goal_superiority', 'home', 'avg_goal_scored', 'turnarou
 dasetmod_fi = dasetmod.loc[:, dasetmod.columns.isin(['date', 'div', 'season', 'team', 'result'] + foi)]
 # data = dasetmod_fi.query('team=="liverpool"').reset_index(drop=True)
 
-# simplistic naive bayes estimation
+# ensemble model estimation
 pe = sm.est_hist_proba(data=dasetmod_fi,
                        est_dates=est_dates,
                        start_date=np.datetime64('2015-01-01'),
