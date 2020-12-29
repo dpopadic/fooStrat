@@ -27,7 +27,8 @@ preds = est_upcoming_proba(data=dasetmod,
                            est_dates=est_dates,
                            lookback='520W',
                            categorical=['home'],
-                           models=['nb', 'knn'])
+                           models=['nb', 'knn'],
+                           show_expired=True)
 
 
 

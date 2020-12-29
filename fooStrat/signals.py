@@ -1,4 +1,5 @@
 import pandas as pd
+from datetime import date
 from fooStrat.modelling import mod_periods, est_proba_ensemble
 
 
@@ -19,7 +20,8 @@ def est_upcoming_proba(data,
                        lookback='156W',
                        categorical=None,
                        models=['nb', 'knn', 'lg', 'dt'],
-                       by='team'):
+                       by='team',
+                       show_expired=True):
     """Estimate probability for upcoming games using various models. By default,
     four classification models are estimated: naive bayes, knn, logistic regression
     and a random forest tree model. Models are estimated for each team by default."""
@@ -37,6 +39,11 @@ def est_upcoming_proba(data,
                                                                             lookback=lookback,
                                                                             categorical=categorical,
                                                                             models=models))
+    # only upcoming (ignore expired events since estimation window start)
+    if show_expired is False:
+        d0 = date.today().strftime('%Y-%m-%d')
+        res = res[res['date'] >= d0]
+        res.reset_index(drop=True, inplace=True)
 
     return res
 
