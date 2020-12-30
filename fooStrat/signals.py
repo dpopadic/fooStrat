@@ -25,10 +25,9 @@ def est_upcoming_proba(data,
     """Estimate probability for upcoming games using various models. By default,
     four classification models are estimated: naive bayes, knn, logistic regression
     and a random forest tree model. Models are estimated for each team by default."""
-    per_iter = mod_periods(est_dates=est_dates, latest_only=True)
-    per_ind = est_dates[['div', 'season', 'date']]
     # estimation & prediction window
-    t_fit = per_iter[0]
+    per_ind = est_dates[['div', 'season', 'date']]
+    t_fit = data[data['date'] != '2050-01-01']['date'].max()
     t_pred = data['date'].max()
     res = data.groupby(by,
                        as_index=False,
@@ -38,12 +37,14 @@ def est_upcoming_proba(data,
                                                                             t_pred=t_pred,
                                                                             lookback=lookback,
                                                                             categorical=categorical,
-                                                                            models=models))
+                                                                            models=models,
+                                                                            pred_mode=True))
     # only upcoming (ignore expired events since estimation window start)
     if show_expired is False:
         d0 = date.today().strftime('%Y-%m-%d')
         res = res[res['date'] >= d0]
-        res.reset_index(drop=True, inplace=True)
+
+    res.reset_index(drop=True, inplace=True)
 
     return res
 

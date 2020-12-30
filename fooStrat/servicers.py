@@ -115,7 +115,7 @@ def comp_league_standing(data,
 
 
 
-def neutralise_field(data, field, field_name=None, field_numeric=True, column_field=True):
+def neutralise_field(data, field, field_name=None, field_numeric=True, column_field=True, na_fill=None):
     """
     Reshapes the data from a pairwise column-based format (eg. home_team, away_team) where fields are relative
     to either one column or another to a wide format neutralised for this column dependency.
@@ -127,6 +127,7 @@ def neutralise_field(data, field, field_name=None, field_numeric=True, column_fi
         field_name (list):  optional, a list with new field name for fields (eg. ['g_scored', 'g_received'])
         field_numeric (boolean): whether the field to transpose is numeric (True) or not (False)
         column_field (boolean):  whether to have the fields in columns or in wide-format
+        na_fill (double or str):  fill na values where fields are not present (eg. FTHG - `na_fill=0`)
 
     Details:
     --------
@@ -169,6 +170,10 @@ def neutralise_field(data, field, field_name=None, field_numeric=True, column_fi
 
     if field_numeric == True:
         data_ed['val'] = data_ed['val'].apply(lambda x: pd.to_numeric(x, errors='coerce'))
+
+    # fill na values (mostly supposed to be predictions)
+    if na_fill != None:
+        data_ed = data_ed.fillna(na_fill)
 
     # put the fields in wide format
     tmp = pd.pivot_table(data_ed,
@@ -617,7 +622,7 @@ def con_gameday(data):
                 a dataframe with columns div, season, date, team, field, val
 
     """
-    data_ed = neutralise_field(data=data, field=['FTHG', 'FTAG'])
+    data_ed = neutralise_field(data=data, field=['FTHG', 'FTAG'], na_fill=0)
     data_ed = data_ed.loc[:, ['div', 'season', 'date', 'team']]
     data_ed = data_ed.sort_values('date').reset_index(level=0, drop=True)
     data_ed['val'] = data_ed.groupby(['div', 'season', 'team']).cumcount() + 1

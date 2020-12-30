@@ -99,7 +99,7 @@ def con_mod_datset_0(factors, results):
 
 
 
-def con_mod_datset_1(data, per_ind, t_fit, t_pred, per, categorical=None):
+def con_mod_datset_1(data, per_ind, t_fit, t_pred, per, categorical=None, pred_mode=False):
     """Construct the modelling dataset for a single model fit at time t. The default lookback
     period is 3 years. The model is only fitted at dates specified in per_ind.
 
@@ -117,6 +117,9 @@ def con_mod_datset_1(data, per_ind, t_fit, t_pred, per, categorical=None):
                     a string indicating the lookback period to use for the model data set (eg. '52W')
         categorical: list
                     a list of categorical features if any
+        pred_mode:  boolean, False
+                    in prediction mode (True) or not (False) - this matters since the prediction date is
+                    usually far out & hence the lookback period needs to be effective
 
     Details:
     --------
@@ -128,8 +131,15 @@ def con_mod_datset_1(data, per_ind, t_fit, t_pred, per, categorical=None):
     --------
         X_train, X_test, y_train, id_test
     """
-    # consider only last n obervations
-    per_ind_t = per_ind.query("date <= @t_pred").set_index('date').last(per).reset_index()
+    # consider only last n obervations (adjustment needed in prediction mode)
+    if pred_mode is False:
+        per_ind_t = per_ind.query("date <= @t_pred").set_index('date').last(per).reset_index()
+    else:
+        # extract prediction date to filter relevant estimation window & add back afterwards
+        t_pred_ed = per_ind['date'].iloc[-2]
+        per_ind_t = per_ind.query("date <= @t_pred_ed").set_index('date').last(per).reset_index()
+        per_ind_t = pd.concat([per_ind_t, per_ind.tail(1)], axis=0, sort=True).reset_index(drop=True)
+
     data_edoh = pd.merge(data, per_ind_t['date'], how="inner", on="date")
     # one-hot encoding
     if categorical is not None:
@@ -209,14 +219,15 @@ def est_proba_nb(data, per_ind, t_fit, t_pred, lookback, categorical):
 
 
 
-def est_proba_ensemble(data, per_ind, t_fit, t_pred, lookback, categorical, models):
+def est_proba_ensemble(data, per_ind, t_fit, t_pred, lookback, categorical, models, pred_mode=False):
     """Estimate historical probabilities."""
     X_train, X_test, y_train, meta_test = con_mod_datset_1(data=data,
                                                            per_ind=per_ind,
                                                            t_fit=t_fit,
                                                            t_pred=t_pred,
                                                            per=lookback,
-                                                           categorical=categorical)
+                                                           categorical=categorical,
+                                                           pred_mode=pred_mode)
     if len(X_train) < 1 or len(X_test) < 1:
         est_proba = pd.DataFrame()
     else:
