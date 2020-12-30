@@ -6,7 +6,7 @@ import fooStrat.modelling as sm
 import fooStrat.evaluation as se
 from fooStrat.response import con_res
 from fooStrat.servicers import con_est_dates, neutralise_field
-from fooStrat.signals import est_upcoming_proba, use_features, add_upcoming_date
+from fooStrat.signals import est_upcoming_proba, use_features, add_upcoming_date, register_predictions
 
 
 # DATA LOADING --------------------------------------------------------------------------------------------------------
@@ -38,7 +38,7 @@ mo = sm.comp_mispriced(prob=pe,
                        res_threshold=0.2)
 # real game date info
 mo = add_upcoming_date(data=mo, upcoming=ucg)
-
+register_predictions(data=mo, overwrite=False)
 
 
 
