@@ -1,7 +1,7 @@
 # STRATEGY TESTING ----------------------------------------------------------------------------------------------------
 import pandas as pd
 import numpy as np
-from fooStrat.processing import fp_cloud
+from fooStrat.constants import fp_cloud
 import fooStrat.evaluation as se
 from fooStrat.modelling import est_prob, comp_mispriced
 from fooStrat.response import con_res

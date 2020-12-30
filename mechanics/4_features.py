@@ -3,13 +3,14 @@ import pandas as pd
 import numpy as np
 import fooStrat.features as sf
 import fooStrat.processing as su
+from fooStrat.constants import fp_cloud
 # load source data..
-source_core = pd.read_pickle(su.fp_cloud + 'pro_data/source_core.pkl')
+source_core = pd.read_pickle(fp_cloud + 'pro_data/source_core.pkl')
 source_core = su.latest_data_only(data=source_core)
 
 
 # odds retrieval ------------------------------------------------------------------------------------------------------
-match_odds = pd.read_pickle(su.fp_cloud + 'pro_data/match_odds.pkl')
+match_odds = pd.read_pickle(fp_cloud + 'pro_data/match_odds.pkl')
 match_odds = su.latest_data_only(data=match_odds)
 
 

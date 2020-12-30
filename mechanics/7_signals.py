@@ -1,7 +1,7 @@
 # SIGNALS / PREDICTIONS -----------------------------------------------------------------------------------------------
 import pandas as pd
 import numpy as np
-from fooStrat.processing import fp_cloud
+from fooStrat.constants import fp_cloud
 import fooStrat.modelling as sm
 import fooStrat.evaluation as se
 import fooStrat.signals as si

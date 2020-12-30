@@ -3,10 +3,8 @@ import numpy as np
 import os
 import glob
 from fooStrat.helpers import anti_join
+from fooStrat.constants import fp_cloud, fp_cloud_source, fp_cloud_process
 
-fp_cloud = '/Users/dariopopadic/Library/Mobile Documents/com~apple~CloudDocs/Data/fooStrat/'
-fp_cloud_source = fp_cloud + 'src_data/'
-fp_cloud_process = fp_cloud + 'pro_data/'
 
 def ret_xl_cols(file_names, id_col):
     """Returns all available columns across all tabs and multiple excel files.

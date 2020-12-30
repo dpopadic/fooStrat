@@ -2,8 +2,9 @@ import pandas as pd
 from datetime import date, datetime
 from fooStrat.modelling import mod_periods, est_proba_ensemble
 from fooStrat.servicers import neutralise_field
-from fooStrat.processing import fp_cloud
 from fooStrat.helpers import anti_join
+from fooStrat.constants import fp_cloud
+
 
 def use_features(data, foi=None):
     """Extract a list of wanted features from the dataset."""
@@ -61,7 +62,7 @@ def add_upcoming_date(data, upcoming):
     return data_ed
 
 
-def register_predictions(data, path=fpcloud, overwrite=False):
+def register_predictions(data, path=fp_cloud, overwrite=False):
     """Updates the predictions log-file with latest predictions."""
     if overwrite is False:
         ex = pd.read_pickle(path + 'log_data/predictions.pkl')
@@ -73,4 +74,8 @@ def register_predictions(data, path=fpcloud, overwrite=False):
     upd.to_pickle(path + 'log_data/predictions.pkl')
     print("Latest predictions were registered.")
 
+
+def test_path_import(path=fp_cloud):
+    """Updates the predictions log-file with latest predictions."""
+    print(path)
 
