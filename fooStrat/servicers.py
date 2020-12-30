@@ -208,7 +208,7 @@ def neutralise_field(data, field, field_name=None, field_numeric=True, column_fi
 
 def neutralise_field_multi(data, field, field_map, field_numeric=True, column_field=True):
     """
-    Same as `neutralise_field` but with multiple field funcionality.
+    Same as `neutralise_field` but with multiple field functionality.
     """
 
     # filter relevant fields

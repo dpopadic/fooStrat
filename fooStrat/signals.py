@@ -1,7 +1,7 @@
 import pandas as pd
 from datetime import date
 from fooStrat.modelling import mod_periods, est_proba_ensemble
-
+from fooStrat.servicers import neutralise_field
 
 def use_features(data, foi=None):
     """Extract a list of wanted features from the dataset."""
@@ -47,5 +47,16 @@ def est_upcoming_proba(data,
     res.reset_index(drop=True, inplace=True)
 
     return res
+
+
+def add_upcoming_date(data, upcoming):
+    """Add the upcoming game date info to predictions."""
+    ucg_rel = neutralise_field(data=upcoming, field=['FTHG', 'FTAG'], na_fill=0)
+    ucg_rel.rename(columns={'date': 'date_play'}, inplace=True)
+    ucg_rel = ucg_rel[['div', 'season', 'date_play', 'team']]
+    data_ed = pd.merge(data, ucg_rel, on=['div', 'season', 'team'], how='left')
+    return data_ed
+
+
 
 

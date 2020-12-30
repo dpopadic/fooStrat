@@ -5,8 +5,8 @@ from fooStrat.processing import fp_cloud
 import fooStrat.modelling as sm
 import fooStrat.evaluation as se
 from fooStrat.response import con_res
-from fooStrat.servicers import con_est_dates
-from fooStrat.signals import est_upcoming_proba, use_features
+from fooStrat.servicers import con_est_dates, neutralise_field
+from fooStrat.signals import est_upcoming_proba, use_features, add_upcoming_date
 
 
 # DATA LOADING --------------------------------------------------------------------------------------------------------
@@ -24,13 +24,20 @@ est_dates = con_est_dates(data=source_core, k=5, map_date=True, div=flib['div'].
 
 
 # upcoming games predictions
-preds = est_upcoming_proba(data=dasetmod,
-                           est_dates=est_dates,
-                           lookback='520W',
-                           categorical=['home'],
-                           models=['nb', 'knn'],
-                           show_expired=True)
-
+pe = est_upcoming_proba(data=dasetmod,
+                        est_dates=est_dates,
+                        lookback='520W',
+                        categorical=['home'],
+                        models=['nb', 'knn'],
+                        show_expired=True)
+# derive mispriced events
+oe = match_odds.query("field=='odds_win'").reset_index(drop=True).drop('field', axis=1)
+mo = sm.comp_mispriced(prob=pe,
+                       odds=oe,
+                       prob_threshold=0.3,
+                       res_threshold=0.2)
+# real game date info
+mo = add_upcoming_date(data=mo, upcoming=ucg)
 
 
 
