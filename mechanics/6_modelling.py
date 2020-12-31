@@ -12,7 +12,7 @@ from fooStrat.servicers import con_est_dates, flib_list
 source_core = pd.read_pickle(fp_cloud + 'pro_data/source_core.pkl')
 match_odds = pd.read_pickle(fp_cloud + 'pro_data/match_odds.pkl')
 leagues = flib_list(data=source_core)
-flib = pd.read_pickle(fp_cloud + 'pro_data/flib_d1.pkl')
+flib = pd.read_pickle(fp_cloud + 'pro_data/flib_e0.pkl')
 # flib = pd.read_pickle(fp_cloud + 'pro_data/flib.pkl')
 
 # data reshaping for evaluation

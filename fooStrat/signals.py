@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 from datetime import date, datetime
 from fooStrat.modelling import mod_periods, est_proba_ensemble
 from fooStrat.servicers import neutralise_field
@@ -62,20 +63,35 @@ def add_upcoming_date(data, upcoming):
     return data_ed
 
 
+
 def register_predictions(data, path=fp_cloud, overwrite=False):
     """Updates the predictions log-file with latest predictions."""
     if overwrite is False:
-        ex = pd.read_pickle(path + 'log_data/predictions.pkl')
+        ex = pd.read_csv(path + 'log_data/predictions.csv')
         new = anti_join(x=data, y=ex, on=['div', 'season', 'team', 'date_play'])
         upd = pd.concat([ex, new], axis=0, sort=True)
+        upd.to_csv(fp_cloud + 'log_data/predictions.csv', mode='a', header=False)
     else:
-        upd = data
+        data.to_csv(fp_cloud + 'log_data/predictions.csv')
 
-    upd.to_pickle(path + 'log_data/predictions.pkl')
     print("Latest predictions were registered.")
 
 
-def test_path_import(path=fp_cloud):
+def register_predictions2(data, path=fp_cloud, overwrite=False):
     """Updates the predictions log-file with latest predictions."""
-    print(path)
+    if overwrite is False:
+        ex = pd.read_excel(path + 'log_data/predictions.xlsx', index_col=0, dtype={'date': np.datetime64, 'date_play': np.datetime64})
+        new = anti_join(x=data, y=ex, on=['div', 'season', 'team', 'date_play'])
+        upd = pd.concat([ex, new], axis=0, sort=True)
+        upd.to_excel()
+        upd.to_csv(fp_cloud + 'log_data/predictions.csv', mode='a', header=False)
+    else:
+        data.to_csv(fp_cloud + 'log_data/predictions.csv')
+
+    print("Latest predictions were registered.")
+
+
+
+
+df1.to_excel("output.xlsx")
 

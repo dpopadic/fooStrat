@@ -29,7 +29,7 @@ pe = si.est_upcoming_proba(data=dasetmod,
                            categorical=['home'],
                            models=['nb', 'knn'],
                            show_expired=True)
-# derive mispriced events
+# mispriced events/opportunities (upcoming games that are not mispriced are left out)
 oe = match_odds.query("field=='odds_win'").reset_index(drop=True).drop('field', axis=1)
 mo = sm.comp_mispriced(prob=pe,
                        odds=oe,
@@ -37,10 +37,10 @@ mo = sm.comp_mispriced(prob=pe,
                        res_threshold=0.2)
 # real game date info
 mo = si.add_upcoming_date(data=mo, upcoming=ucg)
-si.register_predictions(data=mo, overwrite=False)
+si.register_predictions(data=mo, overwrite=True)
 
 
-
+ucg.query("div=='E0' & field=='AvgD'")
 
 
 
