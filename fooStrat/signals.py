@@ -58,7 +58,7 @@ def add_upcoming_date(data, upcoming):
     ucg_rel = neutralise_field(data=upcoming, field=['FTHG', 'FTAG'], na_fill=0)
     ucg_rel.rename(columns={'date': 'date_play'}, inplace=True)
     ucg_rel['date_pred'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-    ucg_rel = ucg_rel[['div', 'season', 'date_play', 'team']]
+    ucg_rel = ucg_rel[['div', 'season', 'date_play', 'team', 'date_pred']]
     data_ed = pd.merge(data, ucg_rel, on=['div', 'season', 'team'], how='left')
     return data_ed
 
@@ -66,32 +66,46 @@ def add_upcoming_date(data, upcoming):
 
 def register_predictions(data, path=fp_cloud, overwrite=False):
     """Updates the predictions log-file with latest predictions."""
+    fp = path + 'log_data/predictions.csv'
     if overwrite is False:
-        ex = pd.read_csv(path + 'log_data/predictions.csv')
-        new = anti_join(x=data, y=ex, on=['div', 'season', 'team', 'date_play'])
+        ex = pd.read_csv(fp, index_col=0)
+        #make sure date objects are correct
+        ex['date'] = ex['date'].apply(lambda x: np.datetime64(x))
+        ex['date_play'] = ex['date_play'].apply(lambda x: np.datetime64(x))
+        new = anti_join(x=data,
+                        y=ex[['div', 'season', 'team', 'date_play']],
+                        on=['div', 'season', 'team', 'date_play'])
         upd = pd.concat([ex, new], axis=0, sort=True)
-        upd.to_csv(fp_cloud + 'log_data/predictions.csv', mode='a', header=False)
+        upd.to_csv(fp, mode='a', header=False)
     else:
-        data.to_csv(fp_cloud + 'log_data/predictions.csv')
+        data.to_csv(fp)
 
     print("Latest predictions were registered.")
+
 
 
 def register_predictions2(data, path=fp_cloud, overwrite=False):
     """Updates the predictions log-file with latest predictions."""
+    fp = path + 'log_data/predictions.xlsx'
     if overwrite is False:
-        ex = pd.read_excel(path + 'log_data/predictions.xlsx', index_col=0, dtype={'date': np.datetime64, 'date_play': np.datetime64})
-        new = anti_join(x=data, y=ex, on=['div', 'season', 'team', 'date_play'])
+        ex = pd.read_excel(fp,
+                           sheet_name='data',
+                           index_col=0)
+        # make sure date objects are correct
+        ex['date'] = ex['date'].apply(lambda x: np.datetime64(x))
+        ex['date_play'] = ex['date_play'].apply(lambda x: np.datetime64(x))
+        new = anti_join(x=data,
+                        y=ex[['div', 'season', 'team', 'date_play']],
+                        on=['div', 'season', 'team', 'date_play'])
         upd = pd.concat([ex, new], axis=0, sort=True)
-        upd.to_excel()
-        upd.to_csv(fp_cloud + 'log_data/predictions.csv', mode='a', header=False)
+        with pd.ExcelWriter(fp,
+                            mode='a') as writer:
+            upd.to_excel(writer, sheet_name='data', index_col=0)
+
     else:
-        data.to_csv(fp_cloud + 'log_data/predictions.csv')
+        data.to_excel(fp, sheet_name='data', engine='openpyxl')
 
     print("Latest predictions were registered.")
 
 
-
-
-df1.to_excel("output.xlsx")
 

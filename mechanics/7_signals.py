@@ -37,7 +37,7 @@ mo = sm.comp_mispriced(prob=pe,
                        res_threshold=0.2)
 # real game date info
 mo = si.add_upcoming_date(data=mo, upcoming=ucg)
-si.register_predictions(data=mo, overwrite=True)
+si.register_predictions(data=mo, overwrite=False)
 
 
 ucg.query("div=='E0' & field=='AvgD'")
