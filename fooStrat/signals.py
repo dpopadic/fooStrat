@@ -66,26 +66,6 @@ def add_upcoming_date(data, upcoming):
 
 def register_predictions(data, path=fp_cloud, overwrite=False):
     """Updates the predictions log-file with latest predictions."""
-    fp = path + 'log_data/predictions.csv'
-    if overwrite is False:
-        ex = pd.read_csv(fp, index_col=0)
-        #make sure date objects are correct
-        ex['date'] = ex['date'].apply(lambda x: np.datetime64(x))
-        ex['date_play'] = ex['date_play'].apply(lambda x: np.datetime64(x))
-        new = anti_join(x=data,
-                        y=ex[['div', 'season', 'team', 'date_play']],
-                        on=['div', 'season', 'team', 'date_play'])
-        upd = pd.concat([ex, new], axis=0, sort=True)
-        upd.to_csv(fp, mode='a', header=False)
-    else:
-        data.to_csv(fp)
-
-    print("Latest predictions were registered.")
-
-
-
-def register_predictions2(data, path=fp_cloud, overwrite=False):
-    """Updates the predictions log-file with latest predictions."""
     fp = path + 'log_data/predictions.xlsx'
     if overwrite is False:
         ex = pd.read_excel(fp,
@@ -100,7 +80,7 @@ def register_predictions2(data, path=fp_cloud, overwrite=False):
         upd = pd.concat([ex, new], axis=0, sort=True)
         with pd.ExcelWriter(fp,
                             mode='a') as writer:
-            upd.to_excel(writer, sheet_name='data', index_col=0)
+            upd.to_excel(writer, sheet_name='data')
 
     else:
         data.to_excel(fp, sheet_name='data', engine='openpyxl')

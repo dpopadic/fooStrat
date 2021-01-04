@@ -40,9 +40,6 @@ mo = si.add_upcoming_date(data=mo, upcoming=ucg)
 si.register_predictions(data=mo, overwrite=False)
 
 
-ucg.query("div=='E0' & field=='AvgD'")
-
-
 
 
 
