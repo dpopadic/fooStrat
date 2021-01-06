@@ -1,4 +1,5 @@
 from setuptools import setup
+
 setup(name='fooStrat',
       version='0.1',
       description='A quantiative model for football betting.',

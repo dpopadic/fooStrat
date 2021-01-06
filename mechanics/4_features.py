@@ -38,7 +38,7 @@ fsb.field.unique()
 # su.update_flib(data=[fsb], update=True, recreate_feature=True)
 su.update_flib(data=[fgb, frb, fstre, fsb, ftf, fh2h, hf, fun], update=True, recreate_feature=False)
 # consolidate all feature libraries (flib)
-su.consol_flib()
+# su.consol_flib()
 
 
 # verify..
