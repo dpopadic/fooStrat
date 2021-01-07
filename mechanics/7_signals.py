@@ -14,7 +14,7 @@ from fooStrat.servicers import con_est_dates, neutralise_field
 source_core = pd.read_pickle(fp_cloud + 'pro_data/source_core.pkl')
 match_odds = pd.read_pickle(fp_cloud + 'pro_data/match_odds.pkl')
 ucg = pd.read_pickle(fp_cloud + 'pro_data/upcoming_games.pkl')
-flib = pd.read_pickle(fp_cloud + 'pro_data/flib_gt1.pkl')
+flib = pd.read_pickle(fp_cloud + 'pro_data/flib.pkl')
 
 # data reshaping for evaluation
 results = con_res(data=source_core, obj=['wdl'], event='win')
