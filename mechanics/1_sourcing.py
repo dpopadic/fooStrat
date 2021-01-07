@@ -1,7 +1,7 @@
 # DATA SOURCING ---------------------------------------------------
 import urllib.request
 from datetime import datetime
-from fooStrat.constants import fp_cloud_log
+from fooStrat.constants import fp_cloud_source, fp_cloud_log
 
 # Download the latest data ----------------------------------------
 
@@ -15,14 +15,13 @@ file_nm = ['latest_results_major.xlsx',
            'latest_fixtures_major.xlsx',
            'latest_fixtures_minor.xlsx']
 
-url_store = fp_cloud_log
 for ob in range(len(url_source)):
-    urllib.request.urlretrieve(url_source[ob], url_store + file_nm[ob])
+    urllib.request.urlretrieve(url_source[ob], fp_cloud_source + file_nm[ob])
     print(url_source[ob], file_nm[ob])
 
 
 # last update stamp -----------------------------------------------
-fl = url_store + 'data_updated.txt'
+fl = fp_cloud_log + 'data_updated.txt'
 fo = open(fl, 'a+')
 fo.write('\nData updated on ' + str(datetime.now()))
 fo.close()
