@@ -647,11 +647,11 @@ def con_est_dates(data, k, map_date=False, div=None):
                     optional, the division/league to construct the estimation dates for
     """
     if div is not None:
-        data_fi = data[data['div'] == div].reset_index(drop=True)
+        data = data[data['div'].isin(div)].reset_index(drop=True)
     # retrieve game day for each team
-    game_day = con_gameday(data=data_fi)
+    game_day = con_gameday(data=data)
     # calculate when teams have played k games
-    data_ed = game_day.groupby(['season', 'team'])['date'].cumcount() % k
+    data_ed = game_day.groupby(['div', 'season', 'team'])['date'].cumcount() % k
     res = game_day[data_ed == k - 1]
     res.reset_index(drop=True, inplace=True)
     # retrieve the max date after n games
@@ -667,6 +667,9 @@ def con_est_dates(data, k, map_date=False, div=None):
         res['est_date'] = res.groupby('div')['est_date'].fillna(method='ffill', axis=0)
 
     return res
+
+
+
 
 
 

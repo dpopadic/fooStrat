@@ -77,10 +77,9 @@ def register_predictions(data, path=fp_cloud, overwrite=False):
         new = anti_join(x=data,
                         y=ex[['div', 'season', 'team', 'date_play']],
                         on=['div', 'season', 'team', 'date_play'])
-        upd = pd.concat([ex, new], axis=0, sort=True)
-        with pd.ExcelWriter(fp,
-                            mode='a') as writer:
-            upd.to_excel(writer, sheet_name='data')
+        new = new[new['date'].notnull()]
+        upd = pd.concat([ex, new], axis=0, sort=True).reset_index(drop=True)
+        upd.to_excel(fp, sheet_name='data', engine='openpyxl')
 
     else:
         data.to_excel(fp, sheet_name='data', engine='openpyxl')

@@ -8,5 +8,8 @@ myFile.write('\n' + str(df['date'].max()) + ' | data processed on ' + str(dateti
 myFile.close()
 
 
-
+a = pd.read_pickle(fp_cloud + 'pro_data/flib_g1.pkl')
+b = pd.read_pickle(fp_cloud + 'pro_data/flib_t1.pkl')
+flib = pd.concat([a, b], axis=0).reset_index(drop=True)
+flib.to_pickle(fp_cloud + 'pro_data/flib_gt1.pkl')
 
