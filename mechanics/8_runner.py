@@ -2,12 +2,18 @@
 import os
 from datetime import datetime
 from fooStrat.constants import fp_cloud_log
+# python virtual env
 py_inst = '/Users/dariopopadic/PycharmProjects/fooStrat/venv/bin/python3.7'
-py_file = '/Users/dariopopadic/PycharmProjects/fooStrat/mechanics/1_sourcing.py'
-os.system(py_inst + ' ' + py_file)
-# os.system('python mechanics/3_processing.py')
-# os.system('python mechanics/4_features.py')
-# os.system('python mechanics/7_signals.py')
+# scripts to execute
+pyf_1 = '/Users/dariopopadic/PycharmProjects/fooStrat/mechanics/1_sourcing.py'
+pyf_2 = '/Users/dariopopadic/PycharmProjects/fooStrat/mechanics/3_processing.py'
+pyf_3 = '/Users/dariopopadic/PycharmProjects/fooStrat/mechanics/4_features.py'
+pyf_4 = '/Users/dariopopadic/PycharmProjects/fooStrat/mechanics/7_signals.py'
+os.system(py_inst + ' ' + pyf_1)
+os.system(py_inst + ' ' + pyf_2)
+os.system(py_inst + ' ' + pyf_3)
+os.system(py_inst + ' ' + pyf_4)
+
 
 # last update stamp -----------------------------------------------
 fl = fp_cloud_log + 'model_updated.txt'
