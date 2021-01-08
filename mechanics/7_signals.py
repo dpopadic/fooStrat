@@ -20,7 +20,7 @@ flib = pd.read_pickle(fp_cloud + 'pro_data/flib.pkl')
 results = con_res(data=source_core, obj=['wdl'], event='win')
 dasetmod = sm.con_mod_datset_0(factors=flib, results=results)
 dasetmod = si.use_features(data=dasetmod)
-est_dates = con_est_dates(data=source_core, k=5, map_date=True, div=['G1', 'T1'])
+est_dates = con_est_dates(data=source_core, k=5, map_date=True)
 
 # upcoming games predictions
 pe = si.est_upcoming_proba(data=dasetmod,
