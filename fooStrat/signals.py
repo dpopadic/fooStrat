@@ -29,28 +29,33 @@ def est_upcoming_proba(data,
     """Estimate probability for upcoming games using various models. By default,
     four classification models are estimated: naive bayes, knn, logistic regression
     and a random forest tree model. Models are estimated for each team by default."""
-    # estimation & prediction window
-    per_ind = est_dates[['div', 'season', 'date']]
-    t_fit = data[data['date'] != '2050-01-01']['date'].max()
-    t_pred = data['date'].max()
-    res = data.groupby(by,
-                       as_index=False,
-                       group_keys=False).apply(lambda x: est_proba_ensemble(data=x,
-                                                                            per_ind=per_ind,
-                                                                            t_fit=t_fit,
-                                                                            t_pred=t_pred,
-                                                                            lookback=lookback,
-                                                                            categorical=categorical,
-                                                                            models=models,
-                                                                            pred_mode=True))
+    res_fin = pd.DataFrame()
+    for d in data['div'].unique():
+        # estimation & prediction window
+        per_ind = est_dates[est_dates['div'] == d][['div', 'season', 'date']].reset_index(drop=True)
+        data_div = data[data['div'] == d].reset_index(drop=True)
+        t_fit = data_div[data_div['date'] != '2050-01-01']['date'].max()
+        t_pred = data_div['date'].max()
+        res = data_div.groupby(by,
+                               as_index=False,
+                               group_keys=False).apply(lambda x: est_proba_ensemble(data=x,
+                                                                                    per_ind=per_ind,
+                                                                                    t_fit=t_fit,
+                                                                                    t_pred=t_pred,
+                                                                                    lookback=lookback,
+                                                                                    categorical=categorical,
+                                                                                    models=models,
+                                                                                    pred_mode=True))
+        res_fin = pd.concat([res_fin, res], axis=0, sort=True)
+
     # only upcoming (ignore expired events since estimation window start)
     if show_expired is False:
         d0 = date.today().strftime('%Y-%m-%d')
-        res = res[res['date'] >= d0]
+        res_fin = res_fin[res_fin['date'] >= d0]
 
-    res.reset_index(drop=True, inplace=True)
+    res_fin.reset_index(drop=True, inplace=True)
 
-    return res
+    return res_fin
 
 
 def add_upcoming_date(data, upcoming):
