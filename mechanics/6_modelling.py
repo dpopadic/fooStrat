@@ -33,7 +33,7 @@ for div_k in leagues:
                            start_date=np.datetime64('2015-01-01'),
                            lookback='520W',
                            categorical=['home'],
-                           models=['nb', 'knn'])
+                           models=['nb', 'lg'])
     # note: p1 returns empty DF
     if len(pe) > 0:
         # derive mispriced events
@@ -56,8 +56,12 @@ for div_k in leagues:
 
     print(div_k)
 
-# epnl_fin.to_excel(fp_cloud + 'res_data/' + 'results_approach_1' + '.xlsx', engine='openpyxl')
+# epnl_fin.to_excel(fp_cloud + 'res_data/' + 'results_approach_10' + '.xlsx', engine='openpyxl')
+# epnl_fin.groupby(level=0)['val'].mean().round(2)
 
+# a = pd.read_excel(fp_cloud + 'res_data/results_approach_6.xlsx', index_col=0)
+# a.groupby(level=0)['val'].mean().round(2)
+# epnl_fin.loc['profit_total']
 
 # source_core.query("div=='E0' & away_team=='southampton' & date=='2015-01-11' & field=='PSCA'")
 # issue: not all odds are in mapping file: eg. PSCA

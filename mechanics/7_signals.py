@@ -28,7 +28,7 @@ pe = si.est_upcoming_proba(data=dasetmod,
                            est_dates=est_dates,
                            lookback='520W',
                            categorical=['home'],
-                           models=['nb', 'knn'],
+                           models=['nb', 'knn', 'lg', 'dt'],
                            show_expired=True)
 # mispriced events/opportunities (upcoming games that are not mispriced are left out)
 oe = match_odds.query("field=='odds_win'").reset_index(drop=True).drop('field', axis=1)
