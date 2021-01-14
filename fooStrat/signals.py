@@ -84,7 +84,7 @@ def register_predictions(data, path=fp_cloud, overwrite=False):
                         on=['div', 'season', 'team', 'date_play'])
         new = new[new['date'].notnull()]
         upd = pd.concat([ex, new], axis=0, sort=True)
-        upd = upd.sort_values('date_play').reset_index(drop=True)
+        upd = upd.sort_values(['date_play', 'date_pred']).reset_index(drop=True)
         upd.to_excel(fp, sheet_name='data', engine='openpyxl')
 
     else:
