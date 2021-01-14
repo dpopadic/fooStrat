@@ -11,8 +11,9 @@ from fooStrat.servicers import con_est_dates, flib_list
 # pre-processed
 source_core = pd.read_pickle(fp_cloud + 'pro_data/source_core.pkl')
 match_odds = pd.read_pickle(fp_cloud + 'pro_data/match_odds.pkl')
-results = con_res(data=source_core, obj=['wdl'], event='win')
+results = con_res(data=source_core, obj=['wdl'], event='lose')
 leagues = flib_list(data=source_core)
+leagues = ['e0']
 
 epnl_fin = pd.DataFrame()
 for div_k in leagues:
@@ -37,7 +38,7 @@ for div_k in leagues:
     # note: p1 returns empty DF
     if len(pe) > 0:
         # derive mispriced events
-        oe = match_odds.query("field=='odds_win'").reset_index(drop=True).drop('field', axis=1)
+        oe = match_odds.query("field=='odds_lose'").reset_index(drop=True).drop('field', axis=1)
         mo = sm.comp_mispriced(prob=pe,
                                odds=oe,
                                prob_threshold=0.3,
@@ -46,7 +47,7 @@ for div_k in leagues:
         fpnl = se.comp_pnl(positions=mo,
                            odds=oe,
                            results=results,
-                           event="win",
+                           event="lose",
                            stake=10,
                            size_naive=True)
         # summary of evaluation

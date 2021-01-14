@@ -69,12 +69,25 @@ def add_upcoming_date(data, upcoming):
 
 
 
-def register_predictions(data, path=fp_cloud, overwrite=False):
-    """Updates the predictions log-file with latest predictions."""
+def register_predictions(data, event, path=fp_cloud, overwrite=False):
+    """Updates the predictions log-file with latest predictions.
+
+    Parameters:
+    -----------
+        data:       pd DataFrame
+                    a table with predictions and columns season, div, date, team, implied, market
+        event:      str
+                    one of: `win`, `lose`, `goals`
+        path:       str
+                    where to store the file
+        overwrite:  boolean
+                    whether to update existing or write new
+
+    """
     fp = path + 'log_data/predictions.xlsx'
     if overwrite is False:
         ex = pd.read_excel(fp,
-                           sheet_name='data',
+                           sheet_name=event,
                            index_col=0)
         # make sure date objects are correct
         ex['date'] = ex['date'].apply(lambda x: np.datetime64(x))
@@ -85,10 +98,10 @@ def register_predictions(data, path=fp_cloud, overwrite=False):
         new = new[new['date'].notnull()]
         upd = pd.concat([ex, new], axis=0, sort=True)
         upd = upd.sort_values(['date_play', 'date_pred']).reset_index(drop=True)
-        upd.to_excel(fp, sheet_name='data', engine='openpyxl')
+        upd.to_excel(fp, sheet_name=event, engine='openpyxl')
 
     else:
-        data.to_excel(fp, sheet_name='data', engine='openpyxl')
+        data.to_excel(fp, sheet_name=event, engine='openpyxl')
 
     print("Latest predictions were registered.")
 

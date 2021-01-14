@@ -9,12 +9,14 @@ pyf_1 = '/Users/dariopopadic/PycharmProjects/fooStrat/mechanics/1_sourcing.py'
 pyf_2 = '/Users/dariopopadic/PycharmProjects/fooStrat/mechanics/3_processing.py'
 pyf_3 = '/Users/dariopopadic/PycharmProjects/fooStrat/mechanics/4a_features.py'
 pyf_4 = '/Users/dariopopadic/PycharmProjects/fooStrat/mechanics/4b_features.py'
-pyf_5 = '/Users/dariopopadic/PycharmProjects/fooStrat/mechanics/7_signals.py'
+pyf_5 = '/Users/dariopopadic/PycharmProjects/fooStrat/mechanics/7a_signals.py'
+pyf_6 = '/Users/dariopopadic/PycharmProjects/fooStrat/mechanics/7b_signals.py'
 os.system(py_inst + ' ' + pyf_1)
 os.system(py_inst + ' ' + pyf_2)
 os.system(py_inst + ' ' + pyf_3)
 os.system(py_inst + ' ' + pyf_4)
 os.system(py_inst + ' ' + pyf_5)
+os.system(py_inst + ' ' + pyf_6)
 
 # last update stamp -----------------------------------------------
 fl = fp_cloud_log + 'model_updated.txt'
