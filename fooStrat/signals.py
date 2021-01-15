@@ -84,7 +84,7 @@ def register_predictions(data, event, path=fp_cloud, overwrite=False):
                     whether to update existing or write new
 
     """
-    fp = path + 'log_data/predictions.xlsx'
+    fp = path + 'log_data/predictions_' + event + '.xlsx'
     if overwrite is False:
         ex = pd.read_excel(fp,
                            sheet_name=event,
