@@ -38,7 +38,7 @@ mo = sm.comp_mispriced(prob=pe,
                        res_threshold=0.2)
 # real game date info
 mo = si.add_upcoming_date(data=mo, upcoming=ucg)
-si.register_predictions(data=mo, event='win' overwrite=False)
+si.register_predictions(data=mo, event='win', overwrite=False)
 
 
 
