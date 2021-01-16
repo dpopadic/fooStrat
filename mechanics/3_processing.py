@@ -33,7 +33,8 @@ source_core = pd.read_pickle(fp_cloud + 'pro_data/source_core.pkl')
 match_odds = get_odds(data=source_core,
                       field_home=list(odds_fields.get('odds_home_win')),
                       field_away=list(odds_fields.get('odds_away_win')),
-                      field_draw=list(odds_fields.get('odds_draw_win')))
+                      field_draw=list(odds_fields.get('odds_draw_win')),
+                      field_25g=list(odds_fields.get('odds_above_25_goal')))
 match_odds.to_pickle(fp_cloud + 'pro_data/match_odds.pkl')
 
 

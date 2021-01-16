@@ -11,9 +11,10 @@ from fooStrat.servicers import con_est_dates, flib_list
 # pre-processed
 source_core = pd.read_pickle(fp_cloud + 'pro_data/source_core.pkl')
 match_odds = pd.read_pickle(fp_cloud + 'pro_data/match_odds.pkl')
-results = con_res(data=source_core, obj=['wdl'], event='lose')
+results = con_res(data=source_core, obj=['wdl'], event='draw')
 leagues = flib_list(data=source_core)
-leagues = ['e0']
+leagues = leagues[3]
+# match_odds.query("div=='E0' & season=='2020' & date=='2021-01-04'")
 
 epnl_fin = pd.DataFrame()
 for div_k in leagues:
@@ -34,11 +35,11 @@ for div_k in leagues:
                            start_date=np.datetime64('2015-01-01'),
                            lookback='520W',
                            categorical=['home'],
-                           models=['nb', 'lg'])
+                           models=['nb', 'knn', 'lg', 'dt'])
     # note: p1 returns empty DF
     if len(pe) > 0:
         # derive mispriced events
-        oe = match_odds.query("field=='odds_lose'").reset_index(drop=True).drop('field', axis=1)
+        oe = match_odds.query("field=='odds_draw'").reset_index(drop=True).drop('field', axis=1)
         mo = sm.comp_mispriced(prob=pe,
                                odds=oe,
                                prob_threshold=0.3,
@@ -47,7 +48,7 @@ for div_k in leagues:
         fpnl = se.comp_pnl(positions=mo,
                            odds=oe,
                            results=results,
-                           event="lose",
+                           event="draw",
                            stake=10,
                            size_naive=True)
         # summary of evaluation
@@ -57,7 +58,7 @@ for div_k in leagues:
 
     print(div_k)
 
-# epnl_fin.to_excel(fp_cloud + 'res_data/' + 'results_approach_10' + '.xlsx', engine='openpyxl')
+# epnl_fin.to_excel(fp_cloud + 'res_data/' + 'results_approach_lose_10' + '.xlsx', engine='openpyxl')
 # epnl_fin.groupby(level=0)['val'].mean().round(2)
 
 # a = pd.read_excel(fp_cloud + 'res_data/results_approach_6.xlsx', index_col=0)

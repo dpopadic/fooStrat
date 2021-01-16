@@ -570,7 +570,7 @@ def max_event_odds_sym(data, field, new_field):
 
 
 
-def get_odds(data, field_home, field_away, field_draw):
+def get_odds(data, field_home, field_away, field_draw, field_25g):
     """Retrieves the maximum odds for every game and event in an easy to handle
     and scalable long format. Certain odds are implied (losing).
 
@@ -580,6 +580,7 @@ def get_odds(data, field_home, field_away, field_draw):
         field_home (list): list of all odds-fields for home win
         field_away (list): list of all odds-fields for away win
         field_draw (list): list of all odds-fields for draw win
+        field_25g (list): list of all odds-fields for above / below 2.5 goals win
 
     Returns:
     --------
@@ -596,8 +597,11 @@ def get_odds(data, field_home, field_away, field_draw):
     # -- draw odds
     mod = max_event_odds_sym(data, field = field_draw, new_field = 'odds_draw')
 
+    # -- above / below 2.5 goals
+    mog = max_event_odds_sym(data, field=field_25g, new_field='odds_25g')
+
     # bind all together
-    moc = pd.concat([moh, moa, mod], axis=0, sort=False, ignore_index=True)
+    moc = pd.concat([moh, moa, mod, mog], axis=0, sort=False, ignore_index=True)
     moc = moc.sort_values(['date', 'div', 'season']).reset_index(level=0, drop=True)
 
     # # -- implied losing odds
