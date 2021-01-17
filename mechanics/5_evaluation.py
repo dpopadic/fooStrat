@@ -4,14 +4,13 @@ import numpy as np
 from fooStrat.constants import fp_cloud
 import fooStrat.evaluation as se
 from fooStrat.modelling import est_prob, comp_mispriced
-from fooStrat.response import con_res
+from fooStrat.response import con_res_multi
 
 # DATA PREPARATIONS ---------------------------------------------------------------------------------------------------
 flib = pd.read_pickle(fp_cloud + 'pro_data/flib_e0.pkl')
 match_odds = pd.read_pickle(fp_cloud + 'pro_data/match_odds.pkl')
 source_core = pd.read_pickle(fp_cloud + 'pro_data/source_core.pkl')
-results = con_res(data=source_core, obj=['wdl', 'gd'], event='win')
-
+results = con_res_multi(data=source_core, obj=['win', 'gd'])
 # not working at season start with insufficient data
 # flib = flib.query("season not in ['2020']").reset_index(drop=True)
 

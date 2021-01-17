@@ -171,39 +171,72 @@ def con_res_wd(data, field, event=None, encoding=True):
 
 
 
-def con_res(data, obj, event=None):
+def con_res(data, obj):
     """Constructs results objects that are required for testing.
 
     Parameters:
     -----------
-        data (dataframe):       a dataframe with columns season, date, div, home_team, away_team, field, val
-        obj (string/list):      the object(s) to construct:
+        data:       pd DataFrame
+                    a table with columns season, date, div, home_team, away_team, field, val
+        obj:        str
+                    the object(s) to construct:
                                     gd:     goals difference by game
-                                    wdl:     win or draw by game (binary 0/1 if won, drew or lost for each team)
-        field (list or string): a string that defines the event for the object (eg. 'FTR' when wd or
-                                ['FTHG', 'FTAG'] when gd)
-        event (string)          optional, when obj is wdl, a specific event of interest only (eg. win)
+                                    wdl:    win, lose or draw by game (binary 0/1 if won, drew or lost for each team)
+                                    win:    win only for each game
+                                    draw:   draw only for each game
+                                    lose:   lose only for each game
+                                    25g:    above 2.5 gaosl for each game
 
     Returns:
     --------
         A dataframe with the results in optimal shape.
 
     """
-    wdl = gd = None
-    if "wdl" in obj:
-        wdl = con_res_wd(data=data, field='FTR', event=event)
+    if obj == "wdl":
+        res = con_res_wd(data=data, field='FTR')
+    elif obj == "win":
+        res = con_res_wd(data=data, field='FTR', event='win')
+    elif obj == "draw":
+        res = con_res_wd(data=data, field='FTR', event='draw')
+    elif obj == "lose":
+        res = con_res_wd(data=data, field='FTR', event='lose')
+    elif obj == "gd":
+        res = con_res_gd(data=data, field=['FTHG', 'FTAG'])
 
-    if "gd" in obj:
-        gd = con_res_gd(data=data, field=['FTHG', 'FTAG'])
-
-    if len(obj) <= 1 and obj[0] == 'wdl':
-        res = wdl
-    elif len(obj) <= 1 and obj[0] == 'gd':
-        res = gd
-    else:
-        res = {'wdl': wdl, 'gd': gd}
+    # if len(obj) <= 1 and obj[0] in ['wdl', 'w', 'd', 'l']:
+    #     res = wdl
+    # elif len(obj) <= 1 and obj[0] == 'gd':
+    #     res = gd
+    # else:
+    #     res = {'wdl': wdl, 'gd': gd}
 
     return res
+
+
+def con_res_multi(data, obj):
+    """Constructs the results objects required for testing. Same as `con_res` but
+    multiple event can be retrieved simultanously.
+
+        Parameters:
+    -----------
+        data:       pd DataFrame
+                    a table with columns season, date, div, home_team, away_team, field, val
+        obj:        list
+                    the object(s) to construct:
+                                    gd:     goals difference by game
+                                    wdl:    win, lose or draw by game (binary 0/1 if won, drew or lost for each team)
+                                    win:    win only for each game
+                                    draw:   draw only for each game
+                                    lose:   lose only for each game
+                                    25g:    above 2.5 gaosl for each game
+    """
+    res = pd.DataFrame()
+    for k in obj:
+        data_ = con_res(data=data, obj=k)
+        res = pd.concat([res, data_], axis=0, sort=True)
+
+    return res
+
 
 
 

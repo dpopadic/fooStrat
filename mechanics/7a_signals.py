@@ -17,7 +17,7 @@ ucg = pd.read_pickle(fp_cloud + 'pro_data/upcoming_games.pkl')
 flib = pd.read_pickle(fp_cloud + 'pro_data/flib.pkl')
 
 # data reshaping for evaluation
-results = con_res(data=source_core, obj=['wdl'], event='win')
+results = con_res(data=source_core, obj='win')
 dasetmod = sm.con_mod_datset_0(factors=flib, results=results)
 dasetmod = si.use_features(data=dasetmod)
 est_dates = con_est_dates(data=source_core, k=5, map_date=True, div=flib['div'].unique())
