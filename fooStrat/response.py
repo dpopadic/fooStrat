@@ -27,10 +27,41 @@ def con_res_gd(data, field):
     """
     # neutralise field for teams
     field_name = ['g_scored', 'g_received']
-    nf0 = fose.neutralise_field(data=data, field=field, field_name=field_name, field_numeric=True, column_field=True)
+    nf0 = fose.neutralise_field(data=data,
+                                field=field,
+                                field_name=field_name,
+                                field_numeric=True,
+                                column_field=True)
     nf0['val'] = nf0[field_name[0]] - nf0[field_name[1]]
     del nf0[field_name[0]]
     del nf0[field_name[1]]
+    return nf0
+
+
+def con_res_gt(data, field, threshold):
+    """Constructs the above / below n goals results object.
+
+    Parameters:
+    -----------
+        data:       pd DataFrame
+                    a table with columns season, date, div, home_team, away_team, field, val
+        field:      list
+                    a string that defines the goals scored & goals received fields in data from home team's
+                    perspective (eg. ['FTHG', 'FTAG'])
+        threshold:  float
+                    a treshold for the number of goals to buildthe results on (eg. 2.5 for above/below 2.5 goals)
+
+    """
+    field_name = ['g_scored', 'g_received']
+    nf0 = fose.neutralise_field(data=data,
+                                field=field,
+                                field_name=field_name,
+                                field_numeric=True,
+                                column_field=True)
+    nf0['val'] = nf0[field_name[0]] + nf0[field_name[1]]
+    del nf0[field_name[0]]
+    del nf0[field_name[1]]
+    nf0['val'] = nf0['val'].apply(lambda x: 1 if x >= threshold else 0)
     return nf0
 
 
@@ -202,6 +233,8 @@ def con_res(data, obj):
         res = con_res_wd(data=data, field='FTR', event='lose')
     elif obj == "gd":
         res = con_res_gd(data=data, field=['FTHG', 'FTAG'])
+    elif obj == "25g":
+        res = con_res_gt(data=data, field=['FTHG', 'FTAG'], threshold=2.5)
 
     # if len(obj) <= 1 and obj[0] in ['wdl', 'w', 'd', 'l']:
     #     res = wdl
