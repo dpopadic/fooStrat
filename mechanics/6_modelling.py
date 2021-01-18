@@ -12,7 +12,7 @@ from fooStrat.signals import use_features
 # pre-processed
 source_core = pd.read_pickle(fp_cloud + 'pro_data/source_core.pkl')
 match_odds = pd.read_pickle(fp_cloud + 'pro_data/match_odds.pkl')
-results = con_res(data=source_core, obj='win')
+results = con_res(data=source_core, obj='25g')
 leagues = flib_list(data=source_core)
 # leagues = leagues[3]
 # match_odds.query("div=='E0' & season=='2020' & date=='2021-01-04'")
@@ -34,7 +34,7 @@ for div_k in leagues:
     # note: p1 returns empty DF
     if len(pe) > 0:
         # derive mispriced events
-        oe = match_odds.query("field=='odds_win'").reset_index(drop=True).drop('field', axis=1)
+        oe = match_odds.query("field=='odds_25g'").reset_index(drop=True).drop('field', axis=1)
         mo = sm.comp_mispriced(prob=pe,
                                odds=oe,
                                prob_threshold=0.3,
@@ -43,7 +43,6 @@ for div_k in leagues:
         fpnl = se.comp_pnl(positions=mo,
                            odds=oe,
                            results=results,
-                           event="win",
                            stake=10,
                            size_naive=True)
         # summary of evaluation

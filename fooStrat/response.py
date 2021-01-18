@@ -236,17 +236,10 @@ def con_res(data, obj):
     elif obj == "25g":
         res = con_res_gt(data=data, field=['FTHG', 'FTAG'], threshold=2.5)
 
-    # if len(obj) <= 1 and obj[0] in ['wdl', 'w', 'd', 'l']:
-    #     res = wdl
-    # elif len(obj) <= 1 and obj[0] == 'gd':
-    #     res = gd
-    # else:
-    #     res = {'wdl': wdl, 'gd': gd}
-
     return res
 
 
-def con_res_multi(data, obj):
+def con_res_multi(data, obj, as_list=True):
     """Constructs the results objects required for testing. Same as `con_res` but
     multiple event can be retrieved simultanously.
 
@@ -263,10 +256,18 @@ def con_res_multi(data, obj):
                                     lose:   lose only for each game
                                     25g:    above 2.5 gaosl for each game
     """
-    res = pd.DataFrame()
+    if as_list is True:
+        res = {}
+    else:
+        res = pd.DataFrame()
+
     for k in obj:
         data_ = con_res(data=data, obj=k)
-        res = pd.concat([res, data_], axis=0, sort=True)
+        if as_list is True:
+            res.update({k: data_})
+        else:
+            data_['field'] = k
+            res = pd.concat([res, data_], axis=0, sort=True)
 
     return res
 

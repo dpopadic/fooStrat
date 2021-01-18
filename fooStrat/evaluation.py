@@ -57,15 +57,14 @@ def eval_feature(data, results, feature, categorical=False):
 
 
 
-def comp_pnl(positions, odds, results, event, stake, size_naive=True):
+def comp_pnl(positions, odds, results, stake, size_naive=True):
     """Calculates the PnL of a factor. Note that the factor needs to be adjusted for lookahead bias.
 
     Parameters:
     -----------
         positions (dataframe): a dataframe with intended positions with season, div, date, team
         odds (dataframe): a dataframe with odds data and columns season, div, date, team, field, val
-        results (dataframe): a dataframe with results and columns season, div, date, team, field, val
-        event (string): a string defining the event (eg. 'win')
+        results (dataframe): a dataframe with results and columns season, div, date, team, val
         stake (double): the stake for each bet (eg. 10)
         size_naive (boolean): whether to size bets naively (equal amount for each bet) or using kelly criterion
 
@@ -93,9 +92,7 @@ def comp_pnl(positions, odds, results, event, stake, size_naive=True):
 
     # add odds to positions
     pay = pd.merge(positions, odds, on=['div', 'season', 'date', 'team'], how='left')
-    # retrieve the right odds
-    res_0 = results.query('field == @event').reset_index(drop=True)
-    res_0.drop('field', axis=1, inplace=True)
+    res_0 = results.copy()
     res_0.rename(columns={'val': 'res'}, inplace=True)
     # add the actual result
     payres = pd.merge(pay, res_0, on=['div', 'season', 'date', 'team'], how='left')

@@ -84,7 +84,8 @@ def con_mod_datset_0(factors, results):
                                columns='field',
                                values='val').reset_index()
 
-    rcon = results.drop(['field'], axis=1)
+    # rcon = results.drop(['field'], axis=1)
+    rcon = results.copy()
     rcon.rename(columns={'val': 'result'}, inplace=True)
 
     # signals and results
