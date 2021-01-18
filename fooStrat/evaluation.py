@@ -223,8 +223,8 @@ def pnl_eval_summary(z):
     streak = np.array(streak)
     streak_win_mean = np.mean(streak[streak > 0])
     streak_lose_mean = np.abs(np.mean(streak[streak < 0]))
-    streak_win_max = np.max(streak[streak > 0])
-    streak_lose_max = np.abs(np.min(streak[streak < 0]))
+    streak_win_max = [np.nan if (len(streak[streak > 0]) == 0) else np.abs(np.max(streak[streak > 0]))][0]
+    streak_lose_max = [np.nan if (len(streak[streak < 0]) == 0) else np.abs(np.min(streak[streak < 0]))][0]
     # number of bets
     n_bets = len(z)
     # cumulative gain
