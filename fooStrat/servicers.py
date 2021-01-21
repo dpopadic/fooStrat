@@ -805,3 +805,16 @@ def flib_list(data):
 
 
 
+def elim_na_features(data, min=0.70):
+    """Eliminates features where the majority of observations are missing."""
+    fix = ['div', 'season', 'date', 'field', 'team', 'result']
+    voi = data.columns[~data.columns.isin(fix)]
+    data_ = data.groupby('div')[voi].apply(lambda x: x.notna().sum() / len(x)).reset_index()
+    rc = data_[voi] > min
+    rc = fix + list(voi[rc.values[0]])
+    res = data[rc]
+    res = res.dropna().reset_index(level=0, drop=True)
+    return res
+
+
+
