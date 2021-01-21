@@ -94,8 +94,12 @@ def con_mod_datset_0(factors, results):
                      how='inner')
 
     # drop rows where variables have no data at all
-    arcon = arcon.dropna().reset_index(level=0, drop=True)
+    # voi = arcon.columns[~arcon.columns.isin(['div', 'season', 'date', 'field', 'team', 'result'])]
+    # a = arcon.groupby('div')[voi].apply(lambda x: x.isna().sum() / len(x)).reset_index()
+    # arcon = arcon.dropna().reset_index(level=0, drop=True)
 
+    # na's can't be dropped here since some variables don't have any data at all for certain leagues
+    arcon = arcon.reset_index(level=0, drop=True)
     return arcon
 
 
