@@ -6,7 +6,7 @@ import fooStrat.modelling as sm
 import fooStrat.evaluation as se
 import fooStrat.signals as si
 from fooStrat.response import con_res
-from fooStrat.servicers import con_est_dates, neutralise_field
+from fooStrat.servicers import con_est_dates, neutralise_field, elim_na_features
 
 
 # DATA LOADING --------------------------------------------------------------------------------------------------------
@@ -19,6 +19,7 @@ flib = pd.read_pickle(fp_cloud + 'pro_data/flib.pkl')
 # data reshaping for evaluation
 results = con_res(data=source_core, obj='lose')
 dasetmod = sm.con_mod_datset_0(factors=flib, results=results)
+dasetmod = elim_na_features(data=dasetmod)
 dasetmod = si.use_features(data=dasetmod)
 est_dates = con_est_dates(data=source_core, k=5, map_date=True, div=flib['div'].unique())
 # est_dates[est_dates['div']=='D1']
