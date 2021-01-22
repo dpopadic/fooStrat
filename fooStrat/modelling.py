@@ -201,27 +201,16 @@ def est_hist_proba(data,
 
     return res
 
-
-def est_proba_nb(data, per_ind, t_fit, t_pred, lookback, categorical):
-    """Estimate historical probabilities."""
-    X_train, X_test, y_train, meta_test = con_mod_datset_1(data=data,
-                                                           per_ind=per_ind,
-                                                           t_fit=t_fit,
-                                                           t_pred=t_pred,
-                                                           per=lookback,
-                                                           categorical=categorical)
-    if len(X_train) < 1 or len(X_test) < 1:
-        est_proba = pd.DataFrame()
-    else:
-        # make no predictions if only 1 class (eg. win) is present in training set (revisit this later)
-        try:
-            z = GaussianNB().fit(X_train, y_train).predict_proba(X_test)[:, 1]
-            est_proba = pd.concat([meta_test, pd.DataFrame(z, columns=['val'])], axis=1)
-        except:
-            est_proba = pd.DataFrame()
-
-    return est_proba
-
+dfz.query("team == 'liverpool'").reset_index(drop=True)
+data_ = data.query("team == 'liverpool'").reset_index(drop=True)
+bbb.query("team == 'liverpool'").reset_index(drop=True)
+bbb = est_proba_ensemble(data=data_,
+                         per_ind=per_ind,
+                         t_fit=t_fit,
+                         t_pred=t_pred,
+                         lookback=lookback,
+                         categorical=categorical,
+                         models=models)
 
 
 def est_proba_ensemble(data, per_ind, t_fit, t_pred, lookback, categorical, models, pred_mode=False):
@@ -287,6 +276,25 @@ def mod_periods(est_dates, start_date=None, latest_only=False):
 
 
 
+def est_proba_nb(data, per_ind, t_fit, t_pred, lookback, categorical):
+    """Estimate historical probabilities."""
+    X_train, X_test, y_train, meta_test = con_mod_datset_1(data=data,
+                                                           per_ind=per_ind,
+                                                           t_fit=t_fit,
+                                                           t_pred=t_pred,
+                                                           per=lookback,
+                                                           categorical=categorical)
+    if len(X_train) < 1 or len(X_test) < 1:
+        est_proba = pd.DataFrame()
+    else:
+        # make no predictions if only 1 class (eg. win) is present in training set (revisit this later)
+        try:
+            z = GaussianNB().fit(X_train, y_train).predict_proba(X_test)[:, 1]
+            est_proba = pd.concat([meta_test, pd.DataFrame(z, columns=['val'])], axis=1)
+        except:
+            est_proba = pd.DataFrame()
+
+    return est_proba
 
 
 def est_hist_prob_rf(arcon, est_dates, start_date=None):

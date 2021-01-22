@@ -17,6 +17,9 @@ leagues = flib_list(data=source_core)
 # nf0.query("div=='E0' & season=='2020' & date=='2021-01-04'")
 # div_k = 'e0'
 
+a = pe.query("date >= '2020-12-01'").sort_values('date')
+fpnl.query("date >= '2020-12-01'").sort_values('date')
+b = source_core.query("div == 'E0' & field == 'FTR' & date >= '2020-12-01'").sort_values('date')
 
 epnl_fin = pd.DataFrame()
 for div_k in leagues:
@@ -30,7 +33,7 @@ for div_k in leagues:
     pe = sm.est_hist_proba(data=dasetmod_fi,
                            est_dates=est_dates,
                            start_date=np.datetime64('2015-01-01'),
-                           lookback='364W',
+                           lookback='520W',
                            categorical=['home'],
                            models=['nb', 'knn', 'lg', 'dt'])
     # note: p1 returns empty DF
