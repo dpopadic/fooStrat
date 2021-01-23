@@ -188,7 +188,7 @@ def est_hist_proba(data,
     for t in range(1, len(per_iter)):
         t_fit = per_iter[t - 1]
         t_pred = per_iter[t]
-        dfz = data.groupby(by,
+        dfz = data.groupby('team',
                            as_index=False,
                            group_keys=False).apply(lambda x: est_proba_ensemble(data=x,
                                                                                 per_ind=per_ind,
@@ -201,16 +201,41 @@ def est_hist_proba(data,
 
     return res
 
-dfz.query("team == 'liverpool'").reset_index(drop=True)
-data_ = data.query("team == 'liverpool'").reset_index(drop=True)
-bbb.query("team == 'liverpool'").reset_index(drop=True)
-bbb = est_proba_ensemble(data=data_,
-                         per_ind=per_ind,
-                         t_fit=t_fit,
-                         t_pred=t_pred,
-                         lookback=lookback,
-                         categorical=categorical,
-                         models=models)
+
+
+def est_hist_proba_long(data,
+                        est_dates,
+                        start_date=None,
+                        lookback='156W',
+                        categorical=None,
+                        models=['nb', 'knn', 'lg', 'dt']):
+    """Estimate historical probability using an ensemble model. By default,
+    four classification models are estimated: naive bayes, knn, logistic regression
+    and a random forest tree model. Models are estimated for each team by default."""
+    per_iter = mod_periods(est_dates=est_dates, start_date=start_date)
+    per_ind = est_dates[['div', 'season', 'date']]
+    res = pd.DataFrame()
+    for t in range(1, len(per_iter)):
+        t_fit = per_iter[t - 1]
+        t_pred = per_iter[t]
+        tu = data['team'].unique()
+        res_pre = pd.DataFrame()
+        for k in tu:
+            data_ = data.query("team == @k").reset_index(drop=True)
+            tmp = est_proba_ensemble(data=data_,
+                                     per_ind=per_ind,
+                                     t_fit=t_fit,
+                                     t_pred=t_pred,
+                                     lookback=lookback,
+                                     categorical=categorical,
+                                     models=models)
+            res_pre = pd.concat([res_pre, tmp])
+
+        res = pd.concat([res, res_pre])
+
+    return res
+
+
 
 
 def est_proba_ensemble(data, per_ind, t_fit, t_pred, lookback, categorical, models, pred_mode=False):
