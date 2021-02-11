@@ -444,8 +444,8 @@ def feat_strength(data, k=3):
     tmp = pd.concat([xm2_ed, xm2_edc], axis=0, sort=True)
 
     # add dummy-date &  lag factor
-    tmp = fose.insert_tp1_vals(data=tmp)
-    tmp_lag = tmp.sort_values(['team', 'date']).reset_index(drop=True)
+    tmp_tp1 = fose.insert_tp1_vals(data=tmp)
+    tmp_lag = tmp_tp1.sort_values(['team', 'date']).reset_index(drop=True)
     tmp_lag['val'] = tmp_lag.groupby(['team', 'field'])['val'].shift(1)
 
     # neutralise for new entrants

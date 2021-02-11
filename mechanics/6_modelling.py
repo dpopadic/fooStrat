@@ -17,6 +17,8 @@ leagues = flib_list(data=source_core)
 # nf0.query("div=='E0' & season=='2020' & date=='2021-01-04'")
 # div_k = 'e0'
 
+a = flib.query("div=='E0' & season==2020 & team == 'west_ham' & date=='2020-12-21'")
+dasetmod_fi.query("div=='E0' & season=='2020' & date=='2021-01-04'")
 
 epnl_fin = pd.DataFrame()
 for div_k in leagues:
