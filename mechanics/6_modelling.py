@@ -18,7 +18,7 @@ leagues = flib_list(data=source_core)
 # div_k = 'e0'
 
 a = flib.query("div=='E0' & season==2020 & team == 'west_ham' & date=='2020-12-21'")
-dasetmod_fi.query("div=='E0' & season=='2020' & date=='2021-01-04'")
+aa = dasetmod_fi.query("div=='E0' & season=='2020' & team=='west_ham'")
 
 epnl_fin = pd.DataFrame()
 for div_k in leagues:
@@ -34,7 +34,7 @@ for div_k in leagues:
                            start_date=np.datetime64('2015-01-01'),
                            lookback='520W',
                            categorical=['home'],
-                           models=['lg'])
+                           models=['nb', 'knn', 'lg', 'dt'])
     # note: p1 returns empty DF
     if len(pe) > 0:
         # derive mispriced events
