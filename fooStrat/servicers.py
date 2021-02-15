@@ -814,9 +814,15 @@ def elim_na_features(data, min=0.70):
     fix = ['div', 'season', 'date', 'field', 'team', 'result']
     voi = data.columns[~data.columns.isin(fix)]
     data_ = data.groupby('div')[voi].apply(lambda x: x.notna().sum() / len(x)).reset_index()
+    # eliminate features that don't fullfill the minimum requirement
     rc = data_[voi] > min
     rc = fix + list(voi[rc.values[0]])
     res = data[rc]
+    # eliminate features that are no longer active as of latest
+    inact = res.tail(10).isna().sum(axis=0)
+    inact = inact[inact == 10].index.to_list()
+    res = res.drop(inact, axis=1)
+    # drop any other na's
     res = res.dropna().reset_index(level=0, drop=True)
     return res
 
