@@ -5,7 +5,7 @@ from fooStrat.constants import fp_cloud
 import fooStrat.modelling as sm
 import fooStrat.evaluation as se
 from fooStrat.response import con_res
-from fooStrat.servicers import con_est_dates, flib_list
+from fooStrat.servicers import con_est_dates, flib_list, elim_na_features
 from fooStrat.signals import use_features
 
 # DATA LOADING --------------------------------------------------------------------------------------------------------
@@ -23,6 +23,13 @@ for div_k in leagues:
     flib = pd.read_pickle(fp_cloud + 'pro_data/flib_' + div_k + '.pkl')
     # data reshaping for evaluation
     dasetmod = sm.con_mod_datset_0(factors=flib, results=results)
+    dasetmod_fi = use_features(data=dasetmod,
+                               foi=['goal_superiority', 'home', 'avg_goal_scored', 'form_all',
+                                    'attack_strength', 'not_failed_scoring', 'points_per_game',
+                                    'shots_attempted_tgt', 'h2h_next_opponent_chance'])
+
+    dasetmod_fi = elim_na_features(data=dasetmod_fi)
+
     est_dates = con_est_dates(data=source_core, k=5, map_date=True, div=flib['div'].unique())
     dasetmod_fi = use_features(data=dasetmod,
                                foi=['goal_superiority', 'home', 'avg_goal_scored', 'form_all',
@@ -35,7 +42,7 @@ for div_k in leagues:
                            start_date=np.datetime64('2015-01-01'),
                            lookback='364W',
                            categorical=['home'],
-                           models=['lg'])
+                           models=['nb', 'knn', 'lg', 'dt'])
     # note: p1 returns empty DF
     if len(pe) > 0:
         # derive mispriced events

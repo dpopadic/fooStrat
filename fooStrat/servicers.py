@@ -811,7 +811,8 @@ def flib_list(data):
 
 def elim_na_features(data, min=0.70):
     """Eliminates features where the majority of observations are missing."""
-    fix = ['div', 'season', 'date', 'field', 'team', 'result']
+    # fix = ['div', 'season', 'date', 'field', 'team', 'result']
+    fix = ['div', 'season', 'date', 'team', 'result']
     voi = data.columns[~data.columns.isin(fix)]
     data_ = data.groupby('div')[voi].apply(lambda x: x.notna().sum() / len(x)).reset_index()
     # eliminate features that don't fullfill the minimum requirement
@@ -819,8 +820,8 @@ def elim_na_features(data, min=0.70):
     rc = fix + list(voi[rc.values[0]])
     res = data[rc]
     # eliminate features that are no longer active as of latest
-    inact = res.tail(10).isna().sum(axis=0)
-    inact = inact[inact == 10].index.to_list()
+    inact = res.tail(100).isna().sum(axis=0)
+    inact = inact[inact >= 50].index.to_list()
     res = res.drop(inact, axis=1)
     # drop any other na's
     res = res.dropna().reset_index(level=0, drop=True)

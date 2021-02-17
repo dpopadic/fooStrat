@@ -6,7 +6,7 @@ import fooStrat.modelling as sm
 import fooStrat.evaluation as se
 import fooStrat.signals as si
 from fooStrat.response import con_res
-from fooStrat.servicers import con_est_dates, neutralise_field, elim_na_features
+from fooStrat.servicers import con_est_dates, elim_na_features
 
 
 # DATA LOADING --------------------------------------------------------------------------------------------------------
