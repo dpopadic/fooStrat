@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 import fooStrat.servicers as fose
-
+from itertools import chain
 
 
 def eval_feature(data, results, feature, categorical=False):
@@ -209,8 +209,17 @@ def info_coef(data, results, byf=None):
     return ic
 
 
-def pnl_eval_summary(z):
+
+
+def pnl_eval_summary(x):
     """P&L evaluation summary"""
+    # payoff by season
+    profit_by_season = np.round(x.groupby('season').sum().values, 1)
+    profit_by_season = list(chain(*profit_by_season.tolist()))
+
+    # payoff vector
+    z = x['payoff'].values
+
     # hit ratio
     n_won = np.sum(z > 0)
     n_lost = np.sum(z < 0)
@@ -230,9 +239,9 @@ def pnl_eval_summary(z):
     # cumulative gain
     profit_total = np.sum(z)
     rn = ['hit_ratio', 'n_bets', 'payoff_bet_mean', 'payoff_bet_wins', 'streak_win_mean',
-          'streak_lose_mean', 'streak_win_max', 'streak_lose_max', 'profit_total']
+          'streak_lose_mean', 'streak_win_max', 'streak_lose_max', 'profit_total', 'profit_by_season']
     va = [hit_ratio, n_bets, payoff_bet_mean, payoff_bet_wins, streak_win_mean,
-          streak_lose_mean, streak_win_max, streak_lose_max, profit_total]
+          streak_lose_mean, streak_win_max, streak_lose_max, profit_total, profit_by_season]
     q = pd.DataFrame(va, columns=['val'], index=rn)
     return q
 

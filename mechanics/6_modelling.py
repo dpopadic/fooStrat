@@ -15,7 +15,7 @@ match_odds = pd.read_pickle(fp_cloud + 'pro_data/match_odds.pkl')
 results = con_res(data=source_core, obj='win')
 leagues = flib_list(data=source_core)
 # nf0.query("div=='E0' & season=='2020' & date=='2021-01-04'")
-# div_k = 'e2'
+# div_k = 'e0'
 
 epnl_fin = pd.DataFrame()
 for div_k in leagues:
@@ -48,7 +48,7 @@ for div_k in leagues:
                            stake=10,
                            size_naive=True)
         # summary of evaluation
-        epnl = se.pnl_eval_summary(z=fpnl['payoff'].values)
+        epnl = se.pnl_eval_summary(x=fpnl[['season', 'payoff']])
         epnl['div'] = fpnl['div'][0]
         epnl_fin = pd.concat([epnl_fin, epnl], axis=0, sort=True)
 
