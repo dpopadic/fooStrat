@@ -55,6 +55,19 @@ def eval_feature(data, results, feature, categorical=False):
     return res
 
 
+def comp_pnl_eval(x, stake):
+    weight = x[2]
+    if x[1] == 0:
+        if np.isnan(x[0]):
+            z = np.nan
+        else:
+            z = -1 * stake * weight
+    elif x[1] == 1:
+        z = (x[0] - 1) * stake * weight
+    else:
+        z = 0
+
+    return z
 
 
 def comp_pnl(positions, odds, results, stake, size_naive=True):
@@ -74,22 +87,6 @@ def comp_pnl(positions, odds, results, stake, size_naive=True):
         season | div | date | team | field | val | res | payoff | payoff_cum
 
     """
-
-    # define helper function
-    def f0(x, stake):
-
-        weight = x[2]
-        if x[1] == 0:
-            if np.isnan(x[0]):
-                z = np.nan
-            else:
-                z = -1 * stake * weight
-        elif x[1] == 1:
-            z = (x[0] - 1) * stake * weight
-        else:
-            z = 0
-        return z
-
     # add odds to positions
     pay = pd.merge(positions, odds, on=['div', 'season', 'date', 'team'], how='left')
     res_0 = results.copy()
@@ -104,7 +101,7 @@ def comp_pnl(positions, odds, results, stake, size_naive=True):
         payres['weight'] = payres['implied'] - (1 - payres['implied']) / (payres['val'] - 1)
 
     # calculate pnl
-    payres['payoff'] = payres.loc[:, ['val', 'res', 'weight']].apply(f0, stake=stake, axis=1)
+    payres['payoff'] = payres.loc[:, ['val', 'res', 'weight']].apply(comp_pnl_eval, stake=stake, axis=1)
     # cumulative pnl
     payres['payoff_cum'] = payres.loc[:, 'payoff'].cumsum(skipna=True)
     return payres
