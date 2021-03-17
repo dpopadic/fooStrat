@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 import fooStrat.servicers as fose
 from itertools import chain
-
+from fooStrat.response import con_res
 
 def eval_feature(data, results, feature, categorical=False):
     """Evaluate the efficacy of a feature. Returns a dictionary with:
@@ -263,6 +263,35 @@ def streaks_analysis(x):
     return y
 
 
+
+def trade_monitor(data, path):
+
+    res = pd.DataFrame()
+    for k in ['win', 'lose']:
+        results = con_res(data=data, obj=k)
+        data_ed = pd.read_excel(path + 'predictions_' + k + '.xlsx',
+                                sheet_name=k,
+                                index_col=0)
+
+        data_ed = data_ed[['div', 'season', 'date_play', 'team', 'market']]
+        data_ed.rename(columns={'date_play': 'date'}, inplace=True)
+        data_ = pd.merge(data_ed,
+                         results[['div', 'season', 'date', 'team', 'val']],
+                         on=['div', 'season', 'date', 'team'],
+                         how='left')
+        data_ = data_.dropna()
+        data_.rename(columns={'date_play': 'date', 'val': 'res'}, inplace=True)
+        data_['weight'] = 1
+        data_['val'] = 1 / data_['market']
+        data_['payoff'] = data_.loc[:, ['val', 'res', 'weight']].apply(comp_pnl_eval, stake=10, axis=1)
+        data_['event'] = k
+        data_ = data_.drop(['market', 'weight', 'val'], axis=1)
+        res = pd.concat([res, data_], axis=0)
+        res = res.sort_values(['date', 'div']).reset_index(drop=True)
+
+    res['payoff_cum'] = res.loc[:, 'payoff'].cumsum(skipna=True)
+    res.to_excel(path + 'trade_monitor_' + '.xlsx', engine='openpyxl')
+    print('Trade monitor is updated.')
 
 
 
