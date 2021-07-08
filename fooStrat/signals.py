@@ -89,6 +89,7 @@ def register_predictions(data, event, path=fp_cloud, overwrite=False):
         ex = pd.read_excel(fp,
                            sheet_name=event,
                            index_col=0)
+
         # make sure date objects are correct
         ex['date'] = ex['date'].apply(lambda x: np.datetime64(x))
         ex['date_play'] = ex['date_play'].apply(lambda x: np.datetime64(x))
@@ -98,6 +99,8 @@ def register_predictions(data, event, path=fp_cloud, overwrite=False):
         new = new[new['date'].notnull()]
         upd = pd.concat([ex, new], axis=0, sort=True)
         upd = upd.sort_values(['date_play', 'date_pred']).reset_index(drop=True)
+        # transform dates to objects so it's easier to view outside excel
+        # upd[['date', 'date_play']] = upd[['date', 'date_play']].astype("object")
         upd.to_excel(fp, sheet_name=event, engine='openpyxl')
 
     else:
