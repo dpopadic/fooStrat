@@ -247,8 +247,10 @@ def synchronise_data(data):
     res.drop(['season'], axis=1, inplace=True)
     res.rename(columns={'season_new': 'season'}, inplace=True)
 
-    # league mapping -------------
-    divd = {'Argentina Copa Diego Maradona': 'Argentina Superliga'}
+    # league division restatements mapping -------------
+    divd = {'Argentina Copa Diego Maradona': 'Argentina Superliga',
+            'Copa de la Liga Profesional': 'Argentina Superliga',
+            'Argentina Copa de la Liga Profesional 2021': 'Argentina Superliga'}
     res = res.replace({'div': divd})
 
     # unique data items ----------
